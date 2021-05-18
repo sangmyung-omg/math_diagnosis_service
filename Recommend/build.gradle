@@ -21,15 +21,16 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	runtimeOnly 'com.oracle.database.jdbc:ojdbc8'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.apache.httpcomponents:httpclient'
 	implementation 'com.google.code.gson:gson'
 	compile 'ch.qos.logback:logback-classic'
+	compile files("libs/tibero/tibero6-jdbc.zip")	
 }
 
 test {
