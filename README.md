@@ -33,3 +33,6 @@
 
 - src/main/resources/application.properties 파일의 'spring.datasource.initialization-mode' 를 never -> always 로 변경 및 저장
 - Run (or 이미 Run 상태이면 자동으로 리부트 됨)
+
+- *5/20* : Spring Boot에서 "DROP IF EXISTS" 적용 불가 (ORACLE의 PL/SQL이 schema.sql에서 적용 안됨)
+  + 첫 서버 구동 시 schema.sql 적용 / 이후부터는 schema.sql의 맨 처음 주석 부분 (DROP문) 주석 해제하면 schema.sql 수정 및 반영 가능.
