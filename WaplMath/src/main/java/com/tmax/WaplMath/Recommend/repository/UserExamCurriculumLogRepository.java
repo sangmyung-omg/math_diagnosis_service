@@ -34,7 +34,7 @@ public interface UserExamCurriculumLogRepository extends CrudRepository<UserExam
 	List<String> findAllSupCardUkUuid(@Param("userUuid") String userUuid);
 
 	@Query("select distinct uk "
-				+ "from UserExamCurriculumLogDAO ue, CardProblemMappingDAO cp, UserKnowledgeDAO uk " 
+				+ "from UserExamCurriculumLog ue, CardProblemMapping cp, UserKnowledge uk " 
 			+ "where "
 				+ "ue.userUuid=:userUuid and " 
 				+ "ue.cardSequence>:supCardSequence and " 
