@@ -8,7 +8,9 @@
   + Tibero 계정 ID/PW 는 waplmath/waplmath 로 일단 통일.
   + application.properties 파일 내 spring.datasource.url의 ip를 로컬 tibero ip로 변경.
   + application.properties 는 commit 제외.
-
+- *5/20* : Spring Boot에서 "DROP IF EXISTS" 적용 불가 (ORACLE의 PL/SQL이 schema.sql에서 적용 안됨)
+  + 첫 서버 구동 시 schema.sql 적용 / 이후부터는 schema.sql의 맨 처음 주석 부분 (DROP문) 주석 해제하면 schema.sql 수정 및 반영 가능.
+  
 ## DB 생성 및 initialize
 - src/main/resources 폴더 내로 sql 파일 위치
   + schema.sql = DB 테이블 생성
@@ -17,8 +19,6 @@
 - src/main/resources/application.properties 파일의 'spring.datasource.initialization-mode' 를 never -> always 로 변경 및 저장
 - Run (or 이미 Run 상태이면 자동으로 리부트 됨)
 
-- *5/20* : Spring Boot에서 "DROP IF EXISTS" 적용 불가 (ORACLE의 PL/SQL이 schema.sql에서 적용 안됨)
-  + 첫 서버 구동 시 schema.sql 적용 / 이후부터는 schema.sql의 맨 처음 주석 부분 (DROP문) 주석 해제하면 schema.sql 수정 및 반영 가능.
   
 ## Configuration
 - [Spring Initilaizer](https://start.spring.io/) 를 이용한 초기 프로젝트 생성 옵션
