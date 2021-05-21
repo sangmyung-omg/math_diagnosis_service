@@ -77,8 +77,9 @@ public class DiagnosisController {
 			@RequestParam String part,
 			@RequestParam String is_adaptive) throws Exception {
 		if (userId == null) {
-			userId = UUID.randomUUID().toString();
-			System.out.println("NO UserId");
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("resultMessage", "No userId");
+			return map;
 		}
 		System.out.println(userId + ", " + diagType + ", " + part + ", " + is_adaptive);
 		Map<String, Object> map = new HashMap<String, Object>();
