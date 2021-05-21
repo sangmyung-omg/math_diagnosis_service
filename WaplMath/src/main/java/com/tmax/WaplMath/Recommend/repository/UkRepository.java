@@ -9,6 +9,6 @@ import com.tmax.WaplMath.Recommend.model.Uk;
 
 public interface UkRepository extends CrudRepository<Uk, String>{
 	
-	@Query("SELECT ud FROM UkDAO ud WHERE SUBSTR(ud.curriculumId, 1, 11) = ?1 order by ud.curriculumId")
+	@Query("SELECT ud FROM Uk ud WHERE SUBSTR(ud.curriculumId, 1, 11) = ?1 order by ud.curriculumId")
 	List<Uk> findAllByCurriculumId(String chapterId);
 }

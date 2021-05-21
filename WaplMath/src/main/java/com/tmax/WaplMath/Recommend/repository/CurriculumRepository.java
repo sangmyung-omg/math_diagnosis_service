@@ -9,10 +9,10 @@ import org.springframework.data.repository.query.Param;
 import com.tmax.WaplMath.Recommend.model.Curriculum;
 
 public interface CurriculumRepository extends CrudRepository<Curriculum, String> {
-	@Query("SELECT DISTINCT CM.chapter FROM CurriculumDAO CM WHERE CM.curriculumId LIKE ?1")
+	@Query("SELECT DISTINCT CM.chapter FROM Curriculum CM WHERE CM.curriculumId LIKE ?1")
 	List<String> findAllByCurriculumIdLike(String curriculumId);
 
-	@Query("SELECT CM FROM CurriculumDAO CM WHERE CM.grade = ?1 AND CM.chapter = ?2 AND CHAR_LENGTH(CM.curriculumId)=11")
+	@Query("SELECT CM FROM Curriculum CM WHERE CM.grade = ?1 AND CM.chapter = ?2 AND CHAR_LENGTH(CM.curriculumId)=11")
 	Curriculum findByChapter(String grade, String chapter);
 
 	@Query(value="SELECT * "
