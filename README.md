@@ -4,10 +4,14 @@
 - [Redmine](http://192.168.154.140:3001/projects/waplmath_sap/)
 
 ## 유의사항
+### DB
 - 개발 중 DB 생성 및 테스트는 로컬 tibero에 계정 생성 후 연결해서 사용해주세요.
   + Tibero 계정 ID/PW 는 waplmath/waplmath 로 일단 통일.
   + application.properties 파일 내 spring.datasource.url의 ip를 로컬 tibero ip로 변경.
   + application.properties 는 commit 제외.
+  
+### Lombok 설치
+- [lombok 설치하기](https://the-dev.tistory.com/27) 하단 "다운로드 한 Lombok 설치하기" 부터 참고
 
 ## DB 생성 및 initialize
 - src/main/resources 폴더 내로 sql 파일 위치
