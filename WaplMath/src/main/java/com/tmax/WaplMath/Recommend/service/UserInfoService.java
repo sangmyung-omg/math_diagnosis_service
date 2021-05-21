@@ -22,14 +22,15 @@ import com.tmax.WaplMath.Recommend.repository.UserRepository;
 
 @Service
 public class UserInfoService {
-	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+	
+	@Autowired
+	private UserRepository userRepository;
+	/*
 
 	@Autowired
 	private CurriculumRepository curriculumRepository;
 
-	@Autowired
-	private UserRepository userRepository;
 
 	public List<String> getChapterNameList(String grade, String semester) {
 		List<String> list = new ArrayList<String>();
@@ -65,7 +66,7 @@ public class UserInfoService {
 			return "error : Check the chatper! No chapterId matched with the chapter name";
 		return "Successfully updated";
 	}
-
+*/
 	public User getUserInfo(String userId) {
 		User result = new User();
 		List<String> input = new ArrayList<String>();
@@ -78,7 +79,7 @@ public class UserInfoService {
 		}
 		return result;
 	}
-
+/*
 	public Map<String, String> updateExamInfo(Map<String, Object> input) {
 		Map<String, String> output = new HashMap<String, String>();
 		String userId = (String) input.get("userId");

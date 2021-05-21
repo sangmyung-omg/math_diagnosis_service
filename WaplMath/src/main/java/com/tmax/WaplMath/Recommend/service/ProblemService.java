@@ -13,9 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.common.DemoChapterPartMapper;
+import com.tmax.WaplMath.Recommend.model.Curriculum;
 import com.tmax.WaplMath.Recommend.model.ProblemDemo;
 import com.tmax.WaplMath.Recommend.model.ProblemSetDemo;
 import com.tmax.WaplMath.Recommend.model.User;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.ProblemDemoRepository;
 import com.tmax.WaplMath.Recommend.repository.ProblemSetRepository;
 
@@ -23,7 +25,7 @@ import com.tmax.WaplMath.Recommend.repository.ProblemSetRepository;
 @Service
 public class ProblemService {
 	
-	/*
+	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	@Autowired
@@ -35,16 +37,34 @@ public class ProblemService {
 	@Autowired
 	ProblemDemoRepository problemRepository;
 	
+	@Autowired
+	CurriculumRepository curriculumRepository;
 	
-	public List<Map<String, String>> getNextProblemSet(String userId, String diagType, String part, String is_adaptive){
+	
+	public List<Map<String, String>> getNextProblemSet(String userId, String diagType, String part){
 
 		List<Map<String, String>> list = new ArrayList<Map<String,String>>();
 		
 		// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
+		List<Curriculum> currQueryResult = curriculumRepository.findChaptersByParts(part);
+		Map<String, List<String>> chapterIdList2 = new HashMap<String, List<String>>();
+		for (Curriculum curr : currQueryResult){
+			if (chapterIdList2.containsKey(curr.getPart())) {
+				chapterIdList2.get(curr.getPart()).add(curr.getCurriculumId());
+			} else {
+				List<String> temp = new ArrayList<String>();
+				temp.add(curr.getCurriculumId());
+				chapterIdList2.put(curr.getPart(), temp);
+			}
+		}
+		logger.info(chapterIdList2.toString());
+		
+		
 		// 일단은 static하게 dummy 리스트 가지고 있는 것 불러오기
 		DemoChapterPartMapper chapterPartMapper = new DemoChapterPartMapper();
 		Map<String, List<String>> chapterIdList = chapterPartMapper.getMappingInfo();
 		
+		logger.info(chapterIdList.toString());
 		System.out.println(chapterIdList);
 		
 		System.out.println("containsKey : " + chapterIdList.containsKey(part));
@@ -173,12 +193,12 @@ public class ProblemService {
 			map.put("uk", pddao.getUkDao().getUkName());
 			map.put("ukId", pddao.getUkUuid());
 			
-			// 아직 2학기 내용에 대한 문제유형이 등록되어 있지 않음.
-			if (pddao.getProbTypeUuid() != null) {
-				map.put("problemType", pddao.getTypeUkDao().getTypeUkName());				
-			} else {
-				map.put("problemType", "No problem type for 2nd semesters, yet.");
-			}
+//			// 아직 2학기 내용에 대한 문제유형이 등록되어 있지 않음.
+//			if (pddao.getProbTypeUuid() != null) {
+//				map.put("problemType", pddao.getTypeUkDao().getTypeUkName());				
+//			} else {
+//				map.put("problemType", "No problem type for 2nd semesters, yet.");
+//			}
 			
 			map.put("difficulty", pddao.getDifficulty());
 			list.add(map);
@@ -278,5 +298,5 @@ public class ProblemService {
 	}
 	
 	
-	*/
+	
 }
