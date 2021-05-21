@@ -22,6 +22,7 @@ import com.tmax.WaplMath.Recommend.repository.UserRepository;
 
 @Service
 public class UserInfoService {
+	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	@Autowired
@@ -119,4 +120,5 @@ public class UserInfoService {
 
 		return output;
 	}
+	*/
 }

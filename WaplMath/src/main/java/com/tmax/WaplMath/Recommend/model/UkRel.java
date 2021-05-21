@@ -13,9 +13,9 @@ import lombok.Data;
 @IdClass(UkRelKey.class)
 public class UkRel {
 	@Id
-	private String baseUkUuid;
+	private Integer baseUkId;
 	@Id
-	private String preUkUuid;
+	private Integer preUkId;
 	@Id
 	private String relationReference;
 }

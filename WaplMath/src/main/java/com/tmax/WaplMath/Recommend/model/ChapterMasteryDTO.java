@@ -8,7 +8,7 @@ import lombok.Data;
 public class ChapterMasteryDTO {
 	private String part;
 	private List<String> chapterList;
-	private List<String> ukList;
+	private List<Integer> ukList;
 	private List<Float> masteryList;
 	
 	private String chapterName;

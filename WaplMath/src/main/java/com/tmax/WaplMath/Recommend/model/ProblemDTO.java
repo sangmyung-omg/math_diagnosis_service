@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor 
 public class ProblemDTO {
-	private String high;
-	private String middle;
-	private String low;
+	private Integer high;
+	private Integer middle;
+	private Integer low;
 }

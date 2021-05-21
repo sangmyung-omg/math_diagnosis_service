@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class UkDTO {
-	private String ukUuid;
+	private Integer ukId;
 	private String ukName;
 }

@@ -9,13 +9,13 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="TYPE_UK_MASTER")
-public class TypeUk {
+@Table(name="PROBLEM_TYPE_MASTER")
+public class ProblemType {
 	@Id
-	private String typeUkUuid;
+	private Integer typeId;
 	
-	private String typeUkName;
-	private String typeUkDescription;
+	private String typeName;
+	private Integer sequence;
 	
 	@Column(name="CURRICULUM_ID")
 	private String curriculumId;

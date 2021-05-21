@@ -21,7 +21,7 @@ import com.tmax.WaplMath.Recommend.service.UserInfoService;
 
 @RestController
 public class DiagnosisController {
-	
+	/*
 	@Autowired
 	UserInfoService userService;
 	
@@ -116,4 +116,5 @@ public class DiagnosisController {
 		
 		return map;
 	}
+	*/
 }

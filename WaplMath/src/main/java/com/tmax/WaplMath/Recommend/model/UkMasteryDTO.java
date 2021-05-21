@@ -5,6 +5,6 @@ import lombok.Value;
 
 @Value
 public class UkMasteryDTO {
-	private final String ukId;
+	private final Integer ukId;
 	private final String ukMastery;
 }

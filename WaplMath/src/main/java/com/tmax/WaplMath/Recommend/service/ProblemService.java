@@ -23,6 +23,7 @@ import com.tmax.WaplMath.Recommend.repository.ProblemSetRepository;
 @Service
 public class ProblemService {
 	
+	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	@Autowired
@@ -40,7 +41,7 @@ public class ProblemService {
 		List<Map<String, String>> list = new ArrayList<Map<String,String>>();
 		
 		// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
-		/* 일단은 static하게 dummy 리스트 가지고 있는 것 불러오기 */
+		// 일단은 static하게 dummy 리스트 가지고 있는 것 불러오기
 		DemoChapterPartMapper chapterPartMapper = new DemoChapterPartMapper();
 		Map<String, List<String>> chapterIdList = chapterPartMapper.getMappingInfo();
 		
@@ -277,4 +278,5 @@ public class ProblemService {
 	}
 	
 	
+	*/
 }

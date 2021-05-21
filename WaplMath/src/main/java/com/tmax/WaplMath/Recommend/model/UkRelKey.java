@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class UkRelKey implements Serializable {
-	String baseUkUuid;
-	String preUkUuid;
+	String baseUkId;
+	String preUkId;
 	String relationReference;
 }

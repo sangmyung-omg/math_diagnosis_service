@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.Recommend.model.UserExamCurriculumLog;
+import com.tmax.WaplMath.Recommend.model.UserExamCardHistory;
 import com.tmax.WaplMath.Recommend.model.UserKnowledge;
 
-public interface UserExamCurriculumLogRepository extends CrudRepository<UserExamCurriculumLog, String> {
+public interface UserExamCardHistoryRepository extends CrudRepository<UserExamCardHistory, String> {
 
 	@Query(value = "select card_sequence from user_exam_curriculum_log where user_uuid=:userUuid order by card_sequence desc limit 1", nativeQuery = true)
 	Optional<Integer> findLastCardSequenceByUserUuid(@Param("userUuid") String userUuid);
@@ -20,7 +20,7 @@ public interface UserExamCurriculumLogRepository extends CrudRepository<UserExam
 	Optional<Integer> findLastSupCardSequence(@Param("userUuid") String userUuid);
 
 	@Query(value = "select * from user_exam_curriculum_log where user_uuid=:userUuid and recommended_date=:recommendedDate order by card_sequence asc", nativeQuery = true)
-	List<UserExamCurriculumLog> findAllByRecommendedDate(@Param("userUuid") String userUuid,
+	List<UserExamCardHistory> findAllByRecommendedDate(@Param("userUuid") String userUuid,
 			@Param("recommendedDate") Timestamp targetDate);
 
 	@Query(value="select section_id from user_exam_curriculum_log where user_uuid=:userUuid and card_type='중간평가' order by card_sequence asc",

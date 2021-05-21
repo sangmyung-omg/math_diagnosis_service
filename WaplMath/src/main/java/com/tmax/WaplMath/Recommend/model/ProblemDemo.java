@@ -31,6 +31,6 @@ public class ProblemDemo {
 	private Uk ukDao;
 	
 	@OneToOne(cascade=(CascadeType.ALL))
-	@JoinColumn(name="probTypeUuid", insertable = false, updatable = false)
-	private TypeUk typeUkDao;
+	@JoinColumn(name="typeId", insertable = false, updatable = false)
+	private ProblemType problemType;
 }
