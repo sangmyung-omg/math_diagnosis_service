@@ -33,8 +33,9 @@ public interface UserExamCardHistoryRepository extends CrudRepository<UserExamCa
 	@Query(value = "select distinct cp.uk_uuid from user_exam_curriculum_log ue, card_problem_mapping cp where ue.user_uuid=:userUuid and ue.card_type='보충' and ue.card_id = cp.card_id", nativeQuery = true)
 	List<String> findAllSupCardUkUuid(@Param("userUuid") String userUuid);
 
+	/*
 	@Query("select distinct uk "
-				+ "from UserExamCurriculumLog ue, CardProblemMapping cp, UserKnowledge uk " 
+				+ "from UserExamCardHistory ue, ExamCardProblem cp, UserKnowledge uk " 
 			+ "where "
 				+ "ue.userUuid=:userUuid and " 
 				+ "ue.cardSequence>:supCardSequence and " 
@@ -47,4 +48,5 @@ public interface UserExamCardHistoryRepository extends CrudRepository<UserExamCa
 	List<UserKnowledge> findAllLowMasteryUkUuid(@Param("userUuid") String userUuid,
 			@Param("supCardSequence") Integer supCardSequence,
 			@Param("recommendedUks")List<String> supplementCardUkList, @Param("threshold") Float SUP_UK_MASTERY_THRESHOLD);
+			*/
 }
