@@ -8,6 +8,8 @@
   + Tibero 계정 ID/PW 는 waplmath/waplmath 로 일단 통일.
   + application.properties 파일 내 spring.datasource.url의 ip를 로컬 tibero ip로 변경.
   + application.properties 는 commit 제외.
+
+  
 - *5/20* : Spring Boot에서 "DROP IF EXISTS" 적용 불가 (ORACLE의 PL/SQL이 schema.sql에서 적용 안됨)
   + 첫 서버 구동 시 schema.sql 적용 / 이후부터는 schema.sql의 맨 처음 주석 부분 (DROP문) 주석 해제하면 schema.sql 수정 및 반영 가능.
   
