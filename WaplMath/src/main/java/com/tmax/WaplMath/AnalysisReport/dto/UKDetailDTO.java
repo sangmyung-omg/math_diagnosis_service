@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class UKDetailDTO {
     private String id;
-    private float skillScore;
+    private double skillScore;
 }

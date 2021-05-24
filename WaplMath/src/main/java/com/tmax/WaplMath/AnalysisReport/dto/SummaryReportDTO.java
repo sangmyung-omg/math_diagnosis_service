@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SummaryReportDTO {
-    private int score;
+    private double score;
     private double percentile;
 }
