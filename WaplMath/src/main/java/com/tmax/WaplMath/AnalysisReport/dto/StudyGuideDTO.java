@@ -4,7 +4,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-class StudyGuideDTO {
+public class StudyGuideDTO {
     private List<String> chapterIDList;
     private String commentary;
 }

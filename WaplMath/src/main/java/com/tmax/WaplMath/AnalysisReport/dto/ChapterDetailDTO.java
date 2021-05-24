@@ -1,9 +1,11 @@
 package com.tmax.WaplMath.AnalysisReport.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
-class ChapterDetailDTO {
+public class ChapterDetailDTO {
     private String id;
     private String type;
     private String name;
