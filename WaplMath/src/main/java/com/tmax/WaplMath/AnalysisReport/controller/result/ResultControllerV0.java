@@ -9,6 +9,8 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,23 +23,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResultControllerV0 {
     
     @GetMapping("/result")
-    DiagnosisResultDTO getResult(@RequestHeader("token") String token) {
+    ResponseEntity<Object> getResult(@RequestHeader("token") String token) {
         DiagnosisResultDTO output = new DiagnosisResultDTO();
 
-        return output;
+        return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @GetMapping("/result/{userID}")
-    DiagnosisResultDTO getUserIDResult(@RequestHeader("token") String token, @PathParam("userID") String userID) {
+    ResponseEntity<Object> getUserIDResult(@RequestHeader("token") String token, @PathParam("userID") String userID) {
         DiagnosisResultDTO output = new DiagnosisResultDTO();
 
-        return output;
+        return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @PostMapping("/results")
-    List<DiagnosisResultDTO> getUserIDResult(@RequestHeader("token") String token, @RequestBody UserIDListDTO body) {
+    ResponseEntity<Object>  getUserIDResult(@RequestHeader("token") String token, @RequestBody UserIDListDTO body) {
         List<DiagnosisResultDTO> outputList = new ArrayList<DiagnosisResultDTO>();
 
-        return outputList;
+        return new ResponseEntity<>(outputList, HttpStatus.OK);
     }
 }

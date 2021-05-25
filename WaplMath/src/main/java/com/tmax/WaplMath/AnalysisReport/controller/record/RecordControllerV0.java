@@ -7,6 +7,8 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,29 +23,29 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 public class RecordControllerV0 {
     
     @GetMapping("/record")
-    LevelDiagnosisRecordDTO getLevelDiagRecord(@RequestHeader("token") String token){
+    ResponseEntity<Object> getLevelDiagRecord(@RequestHeader("token") String token){
         LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
         output.setNumCorrect(10);
         output.setNumDontknow(12);
         output.setNumWrong(9);
         output.setTimeConsumed(300);
 
-        return output;
+        return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @GetMapping("/record/{userID}")
-    LevelDiagnosisRecordDTO getUserIDLevelDiagRecord(@RequestHeader("token") String token, @PathVariable("userID") String userID){
+    ResponseEntity<Object> getUserIDLevelDiagRecord(@RequestHeader("token") String token, @PathVariable("userID") String userID){
         LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
         output.setNumCorrect(10 + userID.length());
         output.setNumDontknow(12 + userID.length());
         output.setNumWrong(9 + userID.length());
         output.setTimeConsumed(300 + userID.length());
 
-        return output;
+        return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @PostMapping("/records")
-    List<LevelDiagnosisRecordDTO> getListLevelDiagRecords(@RequestHeader("token") String token, @RequestBody UserIDListDTO userIDList){
+    ResponseEntity<Object> getListLevelDiagRecords(@RequestHeader("token") String token, @RequestBody UserIDListDTO userIDList){
         List<LevelDiagnosisRecordDTO> outputList = new ArrayList<LevelDiagnosisRecordDTO>();
         
         for (String userID : userIDList.getUserIDList()) {
@@ -56,6 +58,6 @@ public class RecordControllerV0 {
         }
 
 
-        return outputList;
+        return new ResponseEntity<>(outputList, HttpStatus.OK);
     }
 }
