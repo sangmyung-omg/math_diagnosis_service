@@ -1,12 +1,14 @@
 package com.tmax.WaplMath.AnalysisReport.controller.record;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
+import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,42 +23,31 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 @RestController
 @RequestMapping(path=Constants.apiPrefix + "/v0")
 public class RecordControllerV0 {
-    
+
+    @Autowired
+    @Qualifier("v0")
+    private RecordServiceBase recordSvc;
+       
     @GetMapping("/record")
     ResponseEntity<Object> getLevelDiagRecord(@RequestHeader("token") String token){
-        LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
-        output.setNumCorrect(10);
-        output.setNumDontknow(12);
-        output.setNumWrong(9);
-        output.setTimeConsumed(300);
+        //TODO: get userID from token data
+        String userID = token;
+
+        LevelDiagnosisRecordDTO output = recordSvc.getRecordOfUser(userID);
 
         return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @GetMapping("/record/{userID}")
     ResponseEntity<Object> getUserIDLevelDiagRecord(@RequestHeader("token") String token, @PathVariable("userID") String userID){
-        LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
-        output.setNumCorrect(10 + userID.length());
-        output.setNumDontknow(12 + userID.length());
-        output.setNumWrong(9 + userID.length());
-        output.setTimeConsumed(300 + userID.length());
+        LevelDiagnosisRecordDTO output = recordSvc.getRecordOfUser(userID);
 
         return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @PostMapping("/records")
     ResponseEntity<Object> getListLevelDiagRecords(@RequestHeader("token") String token, @RequestBody UserIDListDTO userIDList){
-        List<LevelDiagnosisRecordDTO> outputList = new ArrayList<LevelDiagnosisRecordDTO>();
-        
-        for (String userID : userIDList.getUserIDList()) {
-            LevelDiagnosisRecordDTO levelData = new LevelDiagnosisRecordDTO();
-            levelData.setNumCorrect(10 + userID.length());
-            levelData.setNumDontknow(12 + userID.length());
-            levelData.setNumWrong(9 + userID.length());
-            levelData.setTimeConsumed(300 + userID.length());
-            outputList.add(levelData);
-        }
-
+        List<LevelDiagnosisRecordDTO> outputList = recordSvc.getRecordOfUserList(userIDList);
 
         return new ResponseEntity<>(outputList, HttpStatus.OK);
     }
