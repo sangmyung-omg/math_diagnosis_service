@@ -73,7 +73,7 @@ public class UserInfoService {
 		input.add(userId);
 		logger.info("Getting user basic info...");
 		List<User> queryList = (List<User>) userRepository.findAllById(input);
-		System.out.println("####################" + input + ", " + queryList);
+		logger.info("user : " + input + ", Query Result Size: " + Integer.toString(queryList.size()));
 		if (queryList.size() != 0 && queryList != null) {
 			result = queryList.get(0);			
 		}

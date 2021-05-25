@@ -32,7 +32,7 @@ import com.tmax.WaplMath.Recommend.model.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.ExamCardProblemRepository;
-import com.tmax.WaplMath.Recommend.repository.ProblemDemoRepository;
+import com.tmax.WaplMath.Recommend.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.repository.TypeUkRepository;
 import com.tmax.WaplMath.Recommend.repository.UkRelRepository;
 import com.tmax.WaplMath.Recommend.repository.UserExamCardHistoryRepository;

@@ -86,17 +86,16 @@ public class DiagnosisController {
 			map.put("resultMessage", "Invalid input value : part -> " + part);
 			return map;
 		}
-		List<Map<String, String>> list = problemService.getNextProblemSet(userId, diagType, part);
-		if (list == null || list.size() == 0) {
-			map.put("resultMessage", "error : result of getnextProblemSet is null, " + list);
-			System.out.println();
+		map = problemService.getNextProblemSet(userId, diagType, part);
+		if (map == null || map.keySet().size() == 0) {
+			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
 		} else {
-			if (list.get(0).containsKey("error")) {
-				map.put("resultMessage", list.get(0).get("error"));
+			if (map.containsKey("error")) {
+				map.put("resultMessage", map.get("error"));
+				map.remove("error");
 				return map;
-			}
-			map.put("resultMessage", "Successfully returned");
-			map.put("problemSet", list);			
+			} 
+			map.put("resultMessage", "Successfully returned");		
 		}
 		return map;
 	}
