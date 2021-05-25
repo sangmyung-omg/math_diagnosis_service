@@ -3,7 +3,7 @@ info:
   title: WAPL Math 진단고사 API
   version: '0.1'
 servers:
-  - url: https://math.wapl.ai/diagnosis/v0
+  - url: http://192.168.153.212:8080/
 paths:
   /NextProblemSet:
     get:
