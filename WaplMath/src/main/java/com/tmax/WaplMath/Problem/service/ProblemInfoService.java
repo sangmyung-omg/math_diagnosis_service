@@ -57,6 +57,22 @@ public class ProblemInfoService {
 		return problemimage;
 	}
 	
+//	public Problem getProblemWithImage(int probId) {
+//		Problem problem = new Problem();
+//		Optional<Problem> result = problemRepository.findAllById(probId);
+//		logger.info("Service probId = "+probId);
+//		
+//		if(!result.isPresent()) {
+//			logger.info("there is no results");
+//			logger.info("result = " + result.isPresent());
+//		}
+//		
+//		problem = result.get();
+//		
+//		System.out.println("problem = "+problem);
+//		return problem;
+//	}
+	
 	
 
 }

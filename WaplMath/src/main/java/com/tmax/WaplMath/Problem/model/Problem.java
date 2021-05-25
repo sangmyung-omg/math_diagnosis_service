@@ -2,6 +2,9 @@ package com.tmax.WaplMath.Problem.model;
 
 import java.sql.Timestamp;
 import javax.persistence.*;
+
+import com.tmax.WaplMath.Recommend.model.Curriculum;
+
 import lombok.*;
 
 @Data
@@ -29,5 +32,9 @@ public class Problem {
 	private float timeRecommendation;
 	private String frequent;
 	private String category;
+	
+	@OneToOne(cascade=(CascadeType.ALL))
+	@JoinColumn(name="probId", insertable = false, updatable = false)
+	private ProblemImage ProblemImage;
 
 }
