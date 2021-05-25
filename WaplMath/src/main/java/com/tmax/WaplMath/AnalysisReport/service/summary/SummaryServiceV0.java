@@ -13,7 +13,7 @@ public class SummaryServiceV0 implements SummaryServiceBase{
         //FIXME: Dummy output
         SummaryReportDTO output =  new SummaryReportDTO();
         output.setScore(100);
-        output.setPercentile(100.0);
+        output.setPercentile(81.0);
 
         return output;
     }
