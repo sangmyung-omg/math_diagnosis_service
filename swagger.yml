@@ -1,6 +1,6 @@
 openapi: '3.0.2'
 info:
-  title: WAPL Math 진단고사 API
+  title: WAPL Math 진단고사 & 커리큘럼 추천 API
   version: '0.1'
 servers:
   - url: http://192.168.153.212:8080/
