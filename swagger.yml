@@ -4,7 +4,6 @@ info:
   version: '0.1'
 servers:
   - url: http://192.168.153.212:8080/
-  - url: http://192.168.153.212:8080/
 paths:
   /NextProblemSet:
     get:
@@ -12,9 +11,9 @@ paths:
       operationId: NextProblemSetGet
       summary: 다음 영역(파트)에 해당하는 문제 set (문제 3개) 요청
       parameters:
-        - name: userId
-          in: path
-          description: 유저 UUID
+        - name: token
+          in: header
+          description: 유저의 Access token (유저 ID에 대응되는 개념)
           required: true
           schema:
             type: string
