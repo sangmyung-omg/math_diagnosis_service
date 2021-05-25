@@ -10,6 +10,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +21,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 public class RecordControllerV0 {
     
     @GetMapping("/record")
-    LevelDiagnosisRecordDTO getLevelDiagRecord(){
+    LevelDiagnosisRecordDTO getLevelDiagRecord(@RequestHeader("token") String token){
         LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
         output.setNumCorrect(10);
         output.setNumDontknow(12);
@@ -31,7 +32,7 @@ public class RecordControllerV0 {
     }
 
     @GetMapping("/record/{userID}")
-    LevelDiagnosisRecordDTO getUserIDLevelDiagRecord(@PathVariable("userID") String userID){
+    LevelDiagnosisRecordDTO getUserIDLevelDiagRecord(@RequestHeader("token") String token, @PathVariable("userID") String userID){
         LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
         output.setNumCorrect(10 + userID.length());
         output.setNumDontknow(12 + userID.length());
@@ -42,7 +43,7 @@ public class RecordControllerV0 {
     }
 
     @PostMapping("/records")
-    List<LevelDiagnosisRecordDTO> getListLevelDiagRecords(@RequestBody UserIDListDTO userIDList){
+    List<LevelDiagnosisRecordDTO> getListLevelDiagRecords(@RequestHeader("token") String token, @RequestBody UserIDListDTO userIDList){
         List<LevelDiagnosisRecordDTO> outputList = new ArrayList<LevelDiagnosisRecordDTO>();
         
         for (String userID : userIDList.getUserIDList()) {

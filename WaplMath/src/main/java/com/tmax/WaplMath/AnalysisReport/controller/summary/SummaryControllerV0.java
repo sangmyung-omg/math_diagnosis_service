@@ -2,6 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.controller.summary;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,7 +14,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.SummaryReportDTO;
 class SummaryControllerV0 {
     @Autowired
     @GetMapping("/summary")
-    SummaryReportDTO getSummary() {
+    SummaryReportDTO getSummary(@RequestHeader("token") String token) {
         SummaryReportDTO output =  new SummaryReportDTO();
         output.setScore(100);
         output.setPercentile(100.0);
