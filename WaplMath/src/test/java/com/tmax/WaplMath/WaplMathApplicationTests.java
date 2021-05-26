@@ -8,7 +8,6 @@ class WaplMathApplicationTests {
 
 	@Test
 	void contextLoads() {
-		
 	}
 
 }
