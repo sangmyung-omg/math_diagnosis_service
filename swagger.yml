@@ -1,0 +1,77 @@
+openapi: '3.0.2'
+info:
+  title: WAPL Math 진단고사 & 커리큘럼 추천 API
+  version: '0.1'
+servers:
+  - url: http://192.168.153.212:8080/
+paths:
+  /NextProblemSet:
+    get:
+      tags: [NextProblemSet]
+      operationId: NextProblemSetGet
+      summary: 다음 영역(파트)에 해당하는 문제 set (문제 3개) 요청
+      parameters:
+        - name: token
+          in: header
+          description: 유저의 Access token (유저 ID에 대응되는 개념)
+          required: true
+          schema:
+            type: string
+            default: mkkang
+        - name: diagType
+          in: path
+          description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
+          required: true
+          schema:
+            default: in-depth
+            type: string
+        - name: part
+          in: path
+          description: 영역 코드 - {수와 연산}=0 / {문자와 식}=1 / {함수}=2 / {기하}=3 / {확률과 통계}=4
+          required: true
+          schema:
+            type: integer
+            default: 0
+      responses:
+        200:
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NextProblemSetResult'
+                # type: object
+                # properties:
+                #   resultMessage:
+                #     type: string
+                #     example: "Successfully Returned"
+                #   problemSet:
+                #     type: array
+                #     example:
+                #       - 1371
+                #       - 2552
+                #       - 1633
+        500:
+          description: 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultMessage:
+                    type: string
+                    example: "Error: status code 500"                
+                
+components:
+  schemas:
+    NextProblemSetResult:
+      properties:
+        resultMessage:
+          type: string
+          example: "Successfully Returned"
+        problemSet:
+          type: array
+          description: 순서 = '하', '중', '상'
+          example:
+            - 1371
+            - 2552
+            - 1633
