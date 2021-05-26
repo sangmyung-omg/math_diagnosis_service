@@ -9,7 +9,7 @@ paths:
     get:
       tags: [DiagnosisProblems]
       operationId: DiagnosisProblemsGet
-      summary: 다음 영역(파트)에 해당하는 문제 set (문제 3개) 요청
+      summary: 진단고사 문제 전체 요청
       parameters:
         - name: token
           in: header
