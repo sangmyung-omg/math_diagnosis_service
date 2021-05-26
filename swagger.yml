@@ -5,10 +5,10 @@ info:
 servers:
   - url: http://192.168.153.212:8080/
 paths:
-  /NextProblemSet:
+  /DiagnosisProblems:
     get:
-      tags: [NextProblemSet]
-      operationId: NextProblemSetGet
+      tags: [DiagnosisProblems]
+      operationId: DiagnosisProblemsGet
       summary: 다음 영역(파트)에 해당하는 문제 set (문제 3개) 요청
       parameters:
         - name: token
@@ -17,7 +17,7 @@ paths:
           required: true
           schema:
             type: string
-            default: mkkang
+            default: mkkang2
         - name: diagType
           in: path
           description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
@@ -25,13 +25,6 @@ paths:
           schema:
             default: in-depth
             type: string
-        - name: part
-          in: path
-          description: 영역 코드 - {수와 연산}=0 / {문자와 식}=1 / {함수}=2 / {기하}=3 / {확률과 통계}=4
-          required: true
-          schema:
-            type: integer
-            default: 0
       responses:
         200:
           description: 성공
@@ -39,17 +32,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NextProblemSetResult'
-                # type: object
-                # properties:
-                #   resultMessage:
-                #     type: string
-                #     example: "Successfully Returned"
-                #   problemSet:
-                #     type: array
-                #     example:
-                #       - 1371
-                #       - 2552
-                #       - 1633
         500:
           description: 실패
           content:
@@ -68,10 +50,12 @@ components:
         resultMessage:
           type: string
           example: "Successfully Returned"
-        problemSet:
+        diagnosisProblems:
           type: array
           description: 순서 = '하', '중', '상'
           example:
-            - 1371
-            - 2552
-            - 1633
+            - [2552,1371,1633]
+            - [1234,5678,9101]
+            - [1121,3141,5161]
+            - [7181,9202,1222]
+            - [3242,5262,7282]
