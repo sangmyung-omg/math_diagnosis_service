@@ -19,19 +19,16 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Recommend.common.MasteryAPIManager;
-import com.tmax.WaplMath.Recommend.model.CardProblemMapping;
 import com.tmax.WaplMath.Recommend.model.UkMasteryDTO;
 import com.tmax.WaplMath.Recommend.model.UserEmbedding;
 import com.tmax.WaplMath.Recommend.model.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
-import com.tmax.WaplMath.Recommend.repository.CardProblemMappingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 
 @Service
 public class MasteryService {
 
-	private ObjectMapper objectMapper = new ObjectMapper();
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	@Autowired
@@ -43,9 +40,7 @@ public class MasteryService {
 	@Autowired
 	UserKnowledgeRepository userKnowledgeRepository;
 
-	@Autowired
-	CardProblemMappingRepository cardProblemMappingRepository;
-
+	/*
 	public Map<String, Object> getMastery(String userId, List<String> ukIdList) throws Exception {
 		Map<String, Object> output = new HashMap<String, Object>();
 
@@ -72,6 +67,7 @@ public class MasteryService {
 
 		return output;
 	}
+	*/
 
 	public Map<String, String> updateMastery(Map<String, Object> input) throws Exception {
 		Map<String, String> output = new HashMap<String, String>();
@@ -83,9 +79,7 @@ public class MasteryService {
 		@SuppressWarnings("unchecked")
 		List<String> difficultyList = (List<String>) input.get("difficultyList");
 		List<String> cardProbIdList = new ArrayList<String>();
-		if (input.containsKey("cardProbIdList"))
-			cardProbIdList = (List<String>) input.get("cardProbIdList");
-
+		
 		String userEmbedding = "";
 
 		System.out.println("userId: " + userId);
@@ -119,7 +113,7 @@ public class MasteryService {
 		masteryJson.keySet().forEach(ukId -> {
 			UserKnowledge userKnowledge = new UserKnowledge();
 			userKnowledge.setUserUuid(userId);
-			userKnowledge.setUkUuid(ukId);
+			userKnowledge.setUkId(Integer.parseInt(ukId));
 			userKnowledge.setUkMastery(masteryJson.get(ukId).getAsFloat());
 			userKnowledge.setUpdateDate(Timestamp.valueOf(LocalDateTime.now()));
 			userKnowledgeSet.add(userKnowledge);
@@ -133,24 +127,6 @@ public class MasteryService {
 		updateEmbedding.setUserEmbedding(userEmbedding);
 		updateEmbedding.setUpdateDate(Timestamp.valueOf(LocalDateTime.now()));
 		userEmbeddingRepository.save(updateEmbedding);
-
-		if (cardProbIdList.size() != 0) {
-			for (int i = 0; i < cardProbIdList.size(); i++) {
-				String cardProbId = cardProbIdList.get(i);
-				CardProblemMapping updateIsCorrect;
-				try {
-					updateIsCorrect = cardProblemMappingRepository.findById(cardProbId)
-							.orElseThrow(() -> new Exception(cardProbId));
-				} catch (Exception e) {
-					output.put("resultMessage",
-							String.format("cardProbId %s does not exist in CARD_PROBLEM_MAPPING TB.", e.getMessage()));
-					return output;
-				}
-				updateIsCorrect.setMappingId(cardProbIdList.get(i));
-				updateIsCorrect.setIsCorrect(correctList.get(i));
-				cardProblemMappingRepository.save(updateIsCorrect);
-			}
-		}
 
 		output.put("resultMessage", "Successfully update user mastery.");
 		return output;

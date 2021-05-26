@@ -24,6 +24,7 @@ import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 @Service
 public class CurriculumService {
 	
+	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	@Autowired
@@ -121,10 +122,8 @@ public class CurriculumService {
 							flag2 += 1;
 						} else break;
 					}
-					/*
 					// 표출할 UK 개수 10개 이상 되도록 (총 UK가 10개 안되면 그냥 모든 UK 표출) - 혹시 나중에 쓰일 수 있어서
-					if (flag2 == solved_uk.size() && template.getUkList().size() >= 10) {
-					*/
+					// if (flag2 == solved_uk.size() && template.getUkList().size() >= 10) {
 					// 데모 : 푼 문제에 해당하는 UK 다 모이면 break;
 					if (flag2 == solved_uk.size()) {
 //						logger.info("^^^^^^^^^^^^^^^^ BREAK; ^^^^^^^^^^^^^^^^");
@@ -138,6 +137,7 @@ public class CurriculumService {
 				template.getUkList().remove("a");
 				template.getMasteryList().remove(0f);
 			}
+			*/
 			
 			/*
 			// UK와 Mastery 리스트의 총 길이 최대 10개로 균일하게 맞추기
@@ -147,6 +147,7 @@ public class CurriculumService {
 			}
 			*/
 			
+	/*
 			// 일단, 진단고사 데모에서는 푼 문제(에 태그된 UK)에 대해서만 반환하자.
 			template.setUkList(template.getUkList().subList(0, solved_uk.size()));
 			template.setMasteryList(template.getMasteryList().subList(0, solved_uk.size()));
@@ -208,4 +209,5 @@ public class CurriculumService {
 
 		return list;
 	}
+			*/
 }

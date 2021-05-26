@@ -10,17 +10,17 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Table(name = "USER_EXAM_CARD_HISTORY")
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "CARD_PROBLEM_MAPPING")
-public class CardProblemMapping {
-	
+public class UserExamCardHistory {
 	@Id
-	private String mappingId;
-	
 	private String cardId;
-	private String difficulty;
-	private String ukUuid;
-	private String isCorrect;
-	private Integer probSequence;
+	
+	private String userUuid;
+	private String cardType;
+	private String cardTitle;
+	private String sectionId;
+	private String typeId;
+	private Integer cardSequence;
 }
