@@ -2,7 +2,6 @@ package com.tmax.WaplMath.Recommend.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.tmax.WaplMath.Recommend.common.DemoChapterPartMapper;
+import com.tmax.WaplMath.Problem.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.model.Curriculum;
-import com.tmax.WaplMath.Recommend.model.Problem;
 import com.tmax.WaplMath.Recommend.model.DiagnosisProblem;
 import com.tmax.WaplMath.Recommend.model.User;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
 
 
