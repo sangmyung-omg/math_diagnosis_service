@@ -28,8 +28,7 @@ public class Curriculum {
 	
 	private String subSection;
 	
-	@Column(name="CHAPTER_ID")
-	private String chapterId;
+	private String part;
 	
 	private Integer curriculumSequence;
 }

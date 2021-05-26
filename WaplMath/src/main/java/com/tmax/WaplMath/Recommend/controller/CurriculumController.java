@@ -17,6 +17,7 @@ import com.tmax.WaplMath.Recommend.service.UserInfoService;
 @RestController
 public class CurriculumController {
 
+	/*
 	@Autowired
 	CurriculumCardListService curriculumCardListService = new CurriculumCardListService();
 
@@ -53,4 +54,5 @@ public class CurriculumController {
 		System.out.println("inputs: " + input);
 		return examInfoService.updateExamInfo(input);
 	}
+	*/
 }

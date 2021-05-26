@@ -19,18 +19,17 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Recommend.common.MasteryAPIManager;
-import com.tmax.WaplMath.Recommend.model.CardProblemMapping;
 import com.tmax.WaplMath.Recommend.model.UkMasteryDTO;
 import com.tmax.WaplMath.Recommend.model.UserEmbedding;
 import com.tmax.WaplMath.Recommend.model.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
-import com.tmax.WaplMath.Recommend.repository.CardProblemMappingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 
 @Service
 public class MasteryService {
 
+	/*
 	private ObjectMapper objectMapper = new ObjectMapper();
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
@@ -155,5 +154,6 @@ public class MasteryService {
 		output.put("resultMessage", "Successfully update user mastery.");
 		return output;
 	}
+	*/
 
 }

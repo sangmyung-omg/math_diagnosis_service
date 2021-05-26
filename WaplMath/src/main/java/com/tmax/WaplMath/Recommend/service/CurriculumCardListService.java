@@ -23,20 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.model.CardDTO;
-import com.tmax.WaplMath.Recommend.model.CardProblemMapping;
 import com.tmax.WaplMath.Recommend.model.Curriculum;
 import com.tmax.WaplMath.Recommend.model.ProblemDTO;
 import com.tmax.WaplMath.Recommend.model.UkMasteryDTO;
 import com.tmax.WaplMath.Recommend.model.User;
-import com.tmax.WaplMath.Recommend.model.UserExamCurriculumLog;
+import com.tmax.WaplMath.Recommend.model.UserExamCardHistory;
 import com.tmax.WaplMath.Recommend.model.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
-import com.tmax.WaplMath.Recommend.repository.CardProblemMappingRepository;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.repository.ProblemDemoRepository;
+import com.tmax.WaplMath.Recommend.repository.ExamCardProblemRepository;
+import com.tmax.WaplMath.Recommend.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.repository.TypeUkRepository;
 import com.tmax.WaplMath.Recommend.repository.UkRelRepository;
-import com.tmax.WaplMath.Recommend.repository.UserExamCurriculumLogRepository;
+import com.tmax.WaplMath.Recommend.repository.UserExamCardHistoryRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
 
@@ -44,6 +43,7 @@ import com.tmax.WaplMath.Recommend.repository.UserRepository;
 @Service
 public class CurriculumCardListService {
 
+	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	// Hyperparameter
@@ -70,17 +70,17 @@ public class CurriculumCardListService {
 	@Autowired
 	private UserKnowledgeRepository userKnowledgeRepository;
 	@Autowired
-	private CardProblemMappingRepository cardProblemMappingRepository;
+	private ExamCardProblemRepository examCardProblemRepository;
 	@Autowired
-	private UserExamCurriculumLogRepository userExamCurriculumLogRepository;
+	private UserExamCardHistoryRepository userExamCardHistoryRepository;
 
 	// Add to USER_EXAM_CURRICULUM_LOG TB
 	public Integer addRecommendedCardInfo(String cardId, String cardType, String cardTitle, String userUuid,
 			Timestamp recommendedDate, String sectionId, String typeUkUuid, Integer cardSequence) {
-		UserExamCurriculumLog newCard = new UserExamCurriculumLog(cardId, cardType, cardTitle, userUuid,
+		UserExamCardHistory newCard = new UserExamCardHistory(cardId, cardType, cardTitle, userUuid,
 				recommendedDate, sectionId, typeUkUuid, cardSequence);
 		newCard.setCardSequence(cardSequence);
-		userExamCurriculumLogRepository.save(newCard);
+		userExamCardHistoryRepository.save(newCard);
 		return cardSequence + 1;
 	}
 
@@ -530,5 +530,5 @@ public class CurriculumCardListService {
 			return output;
 		}
 	}
-
+	 */
 }

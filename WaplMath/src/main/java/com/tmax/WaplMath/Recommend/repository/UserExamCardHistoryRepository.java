@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.Recommend.model.UserExamCurriculumLog;
+import com.tmax.WaplMath.Recommend.model.UserExamCardHistory;
 import com.tmax.WaplMath.Recommend.model.UserKnowledge;
 
-public interface UserExamCurriculumLogRepository extends CrudRepository<UserExamCurriculumLog, String> {
+public interface UserExamCardHistoryRepository extends CrudRepository<UserExamCardHistory, String> {
 
 	@Query(value = "select card_sequence from user_exam_curriculum_log where user_uuid=:userUuid order by card_sequence desc limit 1", nativeQuery = true)
 	Optional<Integer> findLastCardSequenceByUserUuid(@Param("userUuid") String userUuid);
@@ -20,7 +20,7 @@ public interface UserExamCurriculumLogRepository extends CrudRepository<UserExam
 	Optional<Integer> findLastSupCardSequence(@Param("userUuid") String userUuid);
 
 	@Query(value = "select * from user_exam_curriculum_log where user_uuid=:userUuid and recommended_date=:recommendedDate order by card_sequence asc", nativeQuery = true)
-	List<UserExamCurriculumLog> findAllByRecommendedDate(@Param("userUuid") String userUuid,
+	List<UserExamCardHistory> findAllByRecommendedDate(@Param("userUuid") String userUuid,
 			@Param("recommendedDate") Timestamp targetDate);
 
 	@Query(value="select section_id from user_exam_curriculum_log where user_uuid=:userUuid and card_type='중간평가' order by card_sequence asc",
@@ -33,8 +33,9 @@ public interface UserExamCurriculumLogRepository extends CrudRepository<UserExam
 	@Query(value = "select distinct cp.uk_uuid from user_exam_curriculum_log ue, card_problem_mapping cp where ue.user_uuid=:userUuid and ue.card_type='보충' and ue.card_id = cp.card_id", nativeQuery = true)
 	List<String> findAllSupCardUkUuid(@Param("userUuid") String userUuid);
 
+	/*
 	@Query("select distinct uk "
-				+ "from UserExamCurriculumLog ue, CardProblemMapping cp, UserKnowledge uk " 
+				+ "from UserExamCardHistory ue, ExamCardProblem cp, UserKnowledge uk " 
 			+ "where "
 				+ "ue.userUuid=:userUuid and " 
 				+ "ue.cardSequence>:supCardSequence and " 
@@ -47,4 +48,5 @@ public interface UserExamCurriculumLogRepository extends CrudRepository<UserExam
 	List<UserKnowledge> findAllLowMasteryUkUuid(@Param("userUuid") String userUuid,
 			@Param("supCardSequence") Integer supCardSequence,
 			@Param("recommendedUks")List<String> supplementCardUkList, @Param("threshold") Float SUP_UK_MASTERY_THRESHOLD);
+			*/
 }

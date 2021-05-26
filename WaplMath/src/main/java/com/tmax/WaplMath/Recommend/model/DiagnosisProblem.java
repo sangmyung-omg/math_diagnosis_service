@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.Recommend.model;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -11,17 +12,19 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="UK_MASTER")
-public class Uk {
-	@Id
-	private Integer ukId;
+@Table(name="DIAGNOSIS_PROBLEM")
+public class DiagnosisProblem {
 	
-	private String ukName;
-	private String ukDescription;
-	private String trainUnseen;
-	private String curriculumId;
+	@Id
+	private Integer diagnosisProbId;
+	
+	private Integer basicProbId;
+	
+	private Integer upperProbId;
+	
+	private Integer lowerProbId;
 	
 	@OneToOne(cascade=(CascadeType.ALL))
-	@JoinColumn(name="curriculumId", insertable = false, updatable = false)
-	private Curriculum curriculum;
+	@JoinColumn(name="basicProbId", insertable = false, updatable = false)
+	private Problem problem;
 }
