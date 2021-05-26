@@ -34,53 +34,18 @@ public class DiagnosisController {
 	@Autowired
 	CurriculumService curriculumService;
 	
-	@GetMapping(value = "/ChapterNameList", produces = "application/json; charset=utf-8")
-	public Map<String, Object> getChapterNameList(@RequestParam String grade, @RequestParam String semester) throws Exception {
-		Map<String, Object> map = new HashMap<String, Object>();
-		if (grade != null && semester != null) {
-			System.out.println(grade + "-" + semester);
-			map.put("resultMessage", "Successfully returned");
-			map.put("chapterList", curriculumService.getChapterNameList(grade, semester));
-		} else {
-			map.put("resultMessage", "error : At least one of the input variables is empty");
-		}
-		return map;			
-	}
-	
-	@PostMapping(value = "/UserCurrentInfo", produces = "application/json; charset=utf-8")
-	public Map<String, String> updateUserCurrentInfo(@RequestBody UserCurrentInfoInput param) throws Exception {
-		String userId;
-		if (param.getUserId() == null) {
-			userId = UUID.randomUUID().toString();
-			System.out.println("NO UserId");
-		} else userId = param.getUserId();
-		String grade = param.getGrade();
-		String semester = param.getSemester();
-		String chapter = param.getChapter();
-		System.out.println("DiagnosisController UserCurrentInfo chapter : " + chapter);
-		
-		System.out.println(userId + " : " + grade + "-" + semester + " " + chapter);
-		
-		Map<String,String> map = new HashMap<String,String>();
-		if (chapter != null) {
-			map.put("resultMessage", userService.updateUserCurrentInfo(userId, grade, semester, chapter));			
-		} else {
-			map.put("resultMessage", "error : chapter is null");
-		}
-		return map;
-	}
 	*/
 	@GetMapping(value = "/NextProblemSet", produces = "application/json; charset=utf-8")
 	public Map<String, Object> getNextProblemSet(
-			@RequestParam String userId,
+			@RequestParam String token,
 			@RequestParam String diagType) throws Exception {
-		if (userId == null) {
+		if (token == null) {
 			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("resultMessage", "No userId");
+			map.put("resultMessage", "No user token");
 			return map;
 		}
 		Map<String, Object> map = new HashMap<String, Object>();
-		map = problemService.getNextProblemSet(userId, diagType);
+		map = problemService.getNextProblemSet(token, diagType);
 		if (map == null || map.keySet().size() == 0) {
 			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
 		} else {
@@ -93,20 +58,29 @@ public class DiagnosisController {
 		}
 		return map;
 	}
-	/*
-	@GetMapping(value="/ChapterMastery", produces = "application/json; charset=utf-8")
-	public Map<String, Object> getChapterMastery(
-			@RequestParam String userId,
-			@RequestParam List<String> ukIdList){
-		System.out.println(ukIdList);//607,608,4673,1011,10168,1000,10183,10190,2666,10169
+	
+	@GetMapping(value = "/AdaptiveProblem", produces = "application/json; charset=utf-8")
+	public Map<String, Object> getAdaptiveProblem(
+			@RequestParam String token,
+			@RequestParam String diagType,
+			@RequestParam Integer probId) throws Exception {
+		if (token == null) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("resultMessage", "No user token");
+			return map;
+		}
 		Map<String, Object> map = new HashMap<String, Object>();
-		if (userId != null && ukIdList != null) {
-				// 각 UK들이 어떤 파트의, 어떤 대단원의 UK인지 분류 & 대단원 별로 평균
-				map = curriculumService.getChapterMastery(userId, ukIdList);
-
-		} else map.put("resultMessage", "No input value : userId");
-		
+		map = problemService.getAdaptiveProblem(token, diagType, probId);
+		if (map == null || map.keySet().size() == 0) {
+			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
+		} else {
+			if (map.containsKey("error")) {
+				map.put("resultMessage", map.get("error"));
+				map.remove("error");
+				return map;
+			} 
+			map.put("resultMessage", "Successfully returned");		
+		}
 		return map;
 	}
-	*/
 }
