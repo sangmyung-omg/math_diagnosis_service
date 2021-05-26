@@ -45,9 +45,12 @@ public class ProblemService {
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		
 		List<List<Integer>> diagnosisProblems = new ArrayList<List<Integer>>();
+		List<String> partNames = new ArrayList<String>();
 		
 		logger.info("Getting part list......");
 		List<String> partList = curriculumRepository.findDistinctPart();
+		Collections.shuffle(partList);			// 순서 섞기
+		
 		for (String partName : partList) {
 //			// part 코드를 실제 이름으로 변환
 //			String partName = "";
@@ -159,8 +162,9 @@ public class ProblemService {
 				if (resultMap.containsKey("error")) {
 					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 				} else {
-					resultMap.put("error", "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");					
+					resultMap.put("error", "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 				}
+				partNames.add(partName);
 				diagnosisProblems.add(null);
 				continue;
 			}
@@ -172,9 +176,11 @@ public class ProblemService {
 			prob_list.add(result.getUpperProbId());
 			
 			diagnosisProblems.add(prob_list);
+			partNames.add(partName);
 		}
 		
 		resultMap.put("diagnosisProblems", diagnosisProblems);
+		resultMap.put("partNames", partNames);
 		return resultMap;
 	}
 }
