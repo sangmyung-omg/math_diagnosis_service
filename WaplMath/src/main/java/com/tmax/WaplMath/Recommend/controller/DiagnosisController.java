@@ -73,20 +73,14 @@ public class DiagnosisController {
 	@GetMapping(value = "/NextProblemSet", produces = "application/json; charset=utf-8")
 	public Map<String, Object> getNextProblemSet(
 			@RequestParam String userId,
-			@RequestParam String diagType,
-			@RequestParam String part) throws Exception {
+			@RequestParam String diagType) throws Exception {
 		if (userId == null) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("resultMessage", "No userId");
 			return map;
 		}
-		System.out.println(userId + ", " + diagType + ", " + part);
 		Map<String, Object> map = new HashMap<String, Object>();
-		if (!(part.equalsIgnoreCase("0") || part.equalsIgnoreCase("1") || part.equalsIgnoreCase("2") || part.equalsIgnoreCase("3") || part.equalsIgnoreCase("4"))) {
-			map.put("resultMessage", "Invalid input value : part -> " + part);
-			return map;
-		}
-		map = problemService.getNextProblemSet(userId, diagType, part);
+		map = problemService.getNextProblemSet(userId, diagType);
 		if (map == null || map.keySet().size() == 0) {
 			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
 		} else {
