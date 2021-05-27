@@ -43,7 +43,7 @@ public class ResultServiceV0 implements ResultServiceBase{
 
         resultData.setSummary(summarySvc.getSummaryOfUser(userID));
         resultData.setLevelDiagnosisRecord(recordSvc.getRecordOfUser(userID));
-        resultData.setChapterDetailList(chapterSvc.getAllChapterListOfUser(userID));
+        resultData.setChapterDetailList(chapterSvc.getAllChapterListOfUserChapterOnly(userID));
 
         
 

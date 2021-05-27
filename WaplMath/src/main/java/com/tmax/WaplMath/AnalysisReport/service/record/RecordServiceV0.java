@@ -57,7 +57,7 @@ public class RecordServiceV0 implements RecordServiceBase{
         for(JsonElement eachElem : resultArray){
             JsonObject object = (JsonObject)eachElem;
 
-            System.out.println(object.toString());
+            // System.out.println(object.toString());
 
             if(object.get("userAnswer").getAsString().equals("PASS")){
                 countPass++;
