@@ -6,11 +6,9 @@ import java.util.List;
 import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service
-@Qualifier("dummy")
+@Service("RecordServiceDummy")
 public class RecordServiceDummy implements RecordServiceBase{
     @Override
     public LevelDiagnosisRecordDTO getRecordOfUser(String userID) {

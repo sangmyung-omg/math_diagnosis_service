@@ -9,12 +9,12 @@ import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.SkillStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 
-@Service
-@Qualifier("v0")
+@Service("ChapterServiceV0")
+@Primary
 public class ChapterServiceV0 implements ChapterServiceBase{
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUser(String userID) {

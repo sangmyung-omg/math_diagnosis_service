@@ -11,11 +11,9 @@ import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service
-@Qualifier("dummy")
+@Service("ResultServiceDummy")
 public class ResultServiceDummy implements ResultServiceBase{
     @Autowired
     private SummaryServiceBase summarySvc;

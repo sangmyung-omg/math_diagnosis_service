@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResultControllerV0 {
 
     @Autowired
-    @Qualifier("v0")
+    @Qualifier("ResultServiceV0")
     private ResultServiceBase resultSvc;
     
     @GetMapping("/result")

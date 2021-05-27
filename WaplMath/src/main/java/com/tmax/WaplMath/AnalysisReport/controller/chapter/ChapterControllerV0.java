@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChapterControllerV0 {
 
     @Autowired
-    @Qualifier("v0")
+    @Qualifier("ChapterServiceV0")
     private ChapterServiceBase chapterSvc;
     
     @GetMapping("/chapters")

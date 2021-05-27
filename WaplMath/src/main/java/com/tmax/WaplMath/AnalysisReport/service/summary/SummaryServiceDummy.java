@@ -2,11 +2,9 @@ package com.tmax.WaplMath.AnalysisReport.service.summary;
 
 import com.tmax.WaplMath.AnalysisReport.dto.SummaryReportDTO;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service
-@Qualifier("dummy")
+@Service("SummaryServiceDummy")
 public class SummaryServiceDummy implements SummaryServiceBase{
     @Override
     public SummaryReportDTO getSummaryOfUser(String userID) {

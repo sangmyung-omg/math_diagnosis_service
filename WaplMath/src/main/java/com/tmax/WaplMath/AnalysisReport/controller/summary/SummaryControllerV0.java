@@ -23,7 +23,7 @@ import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 class SummaryControllerV0 {
     
     @Autowired
-    @Qualifier("v0")
+    @Qualifier("SummaryServiceV0")
     private SummaryServiceBase summarySvc;
 
     @GetMapping("/summary")
