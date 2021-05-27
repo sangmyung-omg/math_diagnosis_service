@@ -9,6 +9,7 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,7 +35,7 @@ public class ResultControllerV0 {
     @GetMapping("/result")
     ResponseEntity<Object> getResult(@RequestHeader("token") String token) {
         //TODO: get userID from token
-        String userID = token;
+        String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
         DiagnosisResultDTO output = resultSvc.getResultOfUser(userID);
 
