@@ -44,9 +44,9 @@ public class ResultServiceDummy implements ResultServiceBase{
         for(int i=0; i<5; i++){
             idList.add(UUID.randomUUID().toString());
         }
-        chapterIDList.setUserIDList(idList);
+        // chapterIDList.setUserIDList(idList);
 
-        resultData.setChapterIDList(chapterIDList);
+        // resultData.setChapterIDList(chapterIDList);
 
         return resultData;
     }
