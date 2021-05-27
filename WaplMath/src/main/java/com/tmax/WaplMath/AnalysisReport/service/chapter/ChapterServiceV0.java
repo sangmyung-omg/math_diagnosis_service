@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -31,6 +32,7 @@ class ValueCount {
     private double masteryTotal = 0.0;
     private int currentCount = 0;
     private String name = "";
+    private String type = "null";
 
     private Map<Integer, String> ukList = new HashMap<>();
 
@@ -62,24 +64,48 @@ public class ChapterServiceV0 implements ChapterServiceBase{
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUser(String userID) {
         //Get the mastery level and curriculum section info (중학교 2학년 범위)
-        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculumWithCurrRange(userID, "중등-중2%");
+        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
 
-        return this.createListFromDBResult(mid2result);
+        return this.createListFromDBResult(mid2result, "none");
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getAllChapterListOfUserChapterOnly(String userID) {
+        //Get the mastery level and curriculum section info (중학교 2학년 범위)
+        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
+
+        return this.createListFromDBResult(mid2result, "chapter");
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getAllChapterListOfUserSectionOnly(String userID) {
+        //Get the mastery level and curriculum section info (중학교 2학년 범위)
+        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
+
+        return this.createListFromDBResult(mid2result, "section");
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getAllChapterListOfUserSubSectionOnly(String userID) {
+        //Get the mastery level and curriculum section info (중학교 2학년 범위)
+        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
+
+        return this.createListFromDBResult(mid2result, "subsection");
     }
 
     @Override
     public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList) {
         List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList.getChapterIDList());
-        return this.createListFromDBResult(result);
+        return this.createListFromDBResult(result, "none");
     }
 
     @Override
     public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList) {
         List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList);
-        return this.createListFromDBResult(result);
+        return this.createListFromDBResult(result, "none");
     }
 
-    private List<ChapterDetailDTO> createListFromDBResult(List<UserMasteryCurriculum> dbresult) {
+    private List<ChapterDetailDTO> createListFromDBResult(List<UserMasteryCurriculum> dbresult, String saturation) {
         //Create a hashmap to save the average of mastery per section
         Map<String, ValueCount> currSectionUKAvg = new HashMap<>();
 
@@ -90,18 +116,51 @@ public class ChapterServiceV0 implements ChapterServiceBase{
             //Get currid            
             String currID = data.getCurriculumId();
 
-            //cut the last 3 digits (대단원 id clipping)
-            if(currID.length() > 6)
-                currID = currID.substring(0, currID.length() - 6);
+            // //cut the last 3 digits (대단원 id clipping)
+            // if(currID.length() > 6)
+            //     currID = currID.substring(0, currID.length() - 6);
+            if(saturation.equals("chapter")){
+                currID = currID.substring(0, 11);
+            }
+            else if(saturation.equals("section")){
+                currID = currID.substring(0, 14);
+            } 
+            else if(saturation.equals("subsection")){
+                currID = currID.substring(0, 17);
+            }
             
             ValueCount val = currSectionUKAvg.containsKey(currID) ? currSectionUKAvg.get(currID) : new ValueCount();
+            if(saturation.equals("chapter")){
+                val.setType("대단원");
+            }
+            else if(saturation.equals("section")){
+                val.setType("중단원");
+            } 
+            else if(saturation.equals("subsection")){
+                val.setType("소단원");
+            }
 
             val.increase(); //Count 증가
             val.setMasteryTotal(val.getMasteryTotal() + data.getUkMastery()); //전체 mastery 증가
             val.setName(data.getSection()); //대단원 명 입력
             val.insertUK(data.getUkId(), data.getUkName()); //단원에 포함됨 UK id 리스트 구축
 
+            //단원 종류 판단
+            System.out.println(data.toString());
+            // if(data.getSubSection() != null){
+            //     val.setType("소단원");
+            // }
+            // else if(data.getSubSection() != null){
+            //     currID = currID.substring(0, currID.length() - 3);
+            //     val.setType("중단원");
+            // }
+            // else {
+            //     currID = currID.substring(0, currID.length() - 6);
+            //     val.setType("대단원");
+            // }
+
             // update
+            
             
             currSectionUKAvg.put(currID,val); 
 
@@ -126,7 +185,7 @@ public class ChapterServiceV0 implements ChapterServiceBase{
 
             data.setSkillData(skill);
 
-            data.setType("대단원");
+            data.setType(entry.getValue().getType());
 
 
             List<UKDetailDTO> uklist = new ArrayList<UKDetailDTO>();

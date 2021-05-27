@@ -40,7 +40,7 @@ public class ChapterControllerV0 {
         //TODO: get userID from token
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
-        List<ChapterDetailDTO> output = chapterSvc.getAllChapterListOfUser(userID);
+        List<ChapterDetailDTO> output = chapterSvc.getAllChapterListOfUserChapterOnly(userID);
         return new ResponseEntity<>(output, HttpStatus.OK);
     }
 

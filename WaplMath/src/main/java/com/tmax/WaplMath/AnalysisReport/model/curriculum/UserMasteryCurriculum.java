@@ -4,6 +4,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.springframework.lang.Nullable;
+
 import lombok.Data;
 
 @Data
@@ -23,6 +25,12 @@ public class UserMasteryCurriculum {
     @Column(name="CURRICULUM_ID")
     private String curriculumId;
     private String chapter;
+
+    @Nullable
     private String section;
+
+    @Nullable
+    private String subSection;
+
     private int curriculumSequence;
 }

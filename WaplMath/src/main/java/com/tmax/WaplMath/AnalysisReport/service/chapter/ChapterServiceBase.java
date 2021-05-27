@@ -8,6 +8,11 @@ import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 public interface ChapterServiceBase {
 
     List<ChapterDetailDTO> getAllChapterListOfUser(String userID);
+
+    List<ChapterDetailDTO> getAllChapterListOfUserChapterOnly(String userID);
+    List<ChapterDetailDTO> getAllChapterListOfUserSectionOnly(String userID);
+    List<ChapterDetailDTO> getAllChapterListOfUserSubSectionOnly(String userID);
+
     
     List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList);
     List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList);
