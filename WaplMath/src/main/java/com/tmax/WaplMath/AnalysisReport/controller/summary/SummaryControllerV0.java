@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -16,6 +17,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.Generic500ErrorDTO;
 import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping(path= Constants.apiPrefix + "/v0")
 class SummaryControllerV0 {
