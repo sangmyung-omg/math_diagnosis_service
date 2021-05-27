@@ -60,4 +60,10 @@ public class ChapterServiceDummy implements ChapterServiceBase{
 
         return this.getAllChapterListOfUser(userID);
     }
+
+    @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList) {
+        // TODO Auto-generated method stub
+        return this.getAllChapterListOfUser(userID);
+    }
 }

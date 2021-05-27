@@ -64,13 +64,29 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         //Get the mastery level and curriculum section info (중학교 2학년 범위)
         List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculumWithCurrRange(userID, "중등-중2%");
 
+        return this.createListFromDBResult(mid2result);
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList) {
+        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList.getChapterIDList());
+        return this.createListFromDBResult(result);
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList) {
+        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList);
+        return this.createListFromDBResult(result);
+    }
+
+    private List<ChapterDetailDTO> createListFromDBResult(List<UserMasteryCurriculum> dbresult) {
         //Create a hashmap to save the average of mastery per section
         Map<String, ValueCount> currSectionUKAvg = new HashMap<>();
 
         Map<Integer, Double> ukSkillMap = new HashMap<>();
 
         //Sum all mastery per 
-        for(UserMasteryCurriculum data : mid2result){
+        for(UserMasteryCurriculum data : dbresult){
             //Get currid            
             String currID = data.getCurriculumId();
 
@@ -131,14 +147,6 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         return outputList;
     }
 
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList) {
-        // List<ChapterDetailDTO> outputList = new ArrayList<ChapterDetailDTO>();
-        // return outputList;
-
-        return this.getAllChapterListOfUser(userID);
-    }
-
     //임시 스킬 계산기 (50,90 반음)
     private double calculateSkill(int i, Map<Integer,String> ukMap) {
         //Read top10, top50
@@ -176,6 +184,6 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         if(count == 0)
             return 0;
 
-        return total / (double)count;
+        return 100 * total / (double)count;
     }
 }

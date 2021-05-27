@@ -26,4 +26,14 @@ public interface UserCurriculumRepo extends CrudRepository<UserMasteryCurriculum
                  "and cm.curriculum_id like :currRange " +
                  "order by uk_id", nativeQuery=true)
     List<UserMasteryCurriculum> getUserCurriculumWithCurrRange(@Param("userID") String userID, @Param("currRange") String currRange);
+
+
+    @Query(value="select know.USER_UUID, UK_MASTERY, know.UK_ID as UK_ID, UK_NAME, cm.CURRICULUM_ID as CURRICULUM_ID, CHAPTER, SECTION, CURRICULUM_SEQUENCE from " +
+                 "user_knowledge know " +
+                 "join uk_master ukm on know.uk_id=ukm.uk_id "+
+                 "join curriculum_master cm on cm.curriculum_id = ukm.curriculum_id " + 
+                 "where user_uuid = :userID " + 
+                 "and cm.curriculum_id in :currIDList " +
+                 "order by uk_id", nativeQuery=true)
+    List<UserMasteryCurriculum> getUserCurriculumWithCurrIDList(@Param("userID") String userID, @Param("currIDList") List<String> currIDList);
 }
