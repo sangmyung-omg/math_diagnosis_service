@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.service.studyguide;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Map;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
+import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.UserCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
@@ -72,9 +74,13 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
 
 
 
-        //가져온 List의 각 Chapter에서 UK중 수치를 정렬하여 hashmap에 정리
-        Map<ChapterDetailDTO,String> ChapterWorstUKMap = new HashMap<>();
-        for(ChapterDetailDTO chapDetail: chapList){
+        //선별한 currID에 따라 chapList 삽입 index를 저장하는 map
+        // Map<String,Integer> currIDListIndexMap = new HashMap<>();
+        Map<Integer,ChapterDetailDTO> indexCurrIDMap = new HashMap<>();
+
+        for(int index = 0; index < chapList.size(); index++){
+            ChapterDetailDTO chapDetail = chapList.get(index);
+
             //Get the UK list
             List<UKDetailDTO> ukList = chapDetail.getUkDetailList();
 
@@ -82,11 +88,45 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
             Collections.sort(ukList, (uk1, uk2)-> new Double(uk1.getSkillScore()).compareTo(uk2.getSkillScore()));
 
             //Get the first UK
-            System.out.println(chapDetail.getName() + ") worst UK : " + ukList.get(ukList.size()-1).toString());
+            System.out.println(chapDetail.getName() + ") worst UK : " + ukList.get(0).toString());
 
-            ChapterWorstUKMap.put(chapDetail, ukList.get(0).getId());
+            //If worst is below 0.5
+            if(ukList.get(0).getSkillScore() > 0.53)
+                continue;
+
+            List<UserMasteryCurriculum> ukcurrList = userCurrRepo.getUserCurriculumOfPreUKWithUkID(userID, ukList.get(0).getId());
+
+            // List<String> extraCurrIDList = new ArrayList<>();
+            // System.out.println("test: " + ukList.get(0).getId()  + " || " + ukcurrList.toString());
+            for(UserMasteryCurriculum ukmas: ukcurrList){
+                if(ukmas.getCurriculumId().contains("중등-중3-")){
+                    // System.out.println(ukmas.getCurriculumId() +" 중3 패스함");
+                    continue;
+                }
+
+                // extraCurrIDList.add(ukmas.getCurriculumId()); //일단 하나만 넣자
+                System.out.println(ukmas.getCurriculumId() +"해야함");
+
+                //ChapDTO 가져옴
+                List<ChapterDetailDTO> chap = chapterSvc.getSpecificChapterListOfUser(userID, Arrays.asList(ukmas.getCurriculumId()), "section");
+                // System.out.println("DDDD" + chap);
+
+                indexCurrIDMap.put(index, chap.get(0));
+                break;
+            }
         }
 
+        // System.out.println(indexCurrIDMap.toString());
+
+        //무조건 순서대로 되므로 넣을때마다 +1식해서 넣자
+        int insertOffset=0;
+        for(Map.Entry<Integer,ChapterDetailDTO> entry : indexCurrIDMap.entrySet()){
+            ChapterDetailDTO chap = entry.getValue();
+            chap.setType("보충-" + chap.getType());
+            
+            //하나 넣으니 offset 추가하면서 입력
+            chapList.add(entry.getKey() + insertOffset++, chap);
+        }   
 
 
         guide.setChapterDetailList(chapList);
