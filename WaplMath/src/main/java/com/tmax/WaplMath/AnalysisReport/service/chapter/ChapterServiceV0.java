@@ -33,6 +33,7 @@ class ValueCount {
     private int currentCount = 0;
     private String name = "";
     private String type = "null";
+    private int sequence = 0;
 
     private Map<Integer, String> ukList = new HashMap<>();
 
@@ -63,7 +64,7 @@ public class ChapterServiceV0 implements ChapterServiceBase{
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUser(String userID) {
-        //Get the mastery level and curriculum section info (중학교 2학년 범위)
+        //Get the mastery level and curriculum section info 
         List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
 
         return this.createListFromDBResult(mid2result, "none");
@@ -71,15 +72,15 @@ public class ChapterServiceV0 implements ChapterServiceBase{
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserChapterOnly(String userID) {
-        //Get the mastery level and curriculum section info (중학교 2학년 범위)
-        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
+        //Get the mastery level and curriculum section info (중2 강제는 임시)
+        List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculumWithCurrRange(userID, "중등-중2%");
 
         return this.createListFromDBResult(mid2result, "chapter");
     }
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserSectionOnly(String userID) {
-        //Get the mastery level and curriculum section info (중학교 2학년 범위)
+        //Get the mastery level and curriculum section info
         List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
 
         return this.createListFromDBResult(mid2result, "section");
@@ -87,7 +88,7 @@ public class ChapterServiceV0 implements ChapterServiceBase{
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserSubSectionOnly(String userID) {
-        //Get the mastery level and curriculum section info (중학교 2학년 범위)
+        //Get the mastery level and curriculum section info
         List<UserMasteryCurriculum> mid2result= currRepo.getUserCurriculum(userID);
 
         return this.createListFromDBResult(mid2result, "subsection");
@@ -100,9 +101,23 @@ public class ChapterServiceV0 implements ChapterServiceBase{
     }
 
     @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList,
+            String saturation) {
+        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList.getChapterIDList());
+        return this.createListFromDBResult(result, saturation);
+    }
+
+    @Override
     public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList) {
         List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList);
         return this.createListFromDBResult(result, "none");
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList,
+            String saturation) {
+        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList);
+        return this.createListFromDBResult(result, saturation);
     }
 
     private List<ChapterDetailDTO> createListFromDBResult(List<UserMasteryCurriculum> dbresult, String saturation) {
@@ -144,9 +159,10 @@ public class ChapterServiceV0 implements ChapterServiceBase{
             val.setMasteryTotal(val.getMasteryTotal() + data.getUkMastery()); //전체 mastery 증가
             val.setName(data.getSection()); //대단원 명 입력
             val.insertUK(data.getUkId(), data.getUkName()); //단원에 포함됨 UK id 리스트 구축
+            val.setSequence(data.getCurriculumSequence());
 
             //단원 종류 판단
-            System.out.println(data.toString());
+            // System.out.println(data.toString());
             // if(data.getSubSection() != null){
             //     val.setType("소단원");
             // }
@@ -186,6 +202,8 @@ public class ChapterServiceV0 implements ChapterServiceBase{
             data.setSkillData(skill);
 
             data.setType(entry.getValue().getType());
+
+            data.setSequence(entry.getValue().getSequence());
 
 
             List<UKDetailDTO> uklist = new ArrayList<UKDetailDTO>();

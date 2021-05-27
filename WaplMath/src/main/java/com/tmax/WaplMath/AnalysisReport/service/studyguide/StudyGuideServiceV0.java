@@ -31,25 +31,29 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
         int currNumber = Math.max(currList.size() - 2 - 1, 0); //cut 1st and last + 0 start indexing
         
 
-        //pick 3 random number (힘들어서 그냥 0.3 범위헤서 3개 뽑음)
-        List<Integer> indexList = new ArrayList<>();
-        indexList.add(0);
-        indexList.add((int)Math.floor(currNumber * (Math.random() / 3.0)) );
-        indexList.add((int)Math.floor(currNumber * ( (1.0/3.0) + Math.random() / 3.0)) );
-        indexList.add((int)Math.floor(currNumber * ( (2.0/3.0) + Math.random() / 3.0)) );
-        indexList.add(currNumber);
+        // //pick 3 random number (힘들어서 그냥 0.3 범위헤서 3개 뽑음)
+        // List<Integer> indexList = new ArrayList<>();
+        // indexList.add(0);
+        // indexList.add((int)Math.floor(currNumber * (Math.random() / 3.0)) );
+        // indexList.add((int)Math.floor(currNumber * ( (1.0/3.0) + Math.random() / 3.0)) );
+        // indexList.add((int)Math.floor(currNumber * ( (2.0/3.0) + Math.random() / 3.0)) );
+        // indexList.add(currNumber);
 
         StudyGuideDTO guide = new StudyGuideDTO();
 
         //Create a blank array
         List<String> currIDList = new ArrayList<>();
-        for(Integer index: indexList){
-            currIDList.add(currList.get(index).getCurriculumId());
+        for(Curriculum curr: currList){
+            currIDList.add(curr.getCurriculumId());
         }
 
-        List<ChapterDetailDTO> chapList = chapterSvc.getSpecificChapterListOfUser(userID, currIDList);
+        // for(Integer index: indexList){
+        //     currIDList.add(currList.get(index).getCurriculumId());
+        // }
 
-        System.out.println(currIDList.toString());
+        List<ChapterDetailDTO> chapList = chapterSvc.getSpecificChapterListOfUser(userID, currIDList, "section");
+
+        System.out.println(chapList.size());
 
         guide.setChapterDetailList(chapList);
         guide.setCommentary("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 90점까지 상승 가능할거에요");

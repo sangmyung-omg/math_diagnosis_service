@@ -8,6 +8,7 @@ import lombok.Data;
 public class ChapterDetailDTO {
     private String id;
     private String type;
+    private int sequence;
     private String name;
     private String imagePath;
     private SkillStatDTO skillData;

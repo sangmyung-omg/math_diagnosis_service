@@ -14,6 +14,9 @@ public interface ChapterServiceBase {
     List<ChapterDetailDTO> getAllChapterListOfUserSubSectionOnly(String userID);
 
     
+    List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList, String saturation);
     List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList);
+
+    List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList, String saturation);
     List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList);
 }

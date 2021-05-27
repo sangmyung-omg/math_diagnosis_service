@@ -72,6 +72,19 @@ public class ChapterServiceDummy implements ChapterServiceBase{
     }
 
     @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList,
+            String saturation) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList,
+            String saturation) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList) {
         // List<ChapterDetailDTO> outputList = new ArrayList<ChapterDetailDTO>();
         // return outputList;
