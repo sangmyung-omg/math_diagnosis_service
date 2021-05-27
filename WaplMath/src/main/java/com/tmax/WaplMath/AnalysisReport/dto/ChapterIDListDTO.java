@@ -6,5 +6,5 @@ import lombok.Data;
 
 @Data
 public class ChapterIDListDTO {
-    public List<String> userIDList;
+    public List<String> chapterIDList;
 }

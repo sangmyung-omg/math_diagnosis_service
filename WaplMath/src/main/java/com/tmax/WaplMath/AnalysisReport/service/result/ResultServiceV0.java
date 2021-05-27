@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
+import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 
@@ -22,6 +23,9 @@ public class ResultServiceV0 implements ResultServiceBase{
 
     @Autowired
     private RecordServiceBase recordSvc;
+
+    @Autowired
+    private ChapterServiceBase chapterSvc;
 
 
     @Override
@@ -39,16 +43,9 @@ public class ResultServiceV0 implements ResultServiceBase{
 
         resultData.setSummary(summarySvc.getSummaryOfUser(userID));
         resultData.setLevelDiagnosisRecord(recordSvc.getRecordOfUser(userID));
+        resultData.setChapterDetailList(chapterSvc.getAllChapterListOfUser(userID));
 
-
-        ChapterIDListDTO chapterIDList = new ChapterIDListDTO();
-        List<String> idList = new ArrayList<String>();
-        for(int i=0; i<5; i++){
-            idList.add(UUID.randomUUID().toString());
-        }
-        chapterIDList.setUserIDList(idList);
-
-        resultData.setChapterIDList(chapterIDList);
+        
 
         return resultData;
     }
