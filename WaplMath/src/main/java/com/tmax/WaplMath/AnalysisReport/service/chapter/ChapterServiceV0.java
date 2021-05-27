@@ -37,7 +37,7 @@ public class ChapterServiceV0 implements ChapterServiceBase{
             data.setType("중단원");
 
 
-            List<UKDetailDTO> uklist = new ArrayList<UKDetailDTO>()
+            List<UKDetailDTO> uklist = new ArrayList<UKDetailDTO>();
             for(int j=0; j<3; j++){
                 UKDetailDTO ukdetail = new UKDetailDTO();
                 ukdetail.setId(UUID.randomUUID().toString());
