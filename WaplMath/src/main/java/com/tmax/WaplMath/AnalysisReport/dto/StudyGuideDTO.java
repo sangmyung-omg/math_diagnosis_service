@@ -5,6 +5,6 @@ import java.util.List;
 
 @Data
 public class StudyGuideDTO {
-    private List<ChapterDetailDTO> chapterIDList;
+    private List<ChapterDetailDTO> chapterDetailList;
     private String commentary;
 }
