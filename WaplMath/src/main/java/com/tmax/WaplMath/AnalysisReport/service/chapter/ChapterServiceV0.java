@@ -47,6 +47,9 @@ public class ChapterServiceV0 implements ChapterServiceBase{
                 uklist.add(ukdetail);
             }
             data.setUkDetailList(uklist);
+
+
+            outputList.add(data);
         }
 
         return outputList;
