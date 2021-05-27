@@ -12,6 +12,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UnsupportedErrorDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,7 +38,7 @@ public class ChapterControllerV0 {
     @GetMapping("/chapters")
     ResponseEntity<Object> getChaptersList(@RequestHeader("token") String token){
         //TODO: get userID from token
-        String userID = token;
+        String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
         List<ChapterDetailDTO> output = chapterSvc.getAllChapterListOfUser(userID);
         return new ResponseEntity<>(output, HttpStatus.OK);
@@ -47,7 +48,7 @@ public class ChapterControllerV0 {
     ResponseEntity<Object> getChaptersListFromChapterIDList(@RequestHeader("token") String token, 
                                                             @RequestBody ChapterIDListDTO chapterIDList){
         //TODO: get userID from token
-        String userID = token;
+        String userID =  JWTUtil.getJWTPayloadField(token, "userID");;
 
         // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
         return new ResponseEntity<>(new UnsupportedErrorDTO(), HttpStatus.NOT_FOUND);

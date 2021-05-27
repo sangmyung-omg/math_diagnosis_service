@@ -6,6 +6,7 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,7 +34,7 @@ public class RecordControllerV0 {
     @GetMapping("/record")
     ResponseEntity<Object> getLevelDiagRecord(@RequestHeader("token") String token){
         //TODO: get userID from token data
-        String userID = token;
+        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
 
         LevelDiagnosisRecordDTO output = recordSvc.getRecordOfUser(userID);
 

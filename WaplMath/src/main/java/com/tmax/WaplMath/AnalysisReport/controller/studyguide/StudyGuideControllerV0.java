@@ -18,6 +18,7 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -30,7 +31,7 @@ public class StudyGuideControllerV0 {
     
     @GetMapping("/studyguide")
     ResponseEntity<Object> getStudyGuide(@RequestHeader("token") String token){
-        String userID = token;
+        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
 
         List<StudyGuideDTO> outputList = new ArrayList<StudyGuideDTO>();
         outputList.add(studySvc.getStudyGuideOfUser(userID));

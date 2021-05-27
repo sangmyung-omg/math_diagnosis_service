@@ -16,6 +16,7 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.Generic500ErrorDTO;
 import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
@@ -29,7 +30,7 @@ class SummaryControllerV0 {
     @GetMapping("/summary")
     ResponseEntity<Object> getSummary(@RequestHeader(value="token", required = false) String token) {
         //TODO: get userID and previledge from token
-        String userID = token; 
+        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
 
         if(token == null)  {
             throw new GenericInternalException("Error");
