@@ -40,7 +40,7 @@ public class ProblemService {
 	CurriculumRepository curriculumRepository;
 	
 	
-	public Map<String, Object> getNextProblemSet(String userId, String diagType){
+	public Map<String, Object> getDiagnosisProblems(String userId, String diagType){
 
 //		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
 		
@@ -64,41 +64,15 @@ public class ProblemService {
 		String limit_chapter = dao.getCurrentCurriculumId();
 		
 		for (String partName : partList) {
-//			// part 코드를 실제 이름으로 변환
-//			String partName = "";
-//			if (part.equalsIgnoreCase("0")) partName = "수와 연산";
-//			else if (part.equalsIgnoreCase("1")) partName = "문자와 식";
-//			else if (part.equalsIgnoreCase("2")) partName = "함수";
-//			else if (part.equalsIgnoreCase("3")) partName = "기하";
-//			else if (part.equalsIgnoreCase("4")) partName = "확률과 통계";
-//			else {
-//				Map<String, Object> map = new HashMap<String, Object>();
-//				map.put("error", "Invalid value for part(0 ~ 4) : " + part);
-//				return map;
-//			}
-			
-			
 			// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
-			List<Curriculum> currQueryResult = curriculumRepository.findChaptersByParts(partName);
+			List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
 //			Map<String, List<String>> chapterIdList = new HashMap<String, List<String>>();
 			List<String> chapterIdList = new ArrayList<String>();
 			for (Curriculum curr : currQueryResult){
 				chapterIdList.add(curr.getCurriculumId());
 			}
 			logger.info(chapterIdList.toString());
-			
-			
-//		// 일단은 static하게 dummy 리스트 가지고 있는 것 불러오기
-//		DemoChapterPartMapper chapterPartMapper = new DemoChapterPartMapper();
-//		Map<String, List<String>> chapterIdList = chapterPartMapper.getMappingInfo();
-//		
-//		logger.info(chapterIdList.toString());
-//		System.out.println(chapterIdList);
-//		
-//		System.out.println("containsKey : " + chapterIdList.containsKey(part));
-			
-			
-			
+
 			// 진단 범위에 해당하는 대단원들 select - 현재 학기에서 2학기 전부터 현재 배우고 있는 단원 바로 이전까지 (가장 최근에 다 배운 단원 까지)
 			List<String> available_chaps = new ArrayList<String>();
 			
@@ -109,7 +83,7 @@ public class ProblemService {
 				int chapter_semester = Integer.parseInt(limit_chapter.substring(6,7));
 				
 				// 현재 학기의 2학기 전까지의 범위 체크
-				if ((chap.compareToIgnoreCase(limit_chapter) < 0) && (2*chap_grade + chap_semester >= 2*chapter_grade + chapter_semester -2)) {
+				if ((chap.compareToIgnoreCase(limit_chapter) <= 0) && (2*chap_grade + chap_semester >= 2*chapter_grade + chapter_semester -2)) {
 					if (!dao.getGrade().equalsIgnoreCase("3")) {
 						available_chaps.add(chap);					
 					} else {
@@ -123,25 +97,18 @@ public class ProblemService {
 			// available_chaps가 null이면, 각 영역에서 첫 단원 출제
 			String selected_chapter = "";
 			if (available_chaps.size() != 0 && available_chaps != null) {
-				Collections.shuffle(available_chaps);
-				selected_chapter = available_chaps.get(0);
+//				Collections.shuffle(available_chaps);
+				selected_chapter = available_chaps.get(available_chaps.size()-1);
 				logger.info("Available_chaps exist and selected : " + selected_chapter);
 			} else {
 				logger.info("Available_chaps not exist");
-				if (dao.getGrade() == "3") {
-					List<String> imsi = new ArrayList<String>();
-					for (String c : chapterIdList) {
-						if (c.compareToIgnoreCase("중등-중2-2학") < 0) {
-							imsi.add(c);
-//						logger.info("imsi : " + imsi);
-						}
-					}
-					Collections.shuffle(imsi);
-					selected_chapter = imsi.get(0);
-					logger.info("No dummy problem set for 3rd grade ㅠㅠ, so random problem set returned : " + selected_chapter);
+
+				selected_chapter = chapterIdList.get(0);				
+				logger.info("No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
+				if (resultMap.containsKey("error")) {
+					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
 				} else {
-					selected_chapter = chapterIdList.get(0);				
-					logger.info("No available chapter for the part, so first chapter of the part is given : " + selected_chapter);
+					resultMap.put("error", "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
 				}
 			}
 			
@@ -206,7 +173,7 @@ public class ProblemService {
 		}
 		
 		// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
-		List<Curriculum> currQueryResult = curriculumRepository.findChaptersByParts(partName);
+		List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
 		List<String> chapterIdList = new ArrayList<String>();
 		for (Curriculum curr : currQueryResult){
 			chapterIdList.add(curr.getCurriculumId());
