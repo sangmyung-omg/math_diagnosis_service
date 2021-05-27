@@ -35,8 +35,8 @@ public class DiagnosisController {
 	CurriculumService curriculumService;
 	
 	*/
-	@GetMapping(value = "/NextProblemSet", produces = "application/json; charset=utf-8")
-	public Map<String, Object> getNextProblemSet(
+	@GetMapping(value = "/DiagnosisProblems", produces = "application/json; charset=utf-8")
+	public Map<String, Object> getDiagnosisProblems(
 			@RequestParam String token,
 			@RequestParam String diagType) throws Exception {
 		if (token == null) {
@@ -45,7 +45,7 @@ public class DiagnosisController {
 			return map;
 		}
 		Map<String, Object> map = new HashMap<String, Object>();
-		map = problemService.getNextProblemSet(token, diagType);
+		map = problemService.getDiagnosisProblems(token, diagType);
 		if (map == null || map.keySet().size() == 0) {
 			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
 		} else {
