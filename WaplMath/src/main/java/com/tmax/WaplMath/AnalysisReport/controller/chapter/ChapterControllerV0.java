@@ -10,6 +10,7 @@ import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 // import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.UnsupportedErrorDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +49,8 @@ public class ChapterControllerV0 {
         //TODO: get userID from token
         String userID = token;
 
-        List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
-        return new ResponseEntity<>(output, HttpStatus.OK);
+        // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
+        return new ResponseEntity<>(new UnsupportedErrorDTO(), HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/chapters/{userID}")
@@ -65,7 +66,7 @@ public class ChapterControllerV0 {
                                                             @PathParam("userID") String userID,
                                                             @RequestBody ChapterIDListDTO chapterIDList){
        
-        List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
-        return new ResponseEntity<>(output, HttpStatus.OK);
+        // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
+        return new ResponseEntity<>(new UnsupportedErrorDTO(), HttpStatus.NOT_FOUND);
     }
 }
