@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.service;
+package com.tmax.WaplMath.Recommend.service.problem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,6 +10,8 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Problem.model.Problem;
@@ -19,16 +21,19 @@ import com.tmax.WaplMath.Recommend.model.DiagnosisProblem;
 import com.tmax.WaplMath.Recommend.model.User;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
+import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;
 
 
-@Service
-public class ProblemService {
+@Service("ProblemServiceV0")
+@Primary
+public class ProblemServiceV0 implements ProblemServiceBase {
 	
 	
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	@Autowired
-	UserInfoService userService;
+	@Qualifier("UserInfoServiceV0")
+	UserInfoServiceV0 userService;
 	
 	@Autowired
 	DiagnosisProblemRepository diagnosisProblemRepository;
@@ -39,7 +44,7 @@ public class ProblemService {
 	@Autowired
 	CurriculumRepository curriculumRepository;
 	
-	
+	@Override
 	public Map<String, Object> getDiagnosisProblems(String userId, String diagType){
 
 //		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
@@ -148,6 +153,7 @@ public class ProblemService {
 		return resultMap;
 	}
 	
+	@Override
 	public Map<String, Object> getAdaptiveProblem(String token, String diagType, Integer probId){
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		User dao = userService.getUserInfo(token);
