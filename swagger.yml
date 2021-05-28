@@ -31,7 +31,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NextProblemSetResult'
+                $ref: '#/components/schemas/DiagnosisProblemsResult'
         500:
           description: 실패
           content:
@@ -42,10 +42,54 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"                
-                
+  /AdaptiveProblem:
+    get:
+      tags: [AdaptiveProblem]
+      operationId: AdaptiveProblemGet
+      summary: Adaptive한 다음 문제 요청
+      parameters:
+        - name: token
+          in: header
+          description: 유저 access token
+          required: true
+          schema:
+            default: mkkang2
+            type: string
+        - name: diagType
+          in: path
+          description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
+          required: true
+          schema:
+            default: in-depth
+            type: string
+        - name: probId
+          in: path
+          description: 방금 맞은 난이도 '상' 문제 ID
+          required: true
+          schema:
+            default: 1633
+            type: integer
+      responses:
+        200:
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdaptiveProblemResult'
+        500:
+          description: 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultMessage:
+                    type: string
+                    example: "Error: status code 500"
+
 components:
   schemas:
-    NextProblemSetResult:
+    DiagnosisProblemsResult:
       properties:
         resultMessage:
           type: string
@@ -59,3 +103,11 @@ components:
             - [1121,3141,5161]
             - [7181,9202,1222]
             - [3242,5262,7282]
+    AdaptiveProblemResult:
+      properties:
+        resultMessage:
+          type: string
+          example: "Successfully Returned"
+        adaptiveProblem:
+          type: integer
+          example: 9101

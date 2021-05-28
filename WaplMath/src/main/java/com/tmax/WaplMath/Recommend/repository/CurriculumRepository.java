@@ -10,8 +10,11 @@ import com.tmax.WaplMath.Recommend.model.Curriculum;
 
 public interface CurriculumRepository extends CrudRepository<Curriculum, String> {
 	
-	@Query("SELECT C FROM Curriculum C WHERE C.part = ?1 AND CHAR_LENGTH(C.curriculumId)=11 AND C.schoolType='중등' ORDER BY C.curriculumId")
-	List<Curriculum> findChaptersByParts(String part);
+	@Query("SELECT DISTINCT C.part FROM Curriculum C WHERE C.schoolType='중등'")
+	List<String> findDistinctPart();
+	
+	@Query("SELECT C FROM Curriculum C WHERE C.part = ?1 AND CHAR_LENGTH(C.curriculumId)=11 AND C.schoolType='중등' ORDER BY C.curriculumId ASC")
+	List<Curriculum> findChaptersByPart(String part);
 	// DB에 part 값이 없음.
 	
 	@Query("SELECT DISTINCT CM.chapter FROM Curriculum CM WHERE CM.curriculumId LIKE ?1")
