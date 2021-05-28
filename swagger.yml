@@ -1,13 +1,23 @@
 openapi: '3.0.2'
 info:
-  title: WAPL Math 진단고사 & 커리큘럼 추천 API
-  version: '0.1'
+  title: WAPL Math SAP API
+  version: '0.1.0'
+  description: |
+    지식 수준, 진단고사, 시험 대비 추천 관련 API
 servers:
   - url: http://192.168.153.212:8080/
+    description: "example server address"
+tags:
+- name : 'Diagnosis'
+  description: "진단고사 API"
+- name : 'Mastery'
+  description: "학생 지식 수준 업데이트 API"
+- name : 'ExamSchedule'
+  description: "시험 대비 학습 스케줄 추천 API"
 paths:
   /DiagnosisProblems:
     get:
-      tags: [DiagnosisProblems]
+      tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
       summary: 진단고사 문제 전체 요청
       parameters:
@@ -44,7 +54,7 @@ paths:
                     example: "Error: status code 500"                
   /AdaptiveProblem:
     get:
-      tags: [AdaptiveProblem]
+      tags: [Diagnosis]
       operationId: AdaptiveProblemGet
       summary: Adaptive한 다음 문제 요청
       parameters:
@@ -86,6 +96,47 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"
+  /mastery:
+    put:
+      tags:
+        - "Mastery"
+      summary: "학생 문제 풀이 결과 기반 지식 수준 업데이트"
+      description: |
+        Triton Server를 활용하여 학생 지식 수준을 업데이트 함
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref: "#/components/requestBodies/ProblemSolveRecord"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasteryUpdateResult"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic" 
+  /examschedulecard:
+    get:
+      tags:
+        - "ExamSchedule"
+      summary: "오늘의 학습 스케줄 카드 구성 리턴"
+      description: |
+        사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamScheduleCard"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic" 
+
 
 components:
   schemas:
@@ -111,3 +162,153 @@ components:
         adaptiveProblem:
           type: integer
           example: 9101
+    ExamScheduleCard:
+      type: "object"
+      description: "오늘의 학습 스케줄 카드 구성 정보"
+      required:
+        - "message"
+        - "isCompletable"
+        - "cardList"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully return exam card."
+          description: "결과 메시지"
+        isCompletable:
+          type: "string"
+          example: "true"
+          enum:
+            - "true"
+            - "false"
+          description: "남은 기간 동안 유형 카드를 모두 커버할 수 있는 지 여부"
+        cardList:
+          type: "array"
+          description: "오늘 카드 목록"
+          items:
+            $ref: "#/components/schemas/CardObject"
+    CardObject:
+      type: "object"
+      description: "카드 정보. 유형/보충은 4-6문제, 중간평가/모의고사는 20문제"
+      required:
+        - "cardId"
+        - "cardType"
+        - "cardTitle"
+        - "probIdSetList"
+      properties:
+        cardId:
+          type: "string"
+          example: "mkkang-03-유형"
+          description: "카드 ID"
+        cardType:
+          type: "string"
+          example: "유형"
+          enum:
+            - "유형"
+            - "보충"
+            - "중간평가"
+            - "모의고사"
+          description: "카드 종류"
+        cardTitle:
+          type: "string"
+          example: "근의 공식을 활용한 이차방정식 풀이"
+          description: "카드 이름. 유형 카드는 유형 UK 이름, 중간평가 카드는 중단원 이름, 나머지 카드는 빈 문자열 제공."
+        probIdSetList:
+          type: "array"
+          description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"
+          items:
+            $ref: "#/components/schemas/ProbIdSet"
+          example:
+            - 상: "10"
+              중: "11"
+              하: "12"
+            - 상: "20"
+              중: "21"
+              하: "22"
+    ProbIdSet:
+      type: "object"
+      required:
+        - "상"
+        - "중"
+        - "하"
+      properties:
+        상:
+          type: "string"
+          example: "11"
+          description: "상 난이도 문제 Id"
+        중:
+          type: "string"
+          example: "12"
+          description: "상 난이도 문제 Id"
+        하:
+          type: "string"
+          example: "13"
+          description: "상 난이도 문제 Id"
+    ProbIdList:
+      type: array
+      description: "문제 ID 목록"
+      items:
+        type: "string"
+      example:
+        - "607"
+        - "608"
+        - "4673"
+    CorrectList:
+      type: array
+      description: "문제 정답 여부 목록"
+      items:
+        type: "string"
+        enum:
+          - "true"
+          - "false"
+          - "pass"
+      example: 
+          - "true"
+          - "false"
+          - "pass"
+    MasteryUpdateResult:
+      type: "object"
+      required:
+        - "message"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully update user mastery."
+          description: "성공 여부 메시지"
+  responses:
+    500-Generic:
+      description: "500 에러에 대한 generic response"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errorCode:
+                type: string
+                description: "Error code"
+                example: "ERR-1001"
+              message:
+                type: string
+                description: "Error message"
+                example : "Invalid token ID"
+  parameters:
+    UserToken:
+      in: "header"
+      name: "token"
+      required: true
+      description: "유저의 Access token"
+      schema:
+        type: "string"
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+  requestBodies:
+    ProblemSolveRecord:
+      description: "학생 문제 풀이 기록"
+      required: true
+      content:
+        application/json:
+          schema:
+            properties:
+              probIdList:
+                $ref: "#/components/schemas/ProbIdList"
+              correctList:
+                $ref: "#/components/schemas/CorrectList"
+              
