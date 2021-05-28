@@ -1,6 +1,8 @@
 package com.tmax.WaplMath.Problem.model;
 
 import java.sql.Timestamp;
+import java.util.Set;
+
 import javax.persistence.*;
 import com.tmax.WaplMath.Recommend.model.ProblemType;
 import lombok.*;
@@ -31,9 +33,9 @@ public class Problem {
 	private String frequent;
 	private String category;
 	
-	@OneToOne(cascade=(CascadeType.ALL))
+	@OneToMany(fetch=FetchType.EAGER, cascade=(CascadeType.ALL), targetEntity=ProblemImage.class)
 	@JoinColumn(name="probId", insertable = false, updatable = false)
-	private ProblemImage ProblemImage;
+	private Set<ProblemImage> ProblemImage;
 	
 	@OneToOne(cascade=(CascadeType.ALL))
 	@JoinColumn(name="typeId", insertable = false, updatable = false)
