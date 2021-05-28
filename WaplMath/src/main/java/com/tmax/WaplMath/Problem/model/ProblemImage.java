@@ -13,6 +13,7 @@ public class ProblemImage {
 	
 	@Id
 	private int probId;
+	@Id
 	private String src;
 	
 }
