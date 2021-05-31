@@ -16,6 +16,12 @@
 ### Lombok 설치
 - [lombok 설치하기](https://the-dev.tistory.com/27) 하단 "다운로드 한 Lombok 설치하기" 부터 참고
 
+
+
+*5/20* : Spring Boot에서 "DROP IF EXISTS" 적용 불가 (ORACLE의 PL/SQL이 schema.sql에서 적용 안됨)
+  + 첫 서버 구동 시 schema.sql 적용 / 이후부터는 schema.sql의 맨 처음 주석 부분 (DROP문) 주석 해제하면 schema.sql 수정 및 반영 가능.
+
+
 ## DB 생성 및 initialize
 - src/main/resources 폴더 내로 sql 파일 위치
   + schema.sql = DB 테이블 생성

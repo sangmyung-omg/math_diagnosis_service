@@ -1,47 +1,10 @@
 package com.tmax.WaplMath.Recommend.service;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.tmax.WaplMath.Recommend.model.CardDTO;
-import com.tmax.WaplMath.Recommend.model.Curriculum;
-import com.tmax.WaplMath.Recommend.model.ProblemDTO;
-import com.tmax.WaplMath.Recommend.model.UkMasteryDTO;
-import com.tmax.WaplMath.Recommend.model.User;
-import com.tmax.WaplMath.Recommend.model.UserExamCardHistory;
-import com.tmax.WaplMath.Recommend.model.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.repository.ExamCardProblemRepository;
-import com.tmax.WaplMath.Recommend.repository.ProblemDemoRepository;
-import com.tmax.WaplMath.Recommend.repository.TypeUkRepository;
-import com.tmax.WaplMath.Recommend.repository.UkRelRepository;
-import com.tmax.WaplMath.Recommend.repository.UserExamCardHistoryRepository;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
 
 
 @Service
-public class CurriculumCardListService {
+public class ExamScheduleCardService {
 
 	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
