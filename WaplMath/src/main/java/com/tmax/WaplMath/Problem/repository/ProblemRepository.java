@@ -8,5 +8,5 @@ import com.tmax.WaplMath.Problem.model.Problem;
 
 public interface ProblemRepository extends CrudRepository<Problem,Integer> {
 
-	Problem findByProbId(String ProbId);
+	Problem findByProbId(Integer ProbId);
 }

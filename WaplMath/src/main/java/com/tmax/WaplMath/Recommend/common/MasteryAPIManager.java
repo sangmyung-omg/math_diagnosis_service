@@ -18,7 +18,7 @@ import com.google.gson.JsonParser;
 
 @Component
 public class MasteryAPIManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 //	private static final String IP = System.getenv("KT_TRITON_IP");
 //	private static final String PORT = System.getenv("KT_TRITON_PORT");
@@ -32,7 +32,8 @@ public class MasteryAPIManager {
 	@Autowired
 	RestTemplate restTemplate;
 
-	public JsonArray generateInputs(List<String> ukIdList, List<String> correctList, List<String> difficultyList, String userEmbedding) {
+	public JsonArray generateInputs(List<String> ukIdList, List<String> corList, List<String> levelList,
+			String userEmbedding) {
 		JsonArray inputs = new JsonArray();
 
 		// UKList
@@ -41,7 +42,7 @@ public class MasteryAPIManager {
 		JsonArray data = new JsonArray();
 
 		shape.add(ukIdList.size());
-		
+
 		for (String UKId : ukIdList) {
 			data.add(Integer.parseInt(UKId));
 		}
@@ -54,8 +55,8 @@ public class MasteryAPIManager {
 		JsonObject corListJson = new JsonObject();
 		data = new JsonArray();
 
-		for (String correct : correctList) {
-			Integer correctInt = correct.equals("true") ? 1 : 0;
+		for (String cor : corList) {
+			Integer correctInt = cor.equals("true") ? 1 : 0;
 			data.add(correctInt);
 		}
 		corListJson.addProperty("name", "CorList");
@@ -67,15 +68,23 @@ public class MasteryAPIManager {
 		JsonObject levelListJson = new JsonObject();
 		data = new JsonArray();
 
-		for (String difficulty : difficultyList) {
-			String difficultyWord = "";
-			switch(difficulty) {
-				case "high":	difficultyWord="h";	break;
-				case "middle":	difficultyWord="m";	break;
-				case "low":		difficultyWord="e";	break;
-				default:		difficultyWord="m";	break;
+		for (String level : levelList) {
+			String levelKeyword = "";
+			switch (level) {
+			case "high":
+				levelKeyword = "h";
+				break;
+			case "middle":
+				levelKeyword = "m";
+				break;
+			case "low":
+				levelKeyword = "e";
+				break;
+			default:
+				levelKeyword = "m";
+				break;
 			}
-			data.add(difficultyWord);
+			data.add(levelKeyword);
 		}
 		levelListJson.addProperty("name", "LevelList");
 		levelListJson.add("shape", shape);
@@ -86,7 +95,7 @@ public class MasteryAPIManager {
 		JsonObject embeddingsJson = new JsonObject();
 		shape = new JsonArray();
 		data = new JsonArray();
-		
+
 		shape.add(1);
 		data.add(userEmbedding);
 
@@ -94,12 +103,12 @@ public class MasteryAPIManager {
 		embeddingsJson.add("shape", shape);
 		embeddingsJson.addProperty("datatype", "BYTES");
 		embeddingsJson.add("data", data);
-		
+
 		inputs.add(UKListJson);
 		inputs.add(corListJson);
 		inputs.add(levelListJson);
+		logger.info("Triton request to {} with input (except print embedding) : {}", TRITON_ADDR, inputs);
 		inputs.add(embeddingsJson);
-		logger.info("Triton request to {} with input: {}", TRITON_ADDR, inputs);
 		return inputs;
 	}
 
@@ -115,12 +124,12 @@ public class MasteryAPIManager {
 		return outputs;
 	}
 
-	public String generatePostJson(String userId, List<String> ukIdList, List<String> correctList,
-			List<String> difficultyList, String userEmbedding) {
+	public String generatePostJson(String userId, List<String> ukIdList, List<String> corList, List<String> levelList,
+			String userEmbedding) {
 		Gson gson = new Gson();
 		JsonObject msg = new JsonObject();
 
-		JsonArray inputs = generateInputs(ukIdList, correctList, difficultyList, userEmbedding);
+		JsonArray inputs = generateInputs(ukIdList, corList, levelList, userEmbedding);
 		JsonArray outputs = generateOutputs();
 
 		msg.addProperty("id", userId);
@@ -130,13 +139,13 @@ public class MasteryAPIManager {
 		return gson.toJson(msg);
 	}
 
-	public JsonObject measureMastery(String userId, List<String> ukIdList, List<String> correctList,
-			List<String> difficultyList, String userEmbedding) throws Exception {
-		
-		String input = generatePostJson(userId, ukIdList, correctList, difficultyList, userEmbedding);
+	public JsonObject measureMastery(String userId, List<String> ukIdList, List<String> corList, List<String> levelList,
+			String userEmbedding) throws Exception {
+
+		String input = generatePostJson(userId, ukIdList, corList, levelList, userEmbedding);
 		JsonObject output = new JsonObject();
 		String responseString = "";
-		
+
 		try {
 			ResponseEntity<String> tritonResponse = restTemplate.postForEntity(TRITON_ADDR, input, String.class);
 			logger.info("Triton Response with code {}", tritonResponse.getStatusCode());
@@ -145,18 +154,18 @@ public class MasteryAPIManager {
 			logger.info("Triton Response error. Body: {}", e.getResponseBodyAsString());
 			throw e;
 		}
-		
+
 		JsonObject responseJson = JsonParser.parseString(responseString).getAsJsonObject();
 		JsonArray outputsArray = (JsonArray) responseJson.get("outputs");
-		
-		for(JsonElement outputsElement:outputsArray) {
+
+		for (JsonElement outputsElement : outputsArray) {
 			JsonObject outputsObject = (JsonObject) outputsElement;
 			String outputName = outputsObject.get("name").getAsString();
 			String dataString = outputsObject.get("data").getAsJsonArray().get(0).getAsString();
 			JsonObject dataObject = JsonParser.parseString(dataString).getAsJsonObject();
 			output.add(outputName, dataObject);
 		}
-		
+
 		return output;
 	}
 
