@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.model.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.model.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.service.mastery.MasteryServiceBase;
@@ -27,7 +28,8 @@ public class MasteryControllerV0 {
 	@PutMapping(value = "/mastery", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> updateMastery(@RequestHeader("token") String token,
 			@RequestBody ProblemSolveListDTO problemSolveList) throws Exception {
-		String userId = token;
+		//String userId = token;
+		String userId = JWTUtil.getJWTPayloadField(token, "userId");
 		List<String> probIdList = problemSolveList.getProbIdList();
 		List<String> correctList = problemSolveList.getCorrectList();
 
