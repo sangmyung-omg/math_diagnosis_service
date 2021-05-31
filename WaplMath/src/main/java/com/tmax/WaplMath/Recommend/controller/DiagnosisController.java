@@ -1,24 +1,15 @@
 package com.tmax.WaplMath.Recommend.controller;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmax.WaplMath.Recommend.model.UserCurrentInfoInput;
-import com.tmax.WaplMath.Recommend.service.CurriculumService;
-import com.tmax.WaplMath.Recommend.service.MasteryService;
 import com.tmax.WaplMath.Recommend.service.problem.ProblemServiceBase;
-import com.tmax.WaplMath.Recommend.service.problem.ProblemServiceV0;
-import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;
 
 
 @RestController
