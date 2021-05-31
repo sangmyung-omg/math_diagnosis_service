@@ -34,7 +34,7 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
     public StudyGuideDTO getStudyGuideOfUser(String userID) {
         List<Curriculum> currList = currInfoRepo.getCurriculumListByRangeSectionOnly("중등-중3-1학%");
 
-        int currNumber = Math.max(currList.size() - 2 - 1, 0); //cut 1st and last + 0 start indexing
+        // int currNumber = Math.max(currList.size() - 2 - 1, 0); //cut 1st and last + 0 start indexing
         
 
         // //pick 3 random number (힘들어서 그냥 0.3 범위헤서 3개 뽑음)
@@ -133,7 +133,6 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
         guide.setCommentary("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 90점까지 상승 가능할거에요");
 
 
-        // TODO Auto-generated method stub
         return guide;
     }
 }

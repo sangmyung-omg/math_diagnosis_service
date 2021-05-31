@@ -1,6 +1,5 @@
 package com.tmax.WaplMath.AnalysisReport.controller.result;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.websocket.server.PathParam;
@@ -34,7 +33,6 @@ public class ResultControllerV0 {
     
     @GetMapping("/result")
     ResponseEntity<Object> getResult(@RequestHeader("token") String token) {
-        //TODO: get userID from token
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
         DiagnosisResultDTO output = resultSvc.getResultOfUser(userID);

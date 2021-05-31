@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+// import java.util.stream.Collectors;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -231,7 +231,6 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         try {
             path = ResourceUtils.getFile("classpath:uk_" + i + "_percentile.json").toPath();
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -239,7 +238,6 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         try {
             reader = new FileReader(path.toString());
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

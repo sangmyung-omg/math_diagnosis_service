@@ -2,9 +2,9 @@ package com.tmax.WaplMath.AnalysisReport.service.result;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+// import java.util.UUID;
 
-import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
+// import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;

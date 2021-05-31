@@ -9,13 +9,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.dto.LRSGetStatementDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.LRSGetStatementResponseDTO;
+// import com.tmax.WaplMath.AnalysisReport.dto.LRSGetStatementResponseDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+// import org.springframework.http.HttpHeaders;
+// import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
+// import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
@@ -39,7 +39,7 @@ public class ResultServiceDummy implements ResultServiceBase{
         resultData.setLevelDiagnosisRecord(recordSvc.getRecordOfUser(userID));
 
 
-        ChapterIDListDTO chapterIDList = new ChapterIDListDTO();
+        // ChapterIDListDTO chapterIDList = new ChapterIDListDTO();
         List<String> idList = new ArrayList<String>();
         for(int i=0; i<5; i++){
             idList.add(UUID.randomUUID().toString());

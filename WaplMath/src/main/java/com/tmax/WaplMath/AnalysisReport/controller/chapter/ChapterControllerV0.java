@@ -37,7 +37,6 @@ public class ChapterControllerV0 {
     
     @GetMapping("/chapters")
     ResponseEntity<Object> getChaptersList(@RequestHeader("token") String token){
-        //TODO: get userID from token
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
         List<ChapterDetailDTO> output = chapterSvc.getAllChapterListOfUserChapterOnly(userID);
@@ -47,8 +46,7 @@ public class ChapterControllerV0 {
     @PostMapping("/chapters")
     ResponseEntity<Object> getChaptersListFromChapterIDList(@RequestHeader("token") String token, 
                                                             @RequestBody ChapterIDListDTO chapterIDList){
-        //TODO: get userID from token
-        String userID =  JWTUtil.getJWTPayloadField(token, "userID");;
+        // String userID =  JWTUtil.getJWTPayloadField(token, "userID");;
 
         // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
         return new ResponseEntity<>(new UnsupportedErrorDTO(), HttpStatus.NOT_FOUND);
