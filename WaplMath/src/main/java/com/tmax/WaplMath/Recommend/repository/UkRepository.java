@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import com.tmax.WaplMath.Recommend.model.Uk;
+import com.tmax.WaplMath.Recommend.model.uk.Uk;
 
 public interface UkRepository extends CrudRepository<Uk, Integer>{
 	

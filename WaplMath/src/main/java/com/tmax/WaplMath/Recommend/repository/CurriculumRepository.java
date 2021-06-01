@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.Recommend.model.Curriculum;
+import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 
 public interface CurriculumRepository extends CrudRepository<Curriculum, String> {
 	

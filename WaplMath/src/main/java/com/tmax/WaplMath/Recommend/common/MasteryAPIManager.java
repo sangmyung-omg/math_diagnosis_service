@@ -16,6 +16,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+/**
+ * Triton Inference Server HTTP Connection
+ * @author Sangheon Lee
+ */
 @Component
 public class MasteryAPIManager {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());

@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmax.WaplMath.Problem.model.Problem;
-import com.tmax.WaplMath.Problem.model.ProblemImage;
 import com.tmax.WaplMath.Problem.service.ProblemInfoService;
+import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Recommend.model.problem.ProblemImage;
 
 import lombok.extern.log4j.Log4j2;
 

@@ -190,59 +190,59 @@ components:
       type: "object"
       description: "카드 정보. 유형/보충은 4-6문제, 중간평가/모의고사는 20문제"
       required:
-        - "cardId"
         - "cardType"
         - "cardTitle"
+        - "sectionTitle"
         - "probIdSetList"
       properties:
-        cardId:
-          type: "string"
-          example: "mkkang-03-유형"
-          description: "카드 ID"
         cardType:
           type: "string"
-          example: "유형"
+          example: "type"
           enum:
-            - "유형"
-            - "보충"
-            - "중간평가"
-            - "모의고사"
+            - "type"
+            - "supplement"
+            - "midExam"
+            - "trialExam"
           description: "카드 종류"
         cardTitle:
           type: "string"
           example: "근의 공식을 활용한 이차방정식 풀이"
           description: "카드 이름. 유형 카드는 유형 UK 이름, 중간평가 카드는 중단원 이름, 나머지 카드는 빈 문자열 제공."
+        sectionTitle:
+          type: "string"
+          example: "이러저러한 소단원 명"
+          description: "카드의 범위 명"
         probIdSetList:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"
           items:
             $ref: "#/components/schemas/ProbIdSet"
           example:
-            - 상: "10"
-              중: "11"
-              하: "12"
-            - 상: "20"
-              중: "21"
-              하: "22"
+            - high: 10
+              middle: 11
+              low: 12
+            - high: 20
+              middle: 21
+              low: 22
     ProbIdSet:
       type: "object"
       required:
-        - "상"
-        - "중"
-        - "하"
+        - "high"
+        - "middle"
+        - "low"
       properties:
-        상:
-          type: "string"
-          example: "11"
+        high:
+          type: number
+          example: 11
           description: "상 난이도 문제 Id"
-        중:
-          type: "string"
-          example: "12"
-          description: "상 난이도 문제 Id"
-        하:
-          type: "string"
-          example: "13"
-          description: "상 난이도 문제 Id"
+        middle:
+          type: number
+          example: 12
+          description: "중 난이도 문제 Id"
+        low:
+          type: number
+          example: 13
+          description: "하 난이도 문제 Id"
     ProbIdList:
       type: array
       description: "문제 ID 목록"
