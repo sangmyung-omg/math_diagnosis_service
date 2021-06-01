@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.common.DemoChapterPartMapper;
-import com.tmax.WaplMath.Recommend.model.ChapterMasteryDTO;
-import com.tmax.WaplMath.Recommend.model.Uk;
-import com.tmax.WaplMath.Recommend.model.UserKnowledge;
+import com.tmax.WaplMath.Recommend.dto.ChapterMasteryDTO;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.UkRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;

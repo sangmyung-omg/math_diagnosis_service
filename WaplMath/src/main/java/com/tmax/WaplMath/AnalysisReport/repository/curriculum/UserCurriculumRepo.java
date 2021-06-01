@@ -3,7 +3,7 @@ package com.tmax.WaplMath.AnalysisReport.repository.curriculum;
 import java.util.List;
 
 import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
-import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledgeKey;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;

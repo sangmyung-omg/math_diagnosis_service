@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import com.tmax.WaplMath.Recommend.model.UkRel;
-import com.tmax.WaplMath.Recommend.model.UkRelKey;
+import com.tmax.WaplMath.Recommend.model.uk.UkRel;
+import com.tmax.WaplMath.Recommend.model.uk.UkRelKey;
 
 public interface UkRelRepository extends CrudRepository<UkRel, UkRelKey> {
 	

@@ -14,11 +14,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import com.tmax.WaplMath.Problem.model.Problem;
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
-import com.tmax.WaplMath.Recommend.model.Curriculum;
-import com.tmax.WaplMath.Recommend.model.DiagnosisProblem;
-import com.tmax.WaplMath.Recommend.model.User;
+import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Recommend.model.recommend.DiagnosisProblem;
+import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
 import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;

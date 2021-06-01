@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import com.tmax.WaplMath.Recommend.model.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.UserKnowledgeKey;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledgeKey;
 
 public interface UserKnowledgeRepository extends CrudRepository<UserKnowledge, UserKnowledgeKey> {
 	

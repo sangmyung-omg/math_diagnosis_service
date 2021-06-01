@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.Recommend.model.ExamCardProblem;
-import com.tmax.WaplMath.Recommend.model.ExamCardProblemKey;
+import com.tmax.WaplMath.Recommend.model.recommend.ExamCardProblem;
+import com.tmax.WaplMath.Recommend.model.recommend.ExamCardProblemKey;
 
 public interface ExamCardProblemRepository extends CrudRepository<ExamCardProblem, ExamCardProblemKey> {
 	

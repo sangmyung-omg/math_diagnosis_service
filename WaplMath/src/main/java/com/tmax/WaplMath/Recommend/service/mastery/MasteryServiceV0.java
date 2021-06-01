@@ -1,7 +1,5 @@
 package com.tmax.WaplMath.Recommend.service.mastery;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,14 +17,17 @@ import org.springframework.stereotype.Service;
 import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.common.MasteryAPIManager;
-import com.tmax.WaplMath.Recommend.model.ProblemSolveListDTO;
-import com.tmax.WaplMath.Recommend.model.ResultMessageDTO;
-import com.tmax.WaplMath.Recommend.model.UserEmbedding;
-import com.tmax.WaplMath.Recommend.model.UserKnowledge;
+import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 
+/**
+ * Update student knowledge mastery using Triton inference server
+ * @author Sangheon Lee
+ */
 @Service("MasteryServiceV0")
 @Primary
 public class MasteryServiceV0 implements MasteryServiceBase {

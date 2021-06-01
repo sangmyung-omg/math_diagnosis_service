@@ -2,12 +2,12 @@ package com.tmax.WaplMath.AnalysisReport.repository.curriculum;
 
 import java.util.List;
 
-import com.tmax.WaplMath.Recommend.model.Curriculum;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 
 @Repository
 public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String>{

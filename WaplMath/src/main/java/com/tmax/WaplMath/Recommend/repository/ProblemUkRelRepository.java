@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.Recommend.model.ProblemUkRel;
+import com.tmax.WaplMath.Recommend.model.problem.ProblemUkRel;
 
 public interface ProblemUkRelRepository extends CrudRepository<ProblemUkRel, Integer> {
 	
