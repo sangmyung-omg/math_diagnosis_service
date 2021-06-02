@@ -14,6 +14,8 @@ tags:
   description: "학생 지식 수준 업데이트 API"
 - name : 'ExamSchedule'
   description: "시험 대비 학습 스케줄 추천 API"
+- name : 'User'
+  description: "문제 추천을 위한 사용자 정보 입력 API"
 paths:
   /DiagnosisProblems:
     get:
@@ -135,7 +137,29 @@ paths:
                 $ref: "#/components/schemas/ExamScheduleCard"
         "500":
           description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic"
+  /userexaminfo:
+    put:
+      tags:
+        - 'User'
+      summary: "학생 시험 정보 입력"
+      description: 
+        학생이 시험 대비 진입 시 입력한 시험 정보 동기화
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref: "#/components/requestBodies/UserExamInfo"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserExamInfoResult"
+        "500":
+          description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic" 
+
 
 
 components:
@@ -167,20 +191,17 @@ components:
       description: "오늘의 학습 스케줄 카드 구성 정보"
       required:
         - "message"
-        - "isCompletable"
+        - "remainTypeCard"
         - "cardList"
       properties:
         message:
           type: "string"
-          example: "Successfully return exam card."
+          example: "Successfully returned today exam card."
           description: "결과 메시지"
-        isCompletable:
-          type: "string"
-          example: "true"
-          enum:
-            - "true"
-            - "false"
-          description: "남은 기간 동안 유형 카드를 모두 커버할 수 있는 지 여부"
+        remainTypeCard:
+          type: number
+          example: 30
+          description: "진도에서 남은 유형 카드 개수"
         cardList:
           type: "array"
           description: "오늘 카드 목록"
@@ -194,13 +215,14 @@ components:
         - "cardTitle"
         - "sectionTitle"
         - "probIdSetList"
+        - "firstProbLevel"
       properties:
         cardType:
           type: "string"
           example: "type"
           enum:
             - "type"
-            - "supplement"
+            - "supple"
             - "midExam"
             - "trialExam"
           description: "카드 종류"
@@ -212,6 +234,10 @@ components:
           type: "string"
           example: "이러저러한 소단원 명"
           description: "카드의 범위 명"
+        firstProbLevel:
+          type: "string"
+          example: "high"
+          description: "학생의 이해도 기반, 첫 번째 문제의 난이도"
         probIdSetList:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"
@@ -265,6 +291,35 @@ components:
           - "true"
           - "false"
           - "pass"
+    UserExamInfo:
+      type: "object"
+      description: "사용자 시험 정보"
+      required:
+        - "examType"
+        - "examStartDate"
+        - "examDueDate"
+        - "targetScore"
+      properties:
+        examType:
+          type: "string"
+          example: "mid"
+          description: "시험 종류. mid/final"
+          enum:
+            - "mid"
+            - "final"
+        examStartDate:
+          type: "string"
+          example: "2021-06-01"
+          description: "시험 준비 시작 날짜. yyyy-mm-dd 형식"
+        examDueDate:
+          type: "string"
+          example: "2021-06-14"
+          description: "시험 날짜. yyyy-mm-dd 형식"
+        targetScore:
+          type: number
+          example: 85
+          description: "목표 시험 점수"
+
     MasteryUpdateResult:
       type: "object"
       required:
@@ -273,6 +328,15 @@ components:
         message:
           type: "string"
           example: "Successfully update user mastery."
+          description: "성공 여부 메시지"
+    UserExamInfoResult:
+      type: "object"
+      required:
+        - "message"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully update user exam info."
           description: "성공 여부 메시지"
   responses:
     500-Generic:
@@ -311,4 +375,10 @@ components:
                 $ref: "#/components/schemas/ProbIdList"
               correctList:
                 $ref: "#/components/schemas/CorrectList"
-              
+    UserExamInfo:
+      description: "학생 시험 정보"
+      required: true
+      content:
+        application/json:
+          schema:
+              $ref: "#/components/schemas/UserExamInfo"
