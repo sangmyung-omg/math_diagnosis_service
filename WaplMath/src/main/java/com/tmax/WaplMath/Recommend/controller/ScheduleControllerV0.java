@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
 
 /**
  * Learning schedule recommendation api controller
+ * 
  * @author Sangheon Lee
  *
  */
@@ -27,9 +29,8 @@ public class ScheduleControllerV0 {
 
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
-		String userId = token;
+		String userId = JWTUtil.getJWTPayloadField(token, "userId");
 		ExamScheduleCardDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
-		scheduleMvc.getExamScheduleCard(userId);
 		return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
 	}
 }
