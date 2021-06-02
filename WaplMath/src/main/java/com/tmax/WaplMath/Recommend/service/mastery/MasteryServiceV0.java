@@ -15,14 +15,15 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
-import com.tmax.WaplMath.Recommend.common.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
+import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 
 /**
  * Update student knowledge mastery using Triton inference server
@@ -113,8 +114,9 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 			output.setMessage("Triton Internal Server Error: " + e.getMessage());
 			return output;
 		}
-		JsonObject masteryJson = tritonOutput.get("Mastery").getAsJsonObject();
-		userEmbedding = tritonOutput.get("Embeddings").toString();
+		
+		JsonObject masteryJson = JsonParser.parseString(tritonOutput.get("Mastery").getAsString()).getAsJsonObject();
+		userEmbedding = tritonOutput.get("Embeddings").getAsString();
 		logger.info("User embedding output length = " + Integer.toString(userEmbedding.length()));
 
 		// update user mastery

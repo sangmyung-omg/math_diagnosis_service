@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.common;
+package com.tmax.WaplMath.Recommend.util;
 
 import java.util.List;
 
@@ -27,8 +27,8 @@ public class MasteryAPIManager {
 //	private static final String IP = System.getenv("KT_TRITON_IP");
 //	private static final String PORT = System.getenv("KT_TRITON_PORT");
 	private static final String IP = "192.168.158.31";
-	private static final String PORT = "8003";
-	private static final String MODEL_NAME = "kt-rule";
+	private static final String PORT = "8004";
+	private static final String MODEL_NAME = "knowledge-tracing";
 	private static final String MODEL_VERSION = "1";
 	private static final String TRITON_ADDR = String.format("http://%s:%s/v2/models/%s/versions/%s/infer", IP, PORT,
 			MODEL_NAME, MODEL_VERSION);
@@ -63,7 +63,7 @@ public class MasteryAPIManager {
 			Integer correctInt = cor.equals("true") ? 1 : 0;
 			data.add(correctInt);
 		}
-		corListJson.addProperty("name", "CorList");
+		corListJson.addProperty("name", "IsCorrectList");
 		corListJson.add("shape", shape);
 		corListJson.addProperty("datatype", "INT32");
 		corListJson.add("data", data);
@@ -73,26 +73,26 @@ public class MasteryAPIManager {
 		data = new JsonArray();
 
 		for (String level : levelList) {
-			String levelKeyword = "";
+			Integer levelKeyword;
 			switch (level) {
 			case "high":
-				levelKeyword = "h";
+				levelKeyword = 1;
 				break;
 			case "middle":
-				levelKeyword = "m";
+				levelKeyword = 2;
 				break;
 			case "low":
-				levelKeyword = "e";
+				levelKeyword = 3;
 				break;
 			default:
-				levelKeyword = "m";
+				levelKeyword = 2;
 				break;
 			}
 			data.add(levelKeyword);
 		}
-		levelListJson.addProperty("name", "LevelList");
+		levelListJson.addProperty("name", "DifficultyList");
 		levelListJson.add("shape", shape);
-		levelListJson.addProperty("datatype", "BYTES");
+		levelListJson.addProperty("datatype", "INT32");
 		levelListJson.add("data", data);
 
 		// Embeddings
@@ -166,8 +166,7 @@ public class MasteryAPIManager {
 			JsonObject outputsObject = (JsonObject) outputsElement;
 			String outputName = outputsObject.get("name").getAsString();
 			String dataString = outputsObject.get("data").getAsJsonArray().get(0).getAsString();
-			JsonObject dataObject = JsonParser.parseString(dataString).getAsJsonObject();
-			output.add(outputName, dataObject);
+			output.addProperty(outputName, dataString);
 		}
 
 		return output;
