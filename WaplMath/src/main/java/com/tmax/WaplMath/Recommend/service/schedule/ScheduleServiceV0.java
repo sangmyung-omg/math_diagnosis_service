@@ -1,5 +1,9 @@
 package com.tmax.WaplMath.Recommend.service.schedule;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -274,11 +278,18 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 	}
 
 	public Map<String, Object> getCurriculumCardList(String userId, String date) throws Exception {
-		Map<String, Object> output = new HashMap<String, Object>();
+		
+	}
+	 */
+	
+	@Override
+	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
+		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
 
 		// 시험 범위 중단원 (데모용)
 		List<String> chapterList = new ArrayList<String>(Arrays.asList("중등-중2-1학-03", "중등-중2-1학-04"));
 
+		/*
 		// parse date and convert to Timestamp type
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		Timestamp targetDate;
@@ -500,12 +511,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			output.put("cardList", cardList);
 			return output;
 		}
-	}
-	 */
-	
-	@Override
-	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
-		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
+		*/
 		return output;
 	}
 }
