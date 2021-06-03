@@ -8,12 +8,15 @@ import org.springframework.data.repository.query.Param;
 
 import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
 
-public interface TypeUkRepository extends CrudRepository<ProblemType, Integer> {
+public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
+	
+
+	@Query("select substr(pt.curriculumId, 1, 14) from ProblemType pt where substr(pt.curriculumId, 1, 11) in (:chapterList)")
+	List<String> findAllSection(@Param("chapterList") List<String> chapterList);
+
+	
 	@Query(value = "select type_uk_uuid, type_uk_name, type_uk_description, substr(curriculum_id, 1, 14) curriculum_id from type_uk_master where substr(curriculum_id, 1, 11) in :chapterList order by type_uk_uuid asc", nativeQuery = true)
 	List<ProblemType> findAllByCurriculum(@Param("chapterList") List<String> chapterList);
-
-	@Query(value = "select substr(curriculum_id, 1, 14) from type_uk_master where substr(curriculum_id, 1, 11) in :chapterList order by type_uk_uuid asc", nativeQuery = true)
-	List<String> findAllSection(@Param("chapterList") List<String> chapterList);
 
 	@Query(value = "select substr(curriculum_id, 1, 14) from type_uk_master where substr(curriculum_id, 1, 11) in :chapterList and type_uk_uuid not in :userCompletedTypeUkList order by type_uk_uuid asc", nativeQuery = true)
 	List<String> findAllSectionNotInList(@Param("chapterList") List<String> chapterList,
