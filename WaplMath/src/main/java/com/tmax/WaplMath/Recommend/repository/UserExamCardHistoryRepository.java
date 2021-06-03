@@ -5,6 +5,9 @@ import org.springframework.data.repository.CrudRepository;
 /*
 public interface UserExamCardHistoryRepository extends CrudRepository<UserExamCard, String> {
 
+	@Query(value = "select type_uk_uuid from user_exam_curriculum_log where user_uuid=:userUuid and card_type='유형' order by card_sequence asc", nativeQuery = true)
+	List<String> findAllTypeUkUuid(@Param("userUuid") String userUuid);
+	
 	@Query(value = "select card_sequence from user_exam_curriculum_log where user_uuid=:userUuid order by card_sequence desc limit 1", nativeQuery = true)
 	Optional<Integer> findLastCardSequenceByUserUuid(@Param("userUuid") String userUuid);
 
@@ -19,8 +22,6 @@ public interface UserExamCardHistoryRepository extends CrudRepository<UserExamCa
 			nativeQuery=true)
 	List<String> findAllSectionId(@Param("userUuid") String userUuid);
 	
-	@Query(value = "select type_uk_uuid from user_exam_curriculum_log where user_uuid=:userUuid and card_type='유형' order by card_sequence asc", nativeQuery = true)
-	List<String> findAllTypeUkUuid(@Param("userUuid") String userUuid);
 
 	@Query(value = "select distinct cp.uk_uuid from user_exam_curriculum_log ue, card_problem_mapping cp where ue.user_uuid=:userUuid and ue.card_type='보충' and ue.card_id = cp.card_id", nativeQuery = true)
 	List<String> findAllSupCardUkUuid(@Param("userUuid") String userUuid);

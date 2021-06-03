@@ -1,13 +1,32 @@
 package com.tmax.WaplMath.Recommend.service.schedule;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import com.tmax.WaplMath.Recommend.dto.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
+import com.tmax.WaplMath.Recommend.model.user.User;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
+import com.tmax.WaplMath.Recommend.repository.UkRelRepository;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
+import com.tmax.WaplMath.Recommend.repository.UserRepository;
+import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
+import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 
 /**
  * Generate today exam learning schedule card
@@ -18,7 +37,6 @@ import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
 @Primary
 public class ScheduleServiceV0 implements ScheduleServiceBase {
 
-	/*
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	// Hyperparameter
@@ -31,24 +49,20 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 	// Repository
 	@Autowired
-	private UserRepository userRepository;
+	private UserRepository userRepo;
 	@Autowired
-	private UkRelRepository ukRelRepository;
+	private UkRelRepository ukRelRepo;
 	@Autowired
-	private TypeUkRepository typeUkRepository;
+	private ProblemTypeRepo problemTypeRepo;
 	@Autowired
-	private ProblemDemoRepository problemRepository;
+	private CurriculumRepository curriculumRepo;
 	@Autowired
-	private CurriculumRepository curriculumRepository;
-	@Autowired
-	private ProblemDemoRepository problemDemoRepository;
-	@Autowired
-	private UserKnowledgeRepository userKnowledgeRepository;
-	@Autowired
-	private ExamCardProblemRepository examCardProblemRepository;
-	@Autowired
-	private UserExamCardHistoryRepository userExamCardHistoryRepository;
+	private UserKnowledgeRepository userKnowledgeRepo;
 
+	@Autowired
+	LRSAPIManager lrsAPIManager = new LRSAPIManager();
+	
+	/*
 	// Add to USER_EXAM_CURRICULUM_LOG TB
 	public Integer addRecommendedCardInfo(String cardId, String cardType, String cardTitle, String userUuid,
 			Timestamp recommendedDate, String sectionId, String typeUkUuid, Integer cardSequence) {
@@ -286,27 +300,19 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
 		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
 
-		// 시험 범위 중단원 (데모용)
+		// 시험 범위 내 중단원
 		List<String> chapterList = new ArrayList<String>(Arrays.asList("중등-중2-1학-03", "중등-중2-1학-04"));
 
-		/*
-		// parse date and convert to Timestamp type
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		Timestamp targetDate;
-		try {
-			LocalDateTime currentDateTime = LocalDate.parse(date, dtf).atStartOfDay();
-			targetDate = Timestamp.valueOf(currentDateTime);
-		} catch (DateTimeParseException e) {
-			output.put("resultMessage", "'date' should be in shape of 'yyyy-MM-dd'.");
-			return output;
-		}
+		
+		// today date and convert to Timestamp type
+		Timestamp today = Timestamp.valueOf(LocalDate.now().atStartOfDay());
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
 		try {
-			userInfo = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
+			userInfo = userRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
 		} catch (NoSuchElementException e) {
-			output.put("resultMessage", String.format("userId = %s is not in USER_MASTER TB.", e.getMessage()));
+			output.setMessage(String.format("userId = %s is not in USER_MASTER TB.", e.getMessage()));
 			return output;
 		}
 
@@ -314,64 +320,36 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		String examType = userInfo.getExamType();
 		Timestamp examStartDate = userInfo.getExamStartDate();
 		Timestamp examDueDate = userInfo.getExamDueDate();
-		String currentCurriculumId = userInfo.getCurrentCurriculumId();
 		Integer examTargetScore = userInfo.getExamTargetScore();
-		if (currentCurriculumId == null || examType == null || examStartDate == null || examDueDate == null
-				|| examTargetScore == null) {
-			output.put("resultMessage", "One of user's exam infomation is null. Call ExamInfo PUT service first.");
+		if (examType == null || examStartDate == null || examDueDate == null || examTargetScore == null) {
+			output.setMessage("One of user's exam infomation is null. Call ExamInfo PUT service first.");
 			return output;
 		}
 
 		List<CardDTO> cardList = new ArrayList<CardDTO>();
-
-		// 이미 저장되어 있다? 예전 기록 카드 불러오기
-		List<UserExamCurriculumLog> targetRecommendedCardLogList = userExamCurriculumLogRepository
-				.findAllByRecommendedDate(userId, targetDate);
-		if (targetRecommendedCardLogList.size() != 0) {
-			logger.info("\n이미 추천 기록이 있어서 불러옴");
-			for (UserExamCurriculumLog targetRecommendedCardLog : targetRecommendedCardLogList) {
-				CardDTO loadedCard = loadRecommendedCard(targetRecommendedCardLog);
-				cardList.add(loadedCard);
-			}
-			output.put("resultMessage", "Successfully return curriculum card list.");
-			output.put("isComletable", "true");
-			output.put("cardList", cardList);
-			return output;
-		}
-
-		// 기록이 없다? 신 카드 만들기
-		Integer newCardSequence = userExamCurriculumLogRepository.findLastCardSequenceByUserUuid(userId).orElse(0) + 1;
-
-		// 첫날 이면 중간평가!
-		if (targetDate.equals(examStartDate)) {
-			String cardType = "중간평가";
-			Curriculum firstCurriculum = curriculumRepository.findNearestSection(currentCurriculumId);
-			String cardSectionId = firstCurriculum.getCurriculumId();
-			String cardTitle = firstCurriculum.getSection();
-			logger.info("\n첫날이라 중간평가 진행: " + cardSectionId);
-
-			// 카드 생성
-			String cardId = userId + '-' + newCardSequence.toString() + '-' + cardType;
-			CardDTO sectionCard = generateSectionCard(cardId, cardSectionId, cardTitle);
-			// DB 주입
-			newCardSequence = addRecommendedCardInfo(cardId, cardType, cardTitle, userId, targetDate, cardSectionId,
-					null, newCardSequence);
-			addCardProblemInfo(sectionCard);
-			// 결과 추가
-			cardList.add(sectionCard);
-			output.put("resultMessage", "Successfully return curriculum card list.");
-			output.put("isComletable", "true");
-			output.put("cardList", cardList);
-			return output;
-		}
-
-		// 첫날이 아니면? 유형/보충/모의고사 카드
-		List<String> totalSectionList = typeUkRepository.findAllSection(chapterList);
+		
+		List<String> totalSectionList = problemTypeRepo.findAllSection(chapterList);
 		Set<String> totalSectionSet = new HashSet<String>(totalSectionList); // 토탈 범위 단원들
 		logger.info("1. 시험범위 전체 단원들 : " + totalSectionSet.toString());
 
+		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
+		LRSinput.setActionTypeList(new ArrayList<String>(Arrays.asList("submit")));
+		LRSinput.setDateFrom("2021-05-01");
+		LRSinput.setDateTo("2021-05-28");
+		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList("박평우")));
+		LRSinput.setSourceTypeList(new ArrayList<String>(Arrays.asList("question")));
+		
+		try {
+			lrsAPIManager.getStatementList(LRSinput);
+		} catch (ParseException e) {
+			output.setMessage("LRS Internal Server Error: " + e.getMessage());
+			return output;
+		}
+		
+		/*
 		List<String> userCompletedTypeUkList = userExamCurriculumLogRepository.findAllTypeUkUuid(userId); // 이미 푼 typeUK
 		logger.info("2. 유저가 푼 유형 UK들 : " + userCompletedTypeUkList.toString());
+
 
 		List<String> notCompletedSectionList;
 		if (userCompletedTypeUkList.size() == 0) {
