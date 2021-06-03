@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Recommend.model.problem.DiagnosisProblem;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
-import com.tmax.WaplMath.Recommend.model.recommend.DiagnosisProblem;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
