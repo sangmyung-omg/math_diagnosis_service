@@ -216,6 +216,7 @@ components:
         - "sectionTitle"
         - "probIdSetList"
         - "firstProbLevel"
+        - "estimatedTime"
       properties:
         cardType:
           type: "string"
@@ -238,6 +239,10 @@ components:
           type: "string"
           example: "high"
           description: "학생의 이해도 기반, 첫 번째 문제의 난이도"
+        estimatedTime:
+          type: number
+          example: 900
+          description: "카드 푸는데 걸리는 예상 소요 시간 (sec)"
         probIdSetList:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"

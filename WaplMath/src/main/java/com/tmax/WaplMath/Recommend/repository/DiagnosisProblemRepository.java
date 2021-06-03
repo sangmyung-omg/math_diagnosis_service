@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import com.tmax.WaplMath.Recommend.model.recommend.DiagnosisProblem;
+import com.tmax.WaplMath.Recommend.model.problem.DiagnosisProblem;
 
 public interface DiagnosisProblemRepository extends CrudRepository<DiagnosisProblem, Integer>{
 	

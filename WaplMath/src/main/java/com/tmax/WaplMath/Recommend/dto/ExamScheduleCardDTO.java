@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class ExamScheduleCardDTO {
 	public String message;
-	public String isCompletable;
+	public Integer remainTypeCard;
 	public List<CardDTO> cardList;
 }

@@ -13,5 +13,7 @@ public class CardDTO {
 	private String cardType;
 	private String cardTitle;
 	private String sectionTitle;
+	private String firstProbLevel;
+	private Integer estimatedTime;
 	private List<ProblemSetDTO> probIdSetList;
 }
