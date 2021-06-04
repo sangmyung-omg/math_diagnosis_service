@@ -1,12 +1,16 @@
 package com.tmax.WaplMath.Recommend.service.schedule;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -18,18 +22,25 @@ import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.dto.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
+import com.tmax.WaplMath.Recommend.dto.ProblemSetDTO;
+import com.tmax.WaplMath.Recommend.dto.UkMasteryDTO;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledgeKey;
+import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.model.user.User;
+import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
+import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.repository.UkRelRepository;
+import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
-import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
-import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 
 /**
  * Generate today exam learning schedule card
+ * 
  * @author Sangheon Lee
  *
  */
@@ -38,16 +49,25 @@ import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-	
+
 	// Hyperparameter
-	private final Integer MAX_CARD_NUM = 4;
-	private final Integer SMALL_CARD_PRE_UK_NUM = 2;
-	private final Float PRE_UK_MASTERY_THRESHOLD = 0.6f;
-	private final Float SUP_UK_MASTERY_THRESHOLD = 0.6f;
-	private final Integer MAX_SMALL_CARD_PROBLEM_NUM = 5;
-	private final Integer MAX_EXAM_CARD_PROBLEM_NUM = 20;
+	private static final Integer MAX_CARD_NUM = 5;
+	private static final Integer SMALL_CARD_PRE_UK_NUM = 2;
+	private static final Float PRE_UK_MASTERY_THRESHOLD = 0.4f;
+	private static final Float SUP_UK_MASTERY_THRESHOLD = 0.4f;
+	private static final Integer MAX_SMALL_CARD_PROBLEM_NUM = 5;
+	private static final Integer MAX_EXAM_CARD_PROBLEM_NUM = 15;
+
+	// Constant
+	private static final String TYPE_CARD_TYPE = "type";
+	private static final String SUPPLEMENT_CARD_TYPE = "supple";
+	private static final String MID_EXAM_CARD_TYPE = "midExam";
+	private static final String TRIAL_EXAM_CARD_TYPE = "trialExam";
+	private static final Integer AVERAGE_PROB_ESTIMATED_TIME = 180;
 
 	// Repository
+	@Autowired
+	private ProblemRepo problemRepo;
 	@Autowired
 	private UserRepository userRepo;
 	@Autowired
@@ -55,257 +75,258 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 	@Autowired
 	private ProblemTypeRepo problemTypeRepo;
 	@Autowired
+	private UserExamScopeRepo userExamScopeRepo;
+	@Autowired
 	private CurriculumRepository curriculumRepo;
+	@Autowired
+	private ProblemUkRelRepository problemUkRelRepo;
 	@Autowired
 	private UserKnowledgeRepository userKnowledgeRepo;
 
 	@Autowired
-	LRSAPIManager lrsAPIManager = new LRSAPIManager();
-	
-	/*
-	// Add to USER_EXAM_CURRICULUM_LOG TB
-	public Integer addRecommendedCardInfo(String cardId, String cardType, String cardTitle, String userUuid,
-			Timestamp recommendedDate, String sectionId, String typeUkUuid, Integer cardSequence) {
-		UserExamCardHistory newCard = new UserExamCardHistory(cardId, cardType, cardTitle, userUuid,
-				recommendedDate, sectionId, typeUkUuid, cardSequence);
-		newCard.setCardSequence(cardSequence);
-		userExamCardHistoryRepository.save(newCard);
-		return cardSequence + 1;
-	}
+	ScheduleHistoryManager historyManager;
 
-	// Add to CARD_PROBLEM_MAPPING TB
-	public void addCardProblemInfo(CardDTO card) {
-		String cardId = card.getCardId();
-		List<ProblemDTO> problemList = card.getProblemIdList();
-		List<ProblemDTO> cardProbIdList = card.getCardProbIdList();
-		for (int i = 0; i < problemList.size(); i++) {
-			ProblemDTO problem = problemList.get(i);
-			ProblemDTO cardProbId = cardProbIdList.get(i);
+	public String userId;
+	public String today;
 
-			cardProblemMappingRepository.save(new CardProblemMapping(cardProbId.getHigh(), cardId, "high",
-					problem.getHigh(), null, new Integer(i + 1)));
-			cardProblemMappingRepository.save(new CardProblemMapping(cardProbId.getMiddle(), cardId, "middle",
-					problem.getMiddle(), null, new Integer(i + 1)));
-			cardProblemMappingRepository.save(new CardProblemMapping(cardProbId.getLow(), cardId, "low",
-					problem.getLow(), null, new Integer(i + 1)));
-		}
-	}
-
-	// Load and generate CardDTO
-	public CardDTO loadRecommendedCard(UserExamCurriculumLog targetRecommendedCardLog) {
-		CardDTO loadedCard = new CardDTO();
-		loadedCard.setCardId(targetRecommendedCardLog.getCardId());
-		loadedCard.setCardType(targetRecommendedCardLog.getCardType());
-		loadedCard.setCardTitle(targetRecommendedCardLog.getCardTitle());
-		List<CardProblemMapping> cardProblemList = cardProblemMappingRepository
-				.findAllByCardId(targetRecommendedCardLog.getCardId());
-
-		List<ProblemDTO> problemList = new ArrayList<ProblemDTO>();
-		List<ProblemDTO> cardProbIdList = new ArrayList<ProblemDTO>();
-		ProblemDTO problem = new ProblemDTO();
-		ProblemDTO cardProbId = new ProblemDTO();
-
-		Integer prevProbSequence = 1;
-		for (CardProblemMapping cardProblem : cardProblemList) {
-			Integer probSequence = cardProblem.getProbSequence();
-			if (prevProbSequence != probSequence) {
-				prevProbSequence = probSequence;
-				problemList.add(problem);
-				cardProbIdList.add(cardProbId);
-				problem = new ProblemDTO();
-				cardProbId = new ProblemDTO();
-			}
-
-			String ukUuid = cardProblem.getUkUuid();
-			String difficulty = cardProblem.getDifficulty();
-			String mappingId = cardProblem.getMappingId();
-
-			switch (difficulty) {
-			case "high":
-				problem.setHigh(ukUuid);
-				cardProbId.setHigh(mappingId);
-				break;
-			case "middle":
-				problem.setMiddle(ukUuid);
-				cardProbId.setMiddle(mappingId);
-				break;
-			case "low":
-				problem.setLow(ukUuid);
-				cardProbId.setLow(mappingId);
-				break;
+	public Map<String, List<Problem>> generateDiffProbListByProb(List<Problem> probList) {
+		Map<String, List<Problem>> diffProbList = new HashMap<String, List<Problem>>();
+		for (Problem prob : probList) {
+			String difficulty = prob.getDifficulty();
+			if (diffProbList.get(difficulty) == null) {
+				List<Problem> tempList = new ArrayList<Problem>();
+				tempList.add(prob);
+				diffProbList.put(difficulty, tempList);
+			} else {
+				diffProbList.get(difficulty).add(prob);
 			}
 		}
-		problemList.add(problem);
-		cardProbIdList.add(cardProbId);
-
-		loadedCard.setProblemIdList(problemList);
-		loadedCard.setCardProbIdList(cardProbIdList);
-
-		return loadedCard;
+		return diffProbList;
 	}
 
-	public CardDTO addProblemList(CardDTO card, List<UkMasteryDTO> ukUuidMasteryList, Integer MAX_PROBLEM_NUM,
-			String logLevel) {
-		List<ProblemDTO> problemList = card.getProblemIdList();
-		List<ProblemDTO> cardProbIdList = card.getCardProbIdList();
-		int probCnt = problemList.size();
-
-		while (true) {
-			for (UkMasteryDTO ukMastery : ukUuidMasteryList) {
-				String ukUuid = ukMastery.getUkId();
-				String logMsg;
-				switch (logLevel) {
-					case "uk": logMsg = String.format("ukUuid %s 문제 추가", ukUuid); break;
-					case "mastery": logMsg = String.format("ukUuid %s 추가 (mastery = %s)", ukUuid, ukMastery.getUkMastery()); break;
-					case "preMastery": logMsg = String.format("preUkUuid %s 추가 (mastery = %s)", ukUuid, ukMastery.getUkMastery()); break;
-					default: logMsg = ""; break;
+	public Map<String, List<Problem>> gerenateDiffProbListByUk(List<Integer> ukList, Integer CARD_UK_NUM) {
+		Map<String, List<Problem>> diffProbList = new HashMap<String, List<Problem>>();
+		for (Integer ukId : ukList) {
+			for (String difficulty : Arrays.asList("상", "중", "하")) {
+				List<Problem> probList = problemUkRelRepo.findByUkIdDifficulty(ukId, difficulty);
+				if (probList.size() > 0) {
+					Problem prob = probList.get(0);
+					if (diffProbList.get(difficulty) == null) {
+						List<Problem> tempList = new ArrayList<Problem>();
+						tempList.add(prob);
+						diffProbList.put(difficulty, tempList);
+					} else if (diffProbList.get(difficulty).size() != CARD_UK_NUM) {
+						diffProbList.get(difficulty).add(prob);
+					}
 				}
-				logger.info(logMsg);
-				problemList.add(new ProblemDTO(ukUuid, ukUuid, ukUuid));
-				cardProbIdList.add(new ProblemDTO(UUID.randomUUID().toString().substring(0, 32),
-						UUID.randomUUID().toString().substring(0, 32), UUID.randomUUID().toString().substring(0, 32)));
-
-				probCnt += 1;
-				if (probCnt == MAX_PROBLEM_NUM)
-					break;
 			}
-			if (probCnt == MAX_PROBLEM_NUM)
+		}
+		return diffProbList;
+	}
+
+	public void printDiffProbList(Map<String, List<Problem>> diffProbList) {
+		logger.info("");
+		for (String key : diffProbList.keySet()) {
+			List<Problem> probList = diffProbList.get(key);
+			List<Integer> probIdList = new ArrayList<Integer>();
+			probList.forEach(prob -> probIdList.add(prob.getProbId()));
+			logger.info(String.format("%s 난이도 문제들 = " + probIdList.toString(), key));
+		}
+	}
+
+	public CardDTO addProblemList(CardDTO card, Map<String, List<Problem>> diffProbList, Integer MAX_PROBLEM_NUM) {
+		List<ProblemSetDTO> problemSetList = card.getProbIdSetList();
+		Integer estimatedTime = card.getEstimatedTime();
+		List<Problem> highProbList, middleProbList, lowProbList;
+		middleProbList = diffProbList.get("중");
+		highProbList = diffProbList.containsKey("상") ? diffProbList.get("상") : middleProbList;
+		lowProbList = diffProbList.containsKey("하") ? diffProbList.get("하") : middleProbList;
+
+		int probSetCnt = problemSetList.size();
+		int listIdx = 0;
+		Integer timeTotal = estimatedTime;
+		while (true) {
+			Problem highProb = highProbList.get(listIdx % highProbList.size());
+			Problem middleProb = middleProbList.get(listIdx % middleProbList.size());
+			Problem lowProb = lowProbList.get(listIdx % lowProbList.size());
+
+			// add problem set
+			ProblemSetDTO prob = new ProblemSetDTO(highProb.getProbId(), middleProb.getProbId(), lowProb.getProbId());
+			problemSetList.add(prob);
+
+			// calc estimated time
+			Float highProbTime = highProb.getTimeRecommendation();
+			Integer highEstimateTime = (highProbTime == null || highProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
+					: Math.round(highProbTime);
+			Float middleProbTime = middleProb.getTimeRecommendation();
+			Integer middleEstimateTime = (middleProbTime == null || middleProbTime == 0.0f)
+					? AVERAGE_PROB_ESTIMATED_TIME
+					: Math.round(middleProbTime);
+			Float lowProbTime = lowProb.getTimeRecommendation();
+			Integer lowEstimateTime = (lowProbTime == null || lowProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
+					: Math.round(lowProbTime);
+			timeTotal += Math.round((highEstimateTime + middleEstimateTime + lowEstimateTime) / 3);
+
+			probSetCnt += 1;
+			listIdx += 1;
+			if (probSetCnt == MAX_PROBLEM_NUM)
 				break;
 		}
-		card.setProblemIdList(problemList);
-		card.setCardProbIdList(cardProbIdList);
-
+		card.setEstimatedTime(timeTotal);
+		card.setProbIdSetList(problemSetList);
 		return card;
 	}
 
-	public CardDTO generateSectionCard(String cardId, String sectionId, String cardTitle) {
-		CardDTO sectionCard = new CardDTO();
-		sectionCard.setCardId(cardId);
-		sectionCard.setCardType("중간평가");
-		sectionCard.setCardTitle(cardTitle);
-		sectionCard.setProblemIdList(new ArrayList<ProblemDTO>());
-		sectionCard.setCardProbIdList(new ArrayList<ProblemDTO>());
+	public CardDTO generateMidExamCard(String sectionId) {
+		CardDTO midExamCard = new CardDTO();
 
-		// sectionId 내의 모든 문제의 uk 가져와
-		List<String> sectionUkUuidList = problemRepository.findAllUkUuidBySection(sectionId);
+		String cardTitle = curriculumRepo.findSectionName(sectionId);
+		String sectionTitle = "";
 
-		List<UkMasteryDTO> ukUuidMasteryList = new ArrayList<UkMasteryDTO>();
-		for (String ukUuid : sectionUkUuidList)
-			ukUuidMasteryList.add(new UkMasteryDTO(ukUuid, null));
-		sectionCard = addProblemList(sectionCard, ukUuidMasteryList, MAX_EXAM_CARD_PROBLEM_NUM, "uk");
-		return sectionCard;
+		midExamCard.setCardType(MID_EXAM_CARD_TYPE);
+		midExamCard.setCardTitle(cardTitle);
+		midExamCard.setSectionTitle(sectionTitle);
+		midExamCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
+		midExamCard.setEstimatedTime(0);
+
+		// sectionId 내의 모든 문제 id 가져와
+		List<Problem> sectionProbList = problemRepo.findAllProbBySection(sectionId);
+		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(sectionProbList);
+		midExamCard = addProblemList(midExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
+		return midExamCard;
 	}
 
-	public CardDTO generateTypeCard(String cardId, String typeUkId, String cardTitle, String userId) throws Exception {
+	public CardDTO generateSupplementCard(List<UserKnowledge> lowMasteryList) {
+		CardDTO supplementCard = new CardDTO();
+
+		String cardTitle = "";
+		String sectionTitle = "";
+
+		supplementCard.setCardType(SUPPLEMENT_CARD_TYPE);
+		supplementCard.setCardTitle(cardTitle);
+		supplementCard.setSectionTitle(sectionTitle);
+		supplementCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
+		supplementCard.setEstimatedTime(0);
+
+		List<Integer> lowMasteryUkList = new ArrayList<Integer>();
+		lowMasteryList.forEach(uk -> lowMasteryUkList.add(uk.getUkId()));
+		Map<String, List<Problem>> diffProbList = gerenateDiffProbListByUk(lowMasteryUkList,
+				MAX_SMALL_CARD_PROBLEM_NUM);
+		supplementCard = addProblemList(supplementCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
+		return supplementCard;
+	}
+
+	public CardDTO generateTypeCard(Integer typeId) {
 		CardDTO typeCard = new CardDTO();
 
-		typeCard.setCardId(cardId);
-		typeCard.setCardType("유형");
-		typeCard.setCardTitle(cardTitle);
-		typeCard.setProblemIdList(new ArrayList<ProblemDTO>());
-		typeCard.setCardProbIdList(new ArrayList<ProblemDTO>());
+		String cardTitle = problemTypeRepo.findTypeNameById(typeId);
+		String sectionTitle = problemTypeRepo.findSubSectionNameById(typeId);
 
-		List<String> ukUuidList = problemRepository.findAllUkUuidByTypeUkId(typeUkId);
-		if (ukUuidList.size() == 0)
+		typeCard.setCardType(TYPE_CARD_TYPE);
+		typeCard.setCardTitle(cardTitle);
+		typeCard.setSectionTitle(sectionTitle);
+		typeCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
+		typeCard.setEstimatedTime(0);
+
+		List<Integer> typeProbIdList = problemRepo.findAllProbIdByType(typeId);
+		if (typeProbIdList.size() == 0)
 			return new CardDTO();
 
 		else {
-			List<String> preUkUuidList = ukRelRepository.findPreUkUuidList(ukUuidList, "선수");
-			logger.info("ukUuidList: " + ukUuidList.toString());
-			logger.info("preukUuid: " + preUkUuidList.toString());
+			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
+			List<Integer> preUkIdList = ukRelRepo.findPreUkIdList(ukIdList, "선수");
+			logger.info("유형카드 내 ukIdList: " + ukIdList.toString());
+			logger.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
 
-			List<UkMasteryDTO> preUkUuidMasteryList = new ArrayList<UkMasteryDTO>(); // UkMasteryDTO 로 고치기
-			for (String preUkUuid : preUkUuidList) {
-				UserKnowledge preUserKnowledge;
+			// 이해도가 낮은 애들 선별
+			List<UkMasteryDTO> preUkMasteryList = new ArrayList<UkMasteryDTO>();
+			for (Integer preUkId : preUkIdList) {
+				UserKnowledgeKey preMasteryKey = new UserKnowledgeKey();
+				preMasteryKey.setUserUuid(userId);
+				preMasteryKey.setUkId(preUkId);
+				UserKnowledge preUkUserKnowledge;
 				try {
-					UserKnowledgeKey preMasteryKey = new UserKnowledgeKey();
-					preMasteryKey.setUserUuid(userId);
-					preMasteryKey.setUkUuid(preUkUuid);
-					preUserKnowledge = userKnowledgeRepository.findById(preMasteryKey)
-							.orElseThrow(() -> new Exception(preUkUuid));
+					preUkUserKnowledge = userKnowledgeRepo.findById(preMasteryKey)
+							.orElseThrow(() -> new Exception(Integer.toString(preUkId)));
 				} catch (Exception e) {
-					logger.info(String.format("User mastery of ukUuid %s not in USER_KNOWLEDGE TB.", e.getMessage()));
+					logger.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
 					continue;
 				}
-				Float preUkMastery = preUserKnowledge.getUkMastery();
+				Float preUkMastery = preUkUserKnowledge.getUkMastery();
 				if (preUkMastery <= PRE_UK_MASTERY_THRESHOLD)
-					preUkUuidMasteryList.add(new UkMasteryDTO(preUkUuid, Float.toString(preUkMastery)));
+					preUkMasteryList.add(new UkMasteryDTO(preUkId, Float.toString(preUkMastery)));
 			}
 
 			// preUk sort by uk mastery
-			Collections.sort(preUkUuidMasteryList, new Comparator<UkMasteryDTO>() {
+			Collections.sort(preUkMasteryList, new Comparator<UkMasteryDTO>() {
 				public int compare(UkMasteryDTO preUk1, UkMasteryDTO preUk2) {
 					Float preUk1Mastery = Float.parseFloat(preUk1.getUkMastery());
 					Float preUk2Mastery = Float.parseFloat(preUk2.getUkMastery());
 					return preUk1Mastery.compareTo(preUk2Mastery);
 				}
 			});
+			// preUK에 대해 triplet 구성
+			Integer preUkProbNum = SMALL_CARD_PRE_UK_NUM > preUkMasteryList.size() ? preUkMasteryList.size()
+					: SMALL_CARD_PRE_UK_NUM;
+			List<Integer> preUkList = new ArrayList<Integer>();
+			preUkMasteryList.forEach(preUkMastery -> preUkList.add(preUkMastery.getUkId()));
+			logger.info("그중 이해도가 낮은 것들: " + preUkList.toString());
+			Map<String, List<Problem>> diffPreProbList = gerenateDiffProbListByUk(preUkList, preUkProbNum);
+			printDiffProbList(diffPreProbList);
+			if (diffPreProbList.keySet().size() == 3)
+				typeCard = addProblemList(typeCard, diffPreProbList, preUkProbNum);
 
-			typeCard = addProblemList(typeCard, preUkUuidMasteryList, SMALL_CARD_PRE_UK_NUM, "preMastery");
-
-			List<UkMasteryDTO> ukUuidMasteryList = new ArrayList<UkMasteryDTO>();
-			for (String ukUuid : ukUuidList)
-				ukUuidMasteryList.add(new UkMasteryDTO(ukUuid, null));
-
-			typeCard = addProblemList(typeCard, ukUuidMasteryList, MAX_SMALL_CARD_PROBLEM_NUM, "uk");
+			// type에 대해 triplet 구성
+			List<Problem> typeProbList;
+			List<Integer> preProbIdList = new ArrayList<Integer>();
+			typeCard.getProbIdSetList().forEach(prob -> {
+				preProbIdList.add(prob.getHigh());
+				preProbIdList.add(prob.getMiddle());
+				preProbIdList.add(prob.getLow());
+			});
+			if (preProbIdList.size() != 0)
+				typeProbList = problemRepo.findAllProbByTypeNotInList(typeId, preProbIdList);
+			else
+				typeProbList = problemRepo.findAllProbByType(typeId);
+			Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(typeProbList);
+			printDiffProbList(diffProbList);
+			if (!diffProbList.containsKey("중"))
+				return new CardDTO();
+			typeCard = addProblemList(typeCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
 			return typeCard;
 		}
 	}
 
-	public CardDTO generateSupplementCard(String cardId, String cardTitle, String userId,
-			List<UserKnowledge> lowMasteryList) {
-		CardDTO supplementCard = new CardDTO();
+	public CardDTO generateTrialExamCard(List<String> subSectionList) {
+		CardDTO trialExamCard = new CardDTO();
 
-		supplementCard.setCardId(cardId);
-		supplementCard.setCardType("보충");
-		supplementCard.setCardTitle(cardTitle);
-		supplementCard.setProblemIdList(new ArrayList<ProblemDTO>());
-		supplementCard.setCardProbIdList(new ArrayList<ProblemDTO>());
+		String cardTitle = "";
+		String sectionTitle = "";
 
-		List<UkMasteryDTO> ukUuidMasteryList = new ArrayList<UkMasteryDTO>();
-		for (UserKnowledge lowMasteryUK : lowMasteryList) {
-			String ukUuid = lowMasteryUK.getUkUuid();
-			Float mastery = lowMasteryUK.getUkMastery();
-			ukUuidMasteryList.add(new UkMasteryDTO(ukUuid, Float.toString(mastery)));
-		}
+		trialExamCard.setCardType(TRIAL_EXAM_CARD_TYPE);
+		trialExamCard.setCardTitle(cardTitle);
+		trialExamCard.setSectionTitle(sectionTitle);
+		trialExamCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
+		trialExamCard.setEstimatedTime(0);
 
-		supplementCard = addProblemList(supplementCard, ukUuidMasteryList, MAX_SMALL_CARD_PROBLEM_NUM, "mastery");
-		return supplementCard;
+		List<Problem> trialExamProbList = problemRepo.findAllProbBySubSectionList(subSectionList);
+		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(trialExamProbList);
+		trialExamCard = addProblemList(trialExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
+		return trialExamCard;
 	}
 
-	public CardDTO generateExamCard(String cardId, String cardTitle, String userId, List<String> chapterList) {
-		CardDTO examCard = new CardDTO();
-
-		examCard.setCardId(cardId);
-		examCard.setCardType("모의고사");
-		examCard.setCardTitle(cardTitle);
-		examCard.setProblemIdList(new ArrayList<ProblemDTO>());
-		examCard.setCardProbIdList(new ArrayList<ProblemDTO>());
-
-		List<String> examUkIdList = problemDemoRepository.findAllUkUuidByChapterList(chapterList);
-		List<UkMasteryDTO> ukUuidMasteryList = new ArrayList<UkMasteryDTO>();
-		for (String ukUuid : examUkIdList)
-			ukUuidMasteryList.add(new UkMasteryDTO(ukUuid, null));
-		examCard = addProblemList(examCard, ukUuidMasteryList, MAX_EXAM_CARD_PROBLEM_NUM, "uk");
-		
-		return examCard;
-	}
-
-	public Map<String, Object> getCurriculumCardList(String userId, String date) throws Exception {
-		
-	}
-	 */
-	
 	@Override
 	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
 		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
+		List<CardDTO> cardList = new ArrayList<CardDTO>();
 
-		// 시험 범위 내 중단원
-		List<String> chapterList = new ArrayList<String>(Arrays.asList("중등-중2-1학-03", "중등-중2-1학-04"));
-
-		
 		// today date and convert to Timestamp type
-		Timestamp today = Timestamp.valueOf(LocalDate.now().atStartOfDay());
+		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String today = LocalDate.now().format(formatter);
+
+		this.userId = userId;
+		this.today = today;
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -326,170 +347,145 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return output;
 		}
 
-		List<CardDTO> cardList = new ArrayList<CardDTO>();
-		
-		List<String> totalSectionList = problemTypeRepo.findAllSection(chapterList);
-		Set<String> totalSectionSet = new HashSet<String>(totalSectionList); // 토탈 범위 단원들
-		logger.info("1. 시험범위 전체 단원들 : " + totalSectionSet.toString());
-
-		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
-		LRSinput.setActionTypeList(new ArrayList<String>(Arrays.asList("submit")));
-		LRSinput.setDateFrom("2021-05-01");
-		LRSinput.setDateTo("2021-05-28");
-		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList("박평우")));
-		LRSinput.setSourceTypeList(new ArrayList<String>(Arrays.asList("question")));
-		
+		UserExamScope userExamScope;
 		try {
-			lrsAPIManager.getStatementList(LRSinput);
-		} catch (ParseException e) {
-			output.setMessage("LRS Internal Server Error: " + e.getMessage());
+			userExamScope = userExamScopeRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
+		} catch (NoSuchElementException e) {
+			output.setMessage(String.format("userId = %s is not in USER_EXAM_SCOPE TB.", e.getMessage()));
 			return output;
 		}
-		
-		/*
-		List<String> userCompletedTypeUkList = userExamCurriculumLogRepository.findAllTypeUkUuid(userId); // 이미 푼 typeUK
-		logger.info("2. 유저가 푼 유형 UK들 : " + userCompletedTypeUkList.toString());
+		Integer startSeq = userExamScope.getStartCurriculum().getCurriculumSequence();
+		Integer endSeq = userExamScope.getEndCurriculum().getCurriculumSequence();
+		List<String> subSectionList = curriculumRepo.findExamSubSectionList(startSeq, endSeq); // 시험범위
 
+		List<String> totalSectionList = problemTypeRepo.findAllSection(subSectionList);
+		Set<String> totalSectionSet = new HashSet<String>(totalSectionList); // 토탈 범위 중 단원들
+		logger.info("1. 시험범위 전체 중 단원들 : " + totalSectionSet.toString());
 
-		List<String> notCompletedSectionList;
-		if (userCompletedTypeUkList.size() == 0) {
+		List<Integer> completedTypeIdList;
+		try {
+			completedTypeIdList = historyManager.getCompletedTypeIdList(userId, today);
+		} catch (Exception e) {
+			output.setMessage(e.getMessage());
+			return output;
+		}
+		logger.info("2. 유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
+
+		List<String> notCompletedSectionList = new ArrayList<String>();
+		if (completedTypeIdList.size() == 0) {
 			logger.info("- 푼게 하나도 없음.");
-			notCompletedSectionList = typeUkRepository.findAllSection(chapterList);
+			notCompletedSectionList.addAll(totalSectionList);
 		} else
-			notCompletedSectionList = typeUkRepository.findAllSectionNotInList(chapterList, userCompletedTypeUkList);
+			notCompletedSectionList = problemTypeRepo.findAllSectionNotInTypeList(subSectionList, completedTypeIdList);
 		Set<String> notCompletedSectionSet = new HashSet<String>(notCompletedSectionList); // 안푼 단원들
-		logger.info("3. 안푼 단원들 : " + notCompletedSectionSet.toString());
+		logger.info("3. 안푼 중단원들 : " + notCompletedSectionSet.toString());
 
 		totalSectionSet.removeAll(notCompletedSectionSet); // totalSectionSet에 완벽히 푼 단원들 저장됨
-		logger.info("4. 완벽히 유형카드를 푼 단원들 : " + totalSectionSet.toString());
+		logger.info("4. 완벽히 유형카드를 중 푼 단원들 : " + totalSectionSet.toString());
 
-		List<String> completedSectionList = userExamCurriculumLogRepository.findAllSectionId(userId);
-		Set<String> completedSectionSet = new HashSet<String>(completedSectionList);
+		List<String> completedSectionIdList;
+		try {
+			completedSectionIdList = historyManager.getCompletedSectionIdList(userId, today);
+		} catch (Exception e) {
+			output.setMessage(e.getMessage());
+			return output;
+		}
+		Set<String> completedSectionSet = new HashSet<String>(completedSectionIdList);
+		logger.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionSet.toString());
+
 		totalSectionSet.removeAll(completedSectionSet); // totalSectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨
-		logger.info("5. 이미 중간평가 카드 푼 단원들 : " + completedSectionSet.toString());
-		logger.info("6. 중간평가 대상인 최종 단원 : " + totalSectionSet.toString());
+		logger.info("6. 중간평가 대상인 최종 중 단원 : " + totalSectionSet.toString());
 
 		// 완벽히 푼 단원이 있다? 중간평가 할차례!
 		if (totalSectionSet.size() != 0) {
-			String cardType = "중간평가";
-			String cardSectionId = totalSectionSet.iterator().next();
-			String cardTitle = curriculumRepository.findSectionNameById(cardSectionId);
-			logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + cardSectionId);
+			String sectionId = totalSectionSet.iterator().next();
+			logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
 
 			// 카드 생성
-			String cardId = userId + '-' + newCardSequence.toString() + '-' + cardType;
-			CardDTO sectionCard = generateSectionCard(cardId, cardSectionId, cardTitle);
-			// DB 주입
-			newCardSequence = addRecommendedCardInfo(cardId, cardType, cardTitle, userId, targetDate, cardSectionId,
-					null, newCardSequence);
-			addCardProblemInfo(sectionCard);
+			CardDTO midExamCard = generateMidExamCard(sectionId);
 			// 결과 추가
-			cardList.add(sectionCard);
-			output.put("resultMessage", "Successfully return curriculum card list.");
-			output.put("isComletable", "true");
-			output.put("cardList", cardList);
+			cardList.add(midExamCard);
+			output.setCardList(cardList);
+			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		}
 
-		// 유형 UK (혹은 보충 UK) 나갈차례!
+		// 유형 UK (혹은 보충 UK)
 		// 보충 필요한지 판단
-		Integer lastSupplementCardSequence = userExamCurriculumLogRepository.findLastSupCardSequence(userId).orElse(1);
-		List<String> supplementCardUkList = new ArrayList<String>(Arrays.asList(""));
-		if (lastSupplementCardSequence != 1)
-			supplementCardUkList = userExamCurriculumLogRepository.findAllSupCardUkUuid(userId);
-		logger.info("\n7. 지금까지 보충 카드로 추천된 ukID 리스트 = ");
-		logger.info(supplementCardUkList.toString());
-		List<UserKnowledge> lowMasteryList = userExamCurriculumLogRepository.findAllLowMasteryUkUuid(userId,
-				lastSupplementCardSequence, supplementCardUkList, SUP_UK_MASTERY_THRESHOLD);
+		List<Integer> suppleUkIdList;
+		try {
+			suppleUkIdList = historyManager.getCompletedSuppleUkIdList(userId, today);
+		} catch (Exception e) {
+			output.setMessage(e.getMessage());
+			return output;
+		}
+		logger.info("7. 지금까지 보충 카드로 풀어본 ukID 리스트 = ");
+		logger.info(suppleUkIdList.toString());
 
-		logger.info("8. 보충 카드 제외, 유형 카드로 추천된 UK들의 이해도 리스트 = ");
+		List<Integer> solvedUkIdList;
+		try {
+			solvedUkIdList = historyManager.getSolvedUkIdList(userId, today);
+		} catch (Exception e) {
+			output.setMessage(e.getMessage());
+			return output;
+		}
+		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList,
+				suppleUkIdList, SUP_UK_MASTERY_THRESHOLD);
+
+		logger.info("8. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
 		for (UserKnowledge lowMastery : lowMasteryList)
-			logger.info(
-					String.format("   ukId = %s, mastery = %f", lowMastery.getUkUuid(), lowMastery.getUkMastery()));
+			logger.info(String.format("   ukId = %s, mastery = %f", lowMastery.getUkId(), lowMastery.getUkMastery()));
 
-		// 보충 채울만큼 사이즈가 나온다? 보충 카드
+		// 보충 채울만큼 넉넉하면 보충 카드
 		if (lowMasteryList.size() >= MAX_SMALL_CARD_PROBLEM_NUM) {
-			String cardType = "보충";
-			String cardTitle = "";
-			logger.info("\n이해도 낮은게 많아서 보충 카드 진행");
-
-			String cardId = userId + '-' + newCardSequence.toString() + '-' + cardType;
-			CardDTO supplementCard;
-			supplementCard = generateSupplementCard(cardId, cardTitle, userId, lowMasteryList);
-
-			newCardSequence = addRecommendedCardInfo(cardId, cardType, cardTitle, userId, targetDate, null, null,
-					newCardSequence);
-			addCardProblemInfo(supplementCard);
-
+			logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+			CardDTO supplementCard = generateSupplementCard(lowMasteryList);
 			cardList.add(supplementCard);
 		}
 
-		// 나머지 카드들은? 유형카드로 채우기
-		List<String> remainTypeUkIdList;
-		if (userCompletedTypeUkList.size() == 0)
-			remainTypeUkIdList = typeUkRepository.findTypeUkIdList(chapterList);
+		// 나머지 카드들 유형카드로 채우기
+		List<Integer> remainTypeIdList;
+		if (completedTypeIdList.size() == 0)
+			remainTypeIdList = problemTypeRepo.findAllExamTypeIdList(subSectionList);
 		else
-			remainTypeUkIdList = typeUkRepository.findNotCompletedTypeUkIdList(chapterList, userCompletedTypeUkList);
+			remainTypeIdList = problemTypeRepo.findRemainTypeIdList(subSectionList, completedTypeIdList);
 
-		// 공부 안한 유형uk가 남아있다? 유형카드
-		if (remainTypeUkIdList.size() != 0) {
-			for (String typeUkId : remainTypeUkIdList) {
-				String cardType = "유형";
-				String cardTitle = typeUkRepository.findTypeUkNameById(typeUkId);
-				logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeUkId);
-
-				String cardId = userId + '-' + newCardSequence.toString() + '-' + cardType;
+		List<Integer> noProbTypeList = new ArrayList<Integer>();
+		// 공부 안한 유형uk가 있으면 유형카드
+		if (remainTypeIdList.size() != 0) {
+			for (Integer typeId : remainTypeIdList) {
+				logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
 				CardDTO typeCard;
-				try {
-					typeCard = generateTypeCard(cardId, typeUkId, cardTitle, userId);
-				} catch (Exception e) {
-					output.put("resultMessage", e.getMessage());
-					return output;
-				}
-
+				typeCard = generateTypeCard(typeId);
 				// 문제가 하나도 없으면 뛰어넘자
-				if (typeCard == new CardDTO())
+				if (typeCard.getCardType() == null) {
+					noProbTypeList.add(typeId);
 					continue;
-
-				newCardSequence = addRecommendedCardInfo(cardId, cardType, cardTitle, userId, targetDate, null,
-						typeUkId, newCardSequence);
-				addCardProblemInfo(typeCard);
-				// 결과 추가
+				}
 				cardList.add(typeCard);
 				if (cardList.size() == MAX_CARD_NUM)
 					break;
 			}
-			output.put("resultMessage", "Successfully return curriculum card list.");
-			output.put("isComletable", "true");
-			output.put("cardList", cardList);
+			System.out.println(noProbTypeList);
+			output.setCardList(cardList);
+			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		}
 
-		// 유형 uk가 안남아있다? 보충 카드는 있는데? 보충카드 ㄱㄱ
+		// 보충카드 한장만 구성된 경우, 한장만 제공
 		if (cardList.size() != 0) {
-			output.put("resultMessage", "Successfully return curriculum card list.");
-			output.put("isComletable", "true");
-			output.put("cardList", cardList);
+			System.out.println(noProbTypeList);
+			output.setCardList(cardList);
+			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		} else {
-			String cardType = "모의고사";
-			String cardTitle = "";
-			logger.info("\n다풀었다. 모의고사 카드 진행. ");
+			logger.info("	다 풀어서 모의고사 카드 진행. ");
+			CardDTO trialExamCard = generateTrialExamCard(subSectionList);
+			cardList.add(trialExamCard);
 
-			String cardId = userId + '-' + newCardSequence.toString() + '-' + cardType;
-			CardDTO examCard = generateExamCard(cardId, cardTitle, userId, chapterList);
-
-			newCardSequence = addRecommendedCardInfo(cardId, cardType, cardTitle, userId, targetDate, null, null,
-					newCardSequence);
-			addCardProblemInfo(examCard);
-			cardList.add(examCard);
-
-			output.put("resultMessage", "Successfully return curriculum card list.");
-			output.put("isComletable", "true");
-			output.put("cardList", cardList);
+			output.setCardList(cardList);
+			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		}
-		*/
-		return output;
 	}
 }

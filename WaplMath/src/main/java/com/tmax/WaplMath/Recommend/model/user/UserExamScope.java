@@ -22,6 +22,10 @@ public class UserExamScope {
 	private String endSubSection;
 
 	@OneToOne(cascade = (CascadeType.ALL))
+	@JoinColumn(name="userUuid", referencedColumnName="userUuid", insertable=false, updatable=false)
+	private User user;
+	
+	@OneToOne(cascade = (CascadeType.ALL))
 	@JoinColumn(name = "startSubSection", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum startCurriculum;
 

@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,10 @@ import org.springframework.stereotype.Service;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
 import com.tmax.WaplMath.Recommend.model.user.User;
+import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
+import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
+import com.tmax.WaplMath.Recommend.util.ExamScope;
 
 @Service
 @Qualifier("UserInfoServiceV0")
@@ -27,6 +31,12 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private UserExamScopeRepo userExamScopeRepo;
+	
+	@Autowired
+	private static Map<String, List<String>> examScope = ExamScope.examScope;
 
 	@Override
 	public User getUserInfo(String userId) {
@@ -66,7 +76,9 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			return output;
 		}
 		
+		// update user_master tb
 		User userObject = userRepository.findById(userId).orElse(new User());
+		
 		userObject.setUserUuid(userId);
 		userObject.setExamType(examType);
 		userObject.setExamStartDate(Timestamp.valueOf(examStartDateTime));
@@ -74,6 +86,27 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		userObject.setExamTargetScore(targetScore);
 		
 		userRepository.save(userObject);
+
+		// update user_exam_scope tb
+		String grade = userObject.getGrade();
+		String semester = userObject.getSemester();
+		
+		if (grade != null && semester != null) {
+			String examRangeKey = grade + "-" + semester + "-" + examType;
+			List<String> examRangeSubSection = examScope.get(examRangeKey);
+			
+			String startSubSection = examRangeSubSection.get(0);
+			String endSubSection = examRangeSubSection.get(1);
+			
+			UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
+			
+			userExamScope.setUserUuid(userId);
+			userExamScope.setStartSubSection(startSubSection);
+			userExamScope.setEndSubSection(endSubSection);
+			
+			userExamScopeRepo.save(userExamScope);
+		}
+		
 		output.setMessage("Successfully update user exam info.");
 
 		return output;
