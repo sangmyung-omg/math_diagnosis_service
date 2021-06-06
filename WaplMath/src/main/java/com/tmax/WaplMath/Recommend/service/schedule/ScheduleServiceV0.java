@@ -88,6 +88,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 	public String userId;
 	public String today;
+	public List<Integer> solvedProbIdList = new ArrayList<Integer>();
 
 	public Map<String, List<Problem>> generateDiffProbListByProb(List<Problem> probList) {
 		Map<String, List<Problem>> diffProbList = new HashMap<String, List<Problem>>();
@@ -108,7 +109,11 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		Map<String, List<Problem>> diffProbList = new HashMap<String, List<Problem>>();
 		for (Integer ukId : ukList) {
 			for (String difficulty : Arrays.asList("상", "중", "하")) {
-				List<Problem> probList = problemUkRelRepo.findByUkIdDifficulty(ukId, difficulty);
+				List<Problem> probList = new ArrayList<Problem>();
+				if (solvedProbIdList.size() != 0)
+					probList = problemUkRelRepo.findProbByUkDifficultyNotInList(ukId, difficulty, solvedProbIdList);
+				else
+					probList = problemUkRelRepo.findProbByUkDifficulty(ukId, difficulty);
 				if (probList.size() > 0) {
 					Problem prob = probList.get(0);
 					if (diffProbList.get(difficulty) == null) {
@@ -179,7 +184,6 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 	public CardDTO generateMidExamCard(String sectionId) {
 		CardDTO midExamCard = new CardDTO();
-
 		String cardTitle = curriculumRepo.findSectionName(sectionId);
 		String sectionTitle = "";
 
@@ -190,7 +194,11 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		midExamCard.setEstimatedTime(0);
 
 		// sectionId 내의 모든 문제 id 가져와
-		List<Problem> sectionProbList = problemRepo.findAllProbBySection(sectionId);
+		List<Problem> sectionProbList;
+		if (solvedProbIdList.size() != 0)
+			sectionProbList = problemRepo.findAllProbBySectionNotInList(sectionId, solvedProbIdList);
+		else
+			sectionProbList = problemRepo.findAllProbBySection(sectionId);
 		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(sectionProbList);
 		midExamCard = addProblemList(midExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
 		return midExamCard;
@@ -228,7 +236,11 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		typeCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
 		typeCard.setEstimatedTime(0);
 
-		List<Integer> typeProbIdList = problemRepo.findAllProbIdByType(typeId);
+		List<Integer> typeProbIdList;
+		if (solvedProbIdList.size() != 0)
+			typeProbIdList = problemRepo.findAllProbIdByTypeNotInList(typeId, solvedProbIdList);
+		else
+			typeProbIdList = problemRepo.findAllProbIdByType(typeId);
 		if (typeProbIdList.size() == 0)
 			return new CardDTO();
 
@@ -284,8 +296,9 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 				preProbIdList.add(prob.getMiddle());
 				preProbIdList.add(prob.getLow());
 			});
-			if (preProbIdList.size() != 0)
-				typeProbList = problemRepo.findAllProbByTypeNotInList(typeId, preProbIdList);
+			this.solvedProbIdList.addAll(preProbIdList);
+			if (solvedProbIdList.size() != 0)
+				typeProbList = problemRepo.findAllProbByTypeNotInList(typeId, solvedProbIdList);
 			else
 				typeProbList = problemRepo.findAllProbByType(typeId);
 			Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(typeProbList);
@@ -309,7 +322,11 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		trialExamCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
 		trialExamCard.setEstimatedTime(0);
 
-		List<Problem> trialExamProbList = problemRepo.findAllProbBySubSectionList(subSectionList);
+		List<Problem> trialExamProbList;
+		if (solvedProbIdList.size() != 0)
+			trialExamProbList = problemRepo.findAllProbBySubSectionListNotInList(subSectionList, solvedProbIdList);
+		else
+			trialExamProbList = problemRepo.findAllProbBySubSectionList(subSectionList);
 		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(trialExamProbList);
 		trialExamCard = addProblemList(trialExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
 		return trialExamCard;
@@ -320,13 +337,21 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
 		List<CardDTO> cardList = new ArrayList<CardDTO>();
 
-		// today date and convert to Timestamp type
 		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String today = LocalDate.now().format(formatter);
 
 		this.userId = userId;
 		this.today = today;
+		List<String> sourceTypeList = new ArrayList<String>(
+				Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
+		try {
+			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+		} catch (Exception e) {
+			output.setMessage(e.getMessage());
+			return output;
+		}
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -396,21 +421,18 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		totalSectionSet.removeAll(completedSectionSet); // totalSectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨
 		logger.info("6. 중간평가 대상인 최종 중 단원 : " + totalSectionSet.toString());
 
-		// 완벽히 푼 단원이 있다? 중간평가 할차례!
+		// 완벽히 푼 단원이 있으면 중간 평가
 		if (totalSectionSet.size() != 0) {
 			String sectionId = totalSectionSet.iterator().next();
 			logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
-
-			// 카드 생성
 			CardDTO midExamCard = generateMidExamCard(sectionId);
-			// 결과 추가
 			cardList.add(midExamCard);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		}
 
-		// 유형 UK (혹은 보충 UK)
+		// 유형 카드 (혹은 보충 UK)
 		// 보충 필요한지 판단
 		List<Integer> suppleUkIdList;
 		try {
@@ -466,7 +488,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 				if (cardList.size() == MAX_CARD_NUM)
 					break;
 			}
-			System.out.println(noProbTypeList);
+			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
@@ -474,7 +496,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 		// 보충카드 한장만 구성된 경우, 한장만 제공
 		if (cardList.size() != 0) {
-			System.out.println(noProbTypeList);
+			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
@@ -482,7 +504,6 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			logger.info("	다 풀어서 모의고사 카드 진행. ");
 			CardDTO trialExamCard = generateTrialExamCard(subSectionList);
 			cardList.add(trialExamCard);
-
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
