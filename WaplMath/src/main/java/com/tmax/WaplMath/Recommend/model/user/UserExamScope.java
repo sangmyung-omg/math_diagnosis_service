@@ -4,6 +4,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -25,11 +26,11 @@ public class UserExamScope {
 	@JoinColumn(name="userUuid", referencedColumnName="userUuid", insertable=false, updatable=false)
 	private User user;
 	
-	@OneToOne(cascade = (CascadeType.ALL))
+	@ManyToOne(cascade = (CascadeType.ALL))
 	@JoinColumn(name = "startSubSection", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum startCurriculum;
 
-	@OneToOne(cascade = (CascadeType.ALL))
+	@ManyToOne(cascade = (CascadeType.ALL))
 	@JoinColumn(name = "endSubSection", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum endCurriculum;
 }

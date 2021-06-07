@@ -2,10 +2,15 @@ package com.tmax.WaplMath.Recommend.model.user;
 
 import java.sql.Timestamp;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 
 import lombok.Data;
 
@@ -32,4 +37,8 @@ public class User {
 
 	@Column(name = "EXAM_TARGET_SCORE")
 	private Integer examTargetScore;
+
+	@ManyToOne(cascade = (CascadeType.ALL))
+	@JoinColumn(name = "currentCurriculumId", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
+	private Curriculum currentCurriculum;
 }
