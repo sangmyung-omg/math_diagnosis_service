@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,9 +22,7 @@ import com.tmax.WaplMath.Recommend.dto.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.ProblemSetDTO;
-import com.tmax.WaplMath.Recommend.dto.UkMasteryDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledgeKey;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
@@ -41,10 +37,8 @@ import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 
 /**
- * Generate today exam learning schedule card
- * 
+ * Generate today normal/exam schedule card
  * @author Sangheon Lee
- *
  */
 @Service("ScheduleServiceV0")
 @Primary
@@ -249,48 +243,48 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return new CardDTO();
 
 		else {
-			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
-			List<Integer> preUkIdList = ukRelRepo.findPreUkIdList(ukIdList, "선수");
-			logger.info("유형카드 내 ukIdList: " + ukIdList.toString());
-			logger.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
-
-			// 이해도가 낮은 애들 선별
-			List<UkMasteryDTO> preUkMasteryList = new ArrayList<UkMasteryDTO>();
-			for (Integer preUkId : preUkIdList) {
-				UserKnowledgeKey preMasteryKey = new UserKnowledgeKey();
-				preMasteryKey.setUserUuid(userId);
-				preMasteryKey.setUkId(preUkId);
-				UserKnowledge preUkUserKnowledge;
-				try {
-					preUkUserKnowledge = userKnowledgeRepo.findById(preMasteryKey)
-							.orElseThrow(() -> new Exception(Integer.toString(preUkId)));
-				} catch (Exception e) {
-					logger.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
-					continue;
-				}
-				Float preUkMastery = preUkUserKnowledge.getUkMastery();
-				if (preUkMastery <= PRE_UK_MASTERY_THRESHOLD)
-					preUkMasteryList.add(new UkMasteryDTO(preUkId, Float.toString(preUkMastery)));
-			}
-
-			// preUk sort by uk mastery
-			Collections.sort(preUkMasteryList, new Comparator<UkMasteryDTO>() {
-				public int compare(UkMasteryDTO preUk1, UkMasteryDTO preUk2) {
-					Float preUk1Mastery = Float.parseFloat(preUk1.getUkMastery());
-					Float preUk2Mastery = Float.parseFloat(preUk2.getUkMastery());
-					return preUk1Mastery.compareTo(preUk2Mastery);
-				}
-			});
-			// preUK에 대해 triplet 구성
-			Integer preUkProbNum = SMALL_CARD_PRE_UK_NUM > preUkMasteryList.size() ? preUkMasteryList.size()
-					: SMALL_CARD_PRE_UK_NUM;
-			List<Integer> preUkList = new ArrayList<Integer>();
-			preUkMasteryList.forEach(preUkMastery -> preUkList.add(preUkMastery.getUkId()));
-			logger.info("그중 이해도가 낮은 것들: " + preUkList.toString());
-			Map<String, List<Problem>> diffPreProbList = gerenateDiffProbListByUk(preUkList, preUkProbNum);
-			printDiffProbList(diffPreProbList);
-			if (diffPreProbList.keySet().size() == 3)
-				typeCard = addProblemList(typeCard, diffPreProbList, preUkProbNum);
+//			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
+//			List<Integer> preUkIdList = ukRelRepo.findPreUkIdList(ukIdList, "선수");
+//			logger.info("유형카드 내 ukIdList: " + ukIdList.toString());
+//			logger.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
+//
+//			// 이해도가 낮은 애들 선별
+//			List<UkMasteryDTO> preUkMasteryList = new ArrayList<UkMasteryDTO>();
+//			for (Integer preUkId : preUkIdList) {
+//				UserKnowledgeKey preMasteryKey = new UserKnowledgeKey();
+//				preMasteryKey.setUserUuid(userId);
+//				preMasteryKey.setUkId(preUkId);
+//				UserKnowledge preUkUserKnowledge;
+//				try {
+//					preUkUserKnowledge = userKnowledgeRepo.findById(preMasteryKey)
+//							.orElseThrow(() -> new Exception(Integer.toString(preUkId)));
+//				} catch (Exception e) {
+//					logger.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
+//					continue;
+//				}
+//				Float preUkMastery = preUkUserKnowledge.getUkMastery();
+//				if (preUkMastery <= PRE_UK_MASTERY_THRESHOLD)
+//					preUkMasteryList.add(new UkMasteryDTO(preUkId, Float.toString(preUkMastery)));
+//			}
+//
+//			// preUk sort by uk mastery
+//			Collections.sort(preUkMasteryList, new Comparator<UkMasteryDTO>() {
+//				public int compare(UkMasteryDTO preUk1, UkMasteryDTO preUk2) {
+//					Float preUk1Mastery = Float.parseFloat(preUk1.getUkMastery());
+//					Float preUk2Mastery = Float.parseFloat(preUk2.getUkMastery());
+//					return preUk1Mastery.compareTo(preUk2Mastery);
+//				}
+//			});
+//			// preUK에 대해 triplet 구성
+//			Integer preUkProbNum = SMALL_CARD_PRE_UK_NUM > preUkMasteryList.size() ? preUkMasteryList.size()
+//					: SMALL_CARD_PRE_UK_NUM;
+//			List<Integer> preUkList = new ArrayList<Integer>();
+//			preUkMasteryList.forEach(preUkMastery -> preUkList.add(preUkMastery.getUkId()));
+//			logger.info("그중 이해도가 낮은 것들: " + preUkList.toString());
+//			Map<String, List<Problem>> diffPreProbList = gerenateDiffProbListByUk(preUkList, preUkProbNum);
+//			printDiffProbList(diffPreProbList);
+//			if (diffPreProbList.keySet().size() == 3)
+//				typeCard = addProblemList(typeCard, diffPreProbList, preUkProbNum);
 
 			// type에 대해 triplet 구성
 			List<Problem> typeProbList;
@@ -310,7 +304,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			if (!diffProbList.containsKey("중"))
 				return new CardDTO();
 			typeCard = addProblemList(typeCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
-			typeCard.setFirstProbLevel("low");
+			typeCard.setFirstProbLevel("middle");
 			return typeCard;
 		}
 	}

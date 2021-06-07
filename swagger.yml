@@ -5,7 +5,7 @@ info:
   description: |
     지식 수준, 진단고사, 시험 대비 추천 관련 API
 servers:
-  - url: http://192.168.153.212:8080/
+  - url: http://192.168.153.214:8080/
     description: "example server address"
 tags:
 - name : 'Diagnosis'
@@ -200,9 +200,6 @@ paths:
           $ref: "#/components/responses/500-Generic"
 
 
-
-
-
 components:
   schemas:
     DiagnosisProblemsResult:
@@ -296,6 +293,10 @@ components:
           type: "string"
           example: "high"
           description: "학생의 이해도 기반, 첫 번째 문제의 난이도"
+          enum:
+            - "high"
+            - "middle"
+            - "low"
         estimatedTime:
           type: number
           example: 900
@@ -393,7 +394,7 @@ components:
       properties:
         grade:
           type: string
-          example: "3"
+          example: "2"
           description: 학년
           enum:
             - "1"
@@ -401,18 +402,18 @@ components:
             - "3"
         semester:
           type: string
-          example: "2"
+          example: "1"
           description: 학기
           enum:
             - "1"
             - "2"
         name:
           type: string
-          example: "강민경"
+          example: "박평우"
           description: 학생 이름
         currentCurriculumId:
           type: string
-          example: "중등-중3-2학-03"
+          example: "중등-중2-1학-01"
           description: 현재 학교에서 배우고 있는 단원
 
 
@@ -467,7 +468,7 @@ components:
       description: "유저의 Access token"
       schema:
         type: "string"
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiLrsJXtj4nsmrAifQ.bYNSbzxF1lQJo1X1EAcSyeKsOKFFhFvV02GA7Sx6mvk"
   requestBodies:
     ProblemSolveRecord:
       description: "학생 문제 풀이 기록"
