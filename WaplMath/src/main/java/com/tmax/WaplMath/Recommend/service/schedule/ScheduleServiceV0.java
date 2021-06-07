@@ -203,6 +203,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			sectionProbList = problemRepo.findAllProbBySection(sectionId);
 		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(sectionProbList);
 		midExamCard = addProblemList(midExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
+		midExamCard.setFirstProbLevel("middle");
 		return midExamCard;
 	}
 
@@ -223,6 +224,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		Map<String, List<Problem>> diffProbList = gerenateDiffProbListByUk(lowMasteryUkList,
 				MAX_SMALL_CARD_PROBLEM_NUM);
 		supplementCard = addProblemList(supplementCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
+		supplementCard.setFirstProbLevel("low");
 		return supplementCard;
 	}
 
@@ -308,6 +310,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			if (!diffProbList.containsKey("중"))
 				return new CardDTO();
 			typeCard = addProblemList(typeCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
+			typeCard.setFirstProbLevel("low");
 			return typeCard;
 		}
 	}
