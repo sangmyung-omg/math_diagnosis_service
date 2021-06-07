@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
+import com.tmax.WaplMath.Recommend.dto.UserBasicInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
@@ -109,6 +110,58 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		output.setMessage("Successfully update user exam info.");
 
+		return output;
+	}
+	
+	@Override
+	public ResultMessageDTO updateBasicInfo(String userId, UserBasicInfoDTO input) {
+		ResultMessageDTO output = new ResultMessageDTO();
+		
+		String grade = input.getGrade();
+		String semester = input.getSemester();
+		String name = input.getName();
+		String currentCurriculumId = input.getCurrentCurriculumId();
+		
+		logger.info("grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId );
+		
+		// 에러 처리
+		if (!grade.equalsIgnoreCase("1") && !grade.equalsIgnoreCase("2") && !grade.equalsIgnoreCase("3")) {
+			output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
+		}
+		
+		if (!semester.equalsIgnoreCase("1") && !semester.equalsIgnoreCase("2")) {
+			if (output.getMessage() == null) {
+				output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);				
+			} else {
+				output.setMessage(output.getMessage() + "\nValue of semester should be one of '1' or '2'. Given : " + semester);
+			}
+		}
+		
+		if (name == null) {
+			if (output.getMessage() == null) {
+				output.setMessage("No value given for name");				
+			} else {
+				output.setMessage(output.getMessage() + "\nNo value given for name");
+			}
+		}
+		
+		if (output.getMessage() != null) {
+			return output;
+		}
+		
+		// USER_MASTER 테이블에 유저 기본 정보 저장
+		User userObject = userRepository.findById(userId).orElse(new User());
+		
+		userObject.setUserUuid(userId);
+		userObject.setGrade(grade);
+		userObject.setSemester(semester);
+		userObject.setName(name);
+		userObject.setCurrentCurriculumId(currentCurriculumId);
+		
+		userRepository.save(userObject);
+		
+		output.setMessage("Successfully updated user basic info.");
+		
 		return output;
 	}
 }

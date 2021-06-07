@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
+import com.tmax.WaplMath.Recommend.dto.UserBasicInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
 import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceBase;
 
@@ -30,5 +31,11 @@ public class UserInfoControllerV0 {
 		ResultMessageDTO resultMessage = userInfoMvc.updateExamInfo(userId, input);
 		return new ResponseEntity<>(resultMessage, HttpStatus.OK);
 	}
-
+	
+	@PutMapping(value="/userbasicinfo", produces="application/json; charset=utf-8")
+	ResponseEntity<Object> updateBasicInfo(@RequestHeader("token") String token, @RequestBody UserBasicInfoDTO input) {
+		String userId = JWTUtil.getJWTPayloadField(token, "userId");
+		ResultMessageDTO resultMessage = userInfoMvc.updateBasicInfo(userId, input);
+		return new ResponseEntity<>(resultMessage, HttpStatus.OK);
+	}
 }

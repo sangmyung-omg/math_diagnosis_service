@@ -178,6 +178,28 @@ paths:
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic" 
+  /userbasicinfo:
+    put:
+      tags:
+        - User
+      summary: 학생 기본 정보 입력
+      description: 학년, 학기, 이름, 현재 배우고 있는 단원 정보 동기화
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref:  "#/components/requestBodies/UserBasicInfo"
+      responses:
+        "200":
+          description: "성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBasicInfoResult"
+        "500":
+          description: "실패"
+          $ref: "#/components/responses/500-Generic"
+
+
 
 
 
@@ -359,6 +381,40 @@ components:
           type: number
           example: 85
           description: "목표 시험 점수"
+    
+    UserBasicInfo:
+      type: object
+      description: 학생 기본 정보
+      required:
+        - grade
+        - semester
+        - name
+        - currentCurriculumId
+      properties:
+        grade:
+          type: string
+          example: "3"
+          description: 학년
+          enum:
+            - "1"
+            - "2"
+            - "3"
+        semester:
+          type: string
+          example: "2"
+          description: 학기
+          enum:
+            - "1"
+            - "2"
+        name:
+          type: string
+          example: "강민경"
+          description: 학생 이름
+        currentCurriculumId:
+          type: string
+          example: "중등-중3-2학-03"
+          description: 현재 학교에서 배우고 있는 단원
+
 
     MasteryUpdateResult:
       type: "object"
@@ -377,6 +433,15 @@ components:
         message:
           type: "string"
           example: "Successfully update user exam info."
+          description: "성공 여부 메시지"
+    UserBasicInfoResult:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Successfully update user basic info.
           description: "성공 여부 메시지"
   responses:
     500-Generic:
@@ -422,3 +487,10 @@ components:
         application/json:
           schema:
               $ref: "#/components/schemas/UserExamInfo"
+    UserBasicInfo:
+      description: "학생 기본 정보"
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref:  "#/components/schemas/UserBasicInfo"
