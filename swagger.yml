@@ -12,8 +12,8 @@ tags:
   description: "진단고사 API"
 - name : 'Mastery'
   description: "학생 지식 수준 업데이트 API"
-- name : 'ExamSchedule'
-  description: "시험 대비 학습 스케줄 추천 API"
+- name : 'Schedule'
+  description: "학습 스케줄 카드 추천 API"
 - name : 'User'
   description: "문제 추천을 위한 사용자 정보 입력 API"
 paths:
@@ -122,8 +122,8 @@ paths:
   /examschedulecard:
     get:
       tags:
-        - "ExamSchedule"
-      summary: "오늘의 학습 스케줄 카드 구성 리턴"
+        - "Schedule"
+      summary: "오늘의 시험 대비 학습 스케줄 카드 구성 리턴"
       description: |
         사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
       parameters:
@@ -135,6 +135,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ExamScheduleCard"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic"
+  /normalschedulecard:
+    get:
+      tags:
+        - "Schedule"
+      summary: "오늘의 실력 향상 학습 스케줄 카드 구성 리턴"
+      description: |
+        사용자의 실력 향상 학습 스케줄 오늘 카드 구성 리턴
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NormalScheduleCard"
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic"
@@ -188,7 +207,7 @@ components:
           example: 9101
     ExamScheduleCard:
       type: "object"
-      description: "오늘의 학습 스케줄 카드 구성 정보"
+      description: "오늘의 시험 대비 학습 스케줄 카드 구성 정보"
       required:
         - "message"
         - "remainTypeCard"
@@ -202,6 +221,22 @@ components:
           type: number
           example: 30
           description: "진도에서 남은 유형 카드 개수"
+        cardList:
+          type: "array"
+          description: "오늘 카드 목록"
+          items:
+            $ref: "#/components/schemas/CardObject"
+    NormalScheduleCard:
+      type: "object"
+      description: "오늘의 실력 향상 학습 스케줄 카드 구성 정보"
+      required:
+        - "message"
+        - "cardList"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully returned today exam card."
+          description: "결과 메시지"
         cardList:
           type: "array"
           description: "오늘 카드 목록"

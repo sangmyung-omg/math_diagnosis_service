@@ -18,5 +18,9 @@ public interface ProblemUkRelRepository extends CrudRepository<ProblemUkRel, Int
 	public List<Integer> findAllUkIdList(@Param("probIdList") List<Integer> probIdList);
 
 	@Query("select pukr.problem from ProblemUkRel pukr where pukr.ukId = :ukId and pukr.problem.difficulty = :difficulty")
-	public List<Problem> findByUkIdDifficulty(@Param("ukId") Integer ukId, @Param("difficulty") String difficulty);
+	public List<Problem> findProbByUkDifficulty(@Param("ukId") Integer ukId, @Param("difficulty") String difficulty);
+
+	@Query("select pukr.problem from ProblemUkRel pukr where pukr.ukId = :ukId and pukr.problem.difficulty = :difficulty and pukr.probId not in (:probIdList)")
+	public List<Problem> findProbByUkDifficultyNotInList(@Param("ukId") Integer ukId,
+			@Param("difficulty") String difficulty, @Param("probIdList") List<Integer> probIdList);
 }
