@@ -414,7 +414,7 @@ components:
         currentCurriculumId:
           type: string
           example: "중등-중2-1학-01"
-          description: 현재 학교에서 배우고 있는 단원
+          description: 현재 학교에서 배우고 있는 단원. Null 이면 현재 학년-학기-03 대단원으로 초기화.
 
 
     MasteryUpdateResult:

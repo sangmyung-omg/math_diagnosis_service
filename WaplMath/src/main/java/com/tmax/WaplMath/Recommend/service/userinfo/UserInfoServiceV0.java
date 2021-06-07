@@ -150,7 +150,12 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 				output.setMessage(output.getMessage() + "\nNo value given for name");
 			}
 		}
-		
+
+		if (currentCurriculumId == null) {
+			currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03";
+			logger.info("currentCurriculumId is null. Set default value to: " + currentCurriculumId);
+		}
+
 		try {
 			Curriculum curriculum = curriculumRepo.findById(currentCurriculumId).orElseThrow(() -> new Exception());
 		} catch (Exception e) {
