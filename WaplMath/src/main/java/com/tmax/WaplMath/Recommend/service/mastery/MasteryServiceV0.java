@@ -27,6 +27,7 @@ import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 
 /**
  * Update student knowledge mastery using Triton inference server
+ * 
  * @author Sangheon Lee
  */
 @Service("MasteryServiceV0")
@@ -35,29 +36,29 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
+	// Hyperparameter
+	private static final Float SCALE_PARAM_1 = 0.65079f;
+	private static final Float SCALE_PARAM_2 = 0.4f;
+
 	@Autowired
 	MasteryAPIManager masteryAPIManager = new MasteryAPIManager();
-
 	@Autowired
 	UserEmbeddingRepository userEmbeddingRepository;
-
 	@Autowired
 	ProblemUkRelRepository problemUkRelRepository;
-
 	@Autowired
 	ProblemRepository problemRepository;
-
 	@Autowired
 	UserKnowledgeRepository userKnowledgeRepository;
 
 	@Override
 	public ResultMessageDTO updateMastery(String userId, List<String> probIdList, List<String> correctList) {
 		ResultMessageDTO output = new ResultMessageDTO();
-		
+
 		System.out.println("userId: " + userId);
 		System.out.println("probIdList: " + probIdList);
 		System.out.println("correctList: " + correctList);
-		
+
 		String userEmbedding = "";
 
 		// input validation check
@@ -76,7 +77,7 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 			userEmbedding = userEmbeddingOptional.get().getUserEmbedding();
 
 		logger.info("User embedding input length = " + Integer.toString(userEmbedding.length()));
-		
+
 		// generate triton server input: probId --> ukId
 		List<String> ukIdList = new ArrayList<String>();
 		List<String> corList = new ArrayList<String>();
@@ -114,7 +115,7 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 			output.setMessage("Triton Internal Server Error: " + e.getMessage());
 			return output;
 		}
-		
+
 		JsonObject masteryJson = JsonParser.parseString(tritonOutput.get("Mastery").getAsString()).getAsJsonObject();
 		userEmbedding = tritonOutput.get("Embeddings").getAsString();
 		logger.info("User embedding output length = " + Integer.toString(userEmbedding.length()));
@@ -125,9 +126,12 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 
 		masteryJson.keySet().forEach(ukId -> {
 			UserKnowledge userKnowledge = new UserKnowledge();
+			Float ukMastery = masteryJson.get(ukId).getAsFloat();
+			Float scaledMastery = (float) (ukMastery >= 0.85f ? 1.0f
+					: Math.sqrt(ukMastery) * SCALE_PARAM_1 + SCALE_PARAM_2);
 			userKnowledge.setUserUuid(userId);
 			userKnowledge.setUkId(Integer.parseInt(ukId));
-			userKnowledge.setUkMastery(masteryJson.get(ukId).getAsFloat());
+			userKnowledge.setUkMastery(scaledMastery);
 			userKnowledge.setUpdateDate(Timestamp.valueOf(LocalDateTime.now()));
 			userKnowledgeSet.add(userKnowledge);
 		});
