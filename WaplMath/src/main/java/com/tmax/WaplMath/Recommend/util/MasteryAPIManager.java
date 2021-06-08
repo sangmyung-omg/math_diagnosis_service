@@ -18,6 +18,7 @@ import com.google.gson.JsonParser;
 
 /**
  * Triton Inference Server HTTP Connection
+ * 
  * @author Sangheon Lee
  */
 @Component
@@ -75,13 +76,13 @@ public class MasteryAPIManager {
 		for (String level : levelList) {
 			Integer levelKeyword;
 			switch (level) {
-			case "high":
+			case "상":
 				levelKeyword = 1;
 				break;
-			case "middle":
+			case "중":
 				levelKeyword = 2;
 				break;
-			case "low":
+			case "하":
 				levelKeyword = 3;
 				break;
 			default:

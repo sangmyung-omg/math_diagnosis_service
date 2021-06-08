@@ -16,7 +16,6 @@ import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
 
 /**
  * Learning schedule recommendation api controller
- * 
  * @author Sangheon Lee
  *
  */
