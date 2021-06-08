@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
@@ -127,7 +128,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		String name = input.getName();
 		String currentCurriculumId = input.getCurrentCurriculumId();
 
-		logger.info("grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId);
+		logger.info("userId:" + userId + ", grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId);
 
 		// 에러 처리
 		if (!grade.equalsIgnoreCase("1") && !grade.equalsIgnoreCase("2") && !grade.equalsIgnoreCase("3")) {
@@ -170,10 +171,11 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		if (output.getMessage() != null) {
 			return output;
 		}
-
+		
+//		logger.info(userId);
 		// USER_MASTER 테이블에 유저 기본 정보 저장
 		User userObject = userRepository.findById(userId).orElse(new User());
-
+//		logger.info(userObject.toString());
 		userObject.setUserUuid(userId);
 		userObject.setGrade(grade);
 		userObject.setSemester(semester);
@@ -182,8 +184,25 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
 		userRepository.save(userObject);
 
+//		// Foreign key constraint violation TEST
+//		Optional<User> userObject = userRepository.findById(userId);
+//		if (userObject.isPresent()) {
+//			logger.info("exists");
+//			userObject.get().setUserUuid(userId);
+//			userObject.get().setGrade(grade);
+//			userObject.get().setSemester(semester);
+//			userObject.get().setName(name);
+//			userObject.get().setCurrentCurriculumId(currentCurriculumId);
+//			userRepository.save(userObject.get());
+//		} else {
+//			logger.info(userObject.toString());
+//			output.setMessage("queryResult is empty:" + userObject.toString());
+//			return output;
+//		}
+		
+		
 		output.setMessage("Successfully updated user basic info.");
-
+		
 		return output;
 	}
 }
