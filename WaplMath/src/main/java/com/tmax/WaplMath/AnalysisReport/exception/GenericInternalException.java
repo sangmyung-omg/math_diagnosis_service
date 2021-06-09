@@ -1,17 +1,22 @@
 package com.tmax.WaplMath.AnalysisReport.exception;
 
-import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-public class GenericInternalException extends ResponseStatusException{
-    public GenericInternalException(String message){
-        super(HttpStatus.INTERNAL_SERVER_ERROR, message);
-    }
+import lombok.Getter;
 
-    @Override
-    public HttpHeaders getResponseHeaders() {
-        // TODO Auto-generated method stub
-        return super.getResponseHeaders();
+public class GenericInternalException extends ResponseStatusException{
+    @Getter
+    private String errorCode;
+
+    @Getter
+    private String message;
+
+    public GenericInternalException(String errorCode, String message){
+        super(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        this.errorCode = errorCode;
+        this.message = message;        
     }
 }

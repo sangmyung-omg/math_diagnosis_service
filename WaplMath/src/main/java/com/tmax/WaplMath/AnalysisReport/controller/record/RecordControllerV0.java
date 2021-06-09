@@ -33,7 +33,6 @@ public class RecordControllerV0 {
        
     @GetMapping("/record")
     ResponseEntity<Object> getLevelDiagRecord(@RequestHeader("token") String token){
-        //TODO: get userID from token data
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");
 
         LevelDiagnosisRecordDTO output = recordSvc.getRecordOfUser(userID);

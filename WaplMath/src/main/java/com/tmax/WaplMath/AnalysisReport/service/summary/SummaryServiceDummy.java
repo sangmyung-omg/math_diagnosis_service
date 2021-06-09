@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 public class SummaryServiceDummy implements SummaryServiceBase{
     @Override
     public SummaryReportDTO getSummaryOfUser(String userID) {
-        //FIXME: Dummy output
         SummaryReportDTO output =  new SummaryReportDTO();
         output.setScore(100);
         output.setPercentile(81.0);

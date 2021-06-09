@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -32,14 +33,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChapterControllerV0 {
 
     @Autowired
-    @Qualifier("ChapterServiceV0")
+    @Qualifier("ChapterServiceV1")
     private ChapterServiceBase chapterSvc;
     
     @GetMapping("/chapters")
-    ResponseEntity<Object> getChaptersList(@RequestHeader("token") String token){
+    ResponseEntity<Object> getChaptersList(@RequestHeader("token") String token, 
+                                           @RequestParam(name="range", required = false) String range,
+                                           @RequestParam(name="subrange", required = false) String subrange){
+        //Extract userID from token                                         
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
-        List<ChapterDetailDTO> output = chapterSvc.getAllChapterListOfUserChapterOnly(userID);
+    
+        List<ChapterDetailDTO> output = chapterSvc.getChapterListOfUserInRange(userID, range, subrange);
         return new ResponseEntity<>(output, HttpStatus.OK);
     }
 

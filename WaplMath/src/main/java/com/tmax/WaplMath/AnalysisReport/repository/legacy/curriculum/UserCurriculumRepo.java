@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.repository.curriculum;
+package com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum;
 
 import java.util.List;
 

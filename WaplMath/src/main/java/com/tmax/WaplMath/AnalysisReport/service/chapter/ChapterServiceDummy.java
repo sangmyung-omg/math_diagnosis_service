@@ -55,47 +55,23 @@ public class ChapterServiceDummy implements ChapterServiceBase{
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserChapterOnly(String userID) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserSectionOnly(String userID) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserSubSectionOnly(String userID) {
-        // TODO Auto-generated method stub
         return null;
     }
 
+
     @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList,
-            String saturation) {
+    public List<ChapterDetailDTO> getChapterListOfUserInRange(String userID, String range, String subrange) {
         // TODO Auto-generated method stub
         return null;
     }
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList,
-            String saturation) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList) {
-        // List<ChapterDetailDTO> outputList = new ArrayList<ChapterDetailDTO>();
-        // return outputList;
-
-        return this.getAllChapterListOfUser(userID);
-    }
-
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList) {
-        // TODO Auto-generated method stub
-        return this.getAllChapterListOfUser(userID);
-    }
-
 }

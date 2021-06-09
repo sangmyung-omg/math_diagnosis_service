@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.repository.problem;
+package com.tmax.WaplMath.AnalysisReport.repository.legacy.problem;
 
 import java.util.List;
 

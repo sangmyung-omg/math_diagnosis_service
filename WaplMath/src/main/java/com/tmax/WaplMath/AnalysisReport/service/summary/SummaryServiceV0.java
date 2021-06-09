@@ -11,7 +11,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.dto.SummaryReportDTO;
 import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
-import com.tmax.WaplMath.AnalysisReport.repository.curriculum.UserCurriculumRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurriculumRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -26,7 +26,6 @@ public class SummaryServiceV0 implements SummaryServiceBase{
 
     @Override
     public SummaryReportDTO getSummaryOfUser(String userID) {
-        //FIXME: Dummy output
         SummaryReportDTO output =  new SummaryReportDTO();
 
 
@@ -50,7 +49,6 @@ public class SummaryServiceV0 implements SummaryServiceBase{
         try {
             path = ResourceUtils.getFile("classpath:uk_min_max.json").toPath();
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -58,7 +56,6 @@ public class SummaryServiceV0 implements SummaryServiceBase{
         try {
             reader = new FileReader(path.toString());
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
