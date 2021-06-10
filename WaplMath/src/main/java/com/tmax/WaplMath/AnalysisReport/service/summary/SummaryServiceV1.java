@@ -70,7 +70,7 @@ public class SummaryServiceV1 implements SummaryServiceBase {
         SchoolData currentSchoolData = new SchoolData(schoolType, grade, semester);
 
         //TODO: examscope is not yet ready
-        // Optional<UserExamScope> examScope = Optional.ofNullable(examScopeRepo.getExamScopeOfUser(userID));
+        // Optional<UserExamScope> examScope = Optional.ofNullable(examScopeRepo.getExamScopeOfUser("박평우"));
         // System.out.println("current: " + currentSchoolData.toString() + ", scope: " + examScope.toString());
 
 
@@ -125,7 +125,7 @@ public class SummaryServiceV1 implements SummaryServiceBase {
         }
 
         double userScore = 100*scoreUser / count;
-        double percentile = (scoreUser > scoreMax) ? 100.0 : 100*( 100 * (scoreUser - scoreMin)/(scoreMax - scoreMin) ) / count; //If user is more than max. then you are the winner
+        double percentile = (scoreUser < scoreMax) ? 100.0 : 100*( 100 * (scoreUser - scoreMin)/(scoreMax - scoreMin) ) / count; //If user is more than max. then you are the winner
               
 
         return new SummaryReportDTO(userScore, percentile);
