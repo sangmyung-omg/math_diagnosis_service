@@ -44,7 +44,16 @@ public class RecordServiceV0 implements RecordServiceBase{
         getStatementDTO.setVerbTypeList(verbTypeList);
 
         URI lrsServer = URI.create("http://192.168.153.132:8080/GetStatement");
-        String result = restTemplate.postForObject(lrsServer, getStatementDTO, String.class);
+        String result = null;
+        
+        try {
+            restTemplate.postForObject(lrsServer, getStatementDTO, String.class);
+        }
+        catch(Throwable e){
+            //CASE: LRS server error
+            return null;
+        }
+
         JsonArray resultArray = JsonParser.parseString(result).getAsJsonArray();
 
         System.out.println(resultArray.size());

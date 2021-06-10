@@ -130,7 +130,8 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
         int listSize = 5;
         try {
-            listSize = Integer.parseInt(subrange);
+            if(subrange != null)
+                listSize = Integer.parseInt(subrange);
         }
         catch (Throwable e){
             throw new InvalidArgumentException("Invalid subrange value");

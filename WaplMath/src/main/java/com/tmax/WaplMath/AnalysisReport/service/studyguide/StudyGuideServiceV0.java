@@ -13,8 +13,10 @@ import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurriculumRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Recommend.model.user.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,6 +34,12 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
     @Qualifier("ChapterServiceV0")
     ChapterServiceBase chapterSvc;
 
+
+    @Autowired
+    @Qualifier("AR-UserInfoRepo")
+    UserInfoRepo userInfoRepo;
+
+    
     @Override
     public StudyGuideDTO getStudyGuideOfUser(String userID) {
         List<Curriculum> currList = currInfoRepo.getCurriculumListByRangeSectionOnly("중등-중3-1학%");
@@ -136,8 +144,14 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
 
 
         guide.setChapterDetailList(chapList);
-        guide.setCommentary("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 90점까지 상승 가능할거에요");
 
+
+        //Get commentary
+        User data = userInfoRepo.getUserInfoByUUID(userID);
+        // guide.setCommentary("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 90점까지 상승 가능할거에요");
+        guide.setCommentary(String.format("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 잘 할 수 있을꺼에요!",
+            data.getName()        
+        ));
 
         return guide;
     }
