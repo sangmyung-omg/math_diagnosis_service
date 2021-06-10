@@ -1,5 +1,7 @@
 package com.tmax.WaplMath.Recommend.controller.schedule;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,8 @@ import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
 @CrossOrigin(origins="*", allowedHeaders="*")
 @RequestMapping(path="/v1")
 public class ScheduleControllerV1 {
+
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	@Autowired
 	@Qualifier("ScheduleServiceV1")
@@ -27,6 +31,7 @@ public class ScheduleControllerV1 {
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		logger.info("userId: "+userId);
 		ExamScheduleCardDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
 		System.out.println("version 1");
 		return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
@@ -35,6 +40,7 @@ public class ScheduleControllerV1 {
 	@GetMapping(value = "/normalschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		logger.info("userId: "+userId);
 		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
 		System.out.println("version 1");
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
