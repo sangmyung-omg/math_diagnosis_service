@@ -33,7 +33,7 @@ public class MasteryControllerV0 {
 	ResponseEntity<Object> updateMastery(@RequestHeader("token") String token,
 			@RequestBody ProblemSolveListDTO problemSolveList) throws Exception {
 		//String userId = token;
-        String userId = JWTUtil.getJWTPayloadField(token, "userId");
+        String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		List<String> probIdList = problemSolveList.getProbIdList();
 		List<String> correctList = problemSolveList.getCorrectList();
 
