@@ -468,7 +468,7 @@ components:
       description: "유저의 Access token"
       schema:
         type: "string"
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiLrsJXtj4nsmrAifQ.bYNSbzxF1lQJo1X1EAcSyeKsOKFFhFvV02GA7Sx6mvk"
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiJta2thbmcifQ.ZjD-h4zkD2t8GsqA9or7F8NAbKVGTGEnBEeNvpI8Z5o"
   requestBodies:
     ProblemSolveRecord:
       description: "학생 문제 풀이 기록"

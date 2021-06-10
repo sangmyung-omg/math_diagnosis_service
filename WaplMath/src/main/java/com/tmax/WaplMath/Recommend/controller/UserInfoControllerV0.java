@@ -27,14 +27,14 @@ public class UserInfoControllerV0 {
 	@PutMapping(value = "/userexaminfo", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token,
 			@RequestBody UserExamInfoDTO input) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userId");
+		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		ResultMessageDTO resultMessage = userInfoMvc.updateExamInfo(userId, input);
 		return new ResponseEntity<>(resultMessage, HttpStatus.OK);
 	}
 	
 	@PutMapping(value="/userbasicinfo", produces="application/json; charset=utf-8")
 	ResponseEntity<Object> updateBasicInfo(@RequestHeader("token") String token, @RequestBody UserBasicInfoDTO input) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userId");
+		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		ResultMessageDTO resultMessage = userInfoMvc.updateBasicInfo(userId, input);
 		return new ResponseEntity<>(resultMessage, HttpStatus.OK);
 	}
