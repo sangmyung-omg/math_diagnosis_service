@@ -43,7 +43,7 @@ public class RecordServiceV0 implements RecordServiceBase{
         getStatementDTO.setUserIdList(userIdList);
         getStatementDTO.setVerbTypeList(verbTypeList);
 
-        URI lrsServer = URI.create("http://192.168.153.132:8080/GetStatement");
+        URI lrsServer = URI.create("http://192.168.153.132:8080/StatementList");
         String result = null;
         
         try {

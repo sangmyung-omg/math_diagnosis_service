@@ -5,6 +5,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
 import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
+import com.tmax.WaplMath.AnalysisReport.util.exception.StackPrinter;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.service.mastery.MasteryServiceBase;
 
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 public class UpdatedResultControllerV0 {
 
     @Autowired
+    @Qualifier("MasteryServiceV0")
     private MasteryServiceBase masterySvc;
 
     @Autowired
@@ -37,10 +39,10 @@ public class UpdatedResultControllerV0 {
 
         //Step 1: update mastery
         try {
-            masterySvc.updateMastery(userID, probSolveList.getProbIdList(), probSolveList.getCorrectList());
+            masterySvc.updateMastery(userID, probSolveList.getProbIdList(), probSolveList.getCorrectList());            
         }
         catch (Throwable e){
-            throw new GenericInternalException("ERR-0002", "Mastery update Exception");
+            throw new GenericInternalException("ERR-0002", "Mastery update Exception: " + StackPrinter.getStackTrace(e));
         }
 
         //Step 2:
@@ -49,7 +51,7 @@ public class UpdatedResultControllerV0 {
             output = resultSvc.getResultOfUser(userID);
         }
         catch (Throwable e){
-            throw new GenericInternalException("ERR-0003", "Result get exception");
+            throw new GenericInternalException("ERR-0003", "Result get exception: " + StackPrinter.getStackTrace(e));
         }
 
         return output;
