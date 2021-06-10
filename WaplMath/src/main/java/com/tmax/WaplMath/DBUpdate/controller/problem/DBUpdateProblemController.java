@@ -29,7 +29,7 @@ public class DBUpdateProblemController {
 	
 	@GetMapping("/UpdatedProblemList")
 	public UpdatedProblemListResponseDTO updatedProblemList(
-	    @RequestParam("date")
+	    @RequestParam("fromTime")
 	    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTime) {
 			
 		try {
