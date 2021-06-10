@@ -68,6 +68,8 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		}
 		String limit_chapter = dao.getCurrentCurriculumId();
 		
+		List<String> errOrderList = new ArrayList<String>();
+		
 		for (String partName : partList) {
 			// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
 			List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
@@ -110,42 +112,81 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 
 				selected_chapter = chapterIdList.get(0);				
 				logger.info("No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-				if (resultMap.containsKey("error")) {
-					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-				} else {
-					resultMap.put("error", "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-				}
+//				if (resultMap.containsKey("error")) {
+//					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
+//				} else {
+//					resultMap.put("error", "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
+//				}
 			}
 			
 			// 해당하는 단원에 대한 문제 set 가져오기
 			logger.info("Getting problem set...");
 			DiagnosisProblem result;
 			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter);
+			List<Integer> prob_list = new ArrayList<Integer>();
+			
 			if (queryResult.size() != 0 && queryResult != null) {
 				logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
 				Collections.shuffle(queryResult);
 				result = queryResult.get(0);
+				
+				// 문제 set의 각 문제에 대한 정보 불러오기
+				prob_list.add(result.getLowerProbId());
+				prob_list.add(result.getBasicProbId());
+				prob_list.add(result.getUpperProbId());
+				
 			} else {
+				String order = Integer.toString(partList.indexOf(partName)+1);
+				if (order.equals("1")) {
+					order += "st";
+				} else if (order.contentEquals("2")) {
+					order += "nd";
+				} else {
+					order += "th";
+				}
+				
+				errOrderList.add(order);
 				// No problem set for the selected_chapter
 				logger.info("No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-				if (resultMap.containsKey("error")) {
-					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-				} else {
-					resultMap.put("error", "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+//				if (resultMap.containsKey("error")) {
+//					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+//				} else {
+//					resultMap.put("error", order + " element of diagnosisProblems isNo problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+//				}
+			
+				// 임시 err 처리 (dummy)
+				if (partName.equalsIgnoreCase("기하")) {
+					prob_list.add(7363);
+					prob_list.add(7361);
+					prob_list.add(7362);
+				} else if (partName.equalsIgnoreCase("확률과 통계")) {
+					prob_list.add(7352);
+					prob_list.add(7350);
+					prob_list.add(7351);					
+				} else if (partName.equalsIgnoreCase("함수")) {
+					prob_list.add(4505);
+					prob_list.add(5081);
+					prob_list.add(6595);					
+				} else if (partName.equalsIgnoreCase("문자와 식")) {
+					prob_list.add(4562);
+					prob_list.add(4594);
+					prob_list.add(4575);					
+				} else if (partName.equalsIgnoreCase("수와 연산")) {
+					prob_list.add(277);
+					prob_list.add(308);
+					prob_list.add(424);					
 				}
-//				partNames.add(partName);
-				diagnosisProblems.add(null);
-				continue;
+				
 			}
-			
-			// 문제 set의 각 문제에 대한 정보 불러오기
-			List<Integer> prob_list = new ArrayList<Integer>();
-			prob_list.add(result.getLowerProbId());
-			prob_list.add(result.getBasicProbId());
-			prob_list.add(result.getUpperProbId());
-			
 			diagnosisProblems.add(prob_list);
-//			partNames.add(partName);
+		}
+		
+		if (errOrderList.size() != 0) {
+			if (resultMap.containsKey("Warning")) {
+				resultMap.replace("Warning", resultMap.get("error") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
+			} else {
+				resultMap.put("Warning", String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
+			}				
 		}
 		
 		resultMap.put("diagnosisProblems", diagnosisProblems);
