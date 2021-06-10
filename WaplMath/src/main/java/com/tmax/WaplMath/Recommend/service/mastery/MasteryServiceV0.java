@@ -71,10 +71,11 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 		}
 
 		// check whether user embedding saved in UserEmbedding TB or not
-		logger.info("Get user embedding...");
-		Optional<UserEmbedding> userEmbeddingOptional = userEmbeddingRepository.findById(userId);
-		if (userEmbeddingOptional.isPresent())
-			userEmbedding = userEmbeddingOptional.get().getUserEmbedding();
+//		logger.info("Get user embedding...");
+//		Optional<UserEmbedding> userEmbeddingOptional = userEmbeddingRepository.findById(userId);
+//		if (userEmbeddingOptional.isPresent())
+//			userEmbedding = userEmbeddingOptional.get().getUserEmbedding();
+		userEmbedding = "";
 
 		logger.info("User embedding input length = " + Integer.toString(userEmbedding.length()));
 
