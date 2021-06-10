@@ -153,7 +153,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		}
 
 		if (currentCurriculumId == null) {
-			currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03";
+			currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-01";
 			logger.info("currentCurriculumId is null. Set default value to: " + currentCurriculumId);
 		}
 

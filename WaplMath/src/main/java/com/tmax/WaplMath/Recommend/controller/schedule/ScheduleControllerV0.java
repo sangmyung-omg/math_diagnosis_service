@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.controller;
+package com.tmax.WaplMath.Recommend.controller.schedule;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,14 +29,14 @@ public class ScheduleControllerV0 {
 
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userId");
+		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		ExamScheduleCardDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
 		return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/normalschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userId");
+		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
 	}

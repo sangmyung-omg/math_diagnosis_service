@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.service.schedule;
+package com.tmax.WaplMath.Recommend.util.schedule;
 
 import java.text.ParseException;
 import java.util.ArrayList;

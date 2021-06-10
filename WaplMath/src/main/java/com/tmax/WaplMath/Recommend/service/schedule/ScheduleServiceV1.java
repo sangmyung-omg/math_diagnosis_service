@@ -15,7 +15,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.dto.CardDTO;
@@ -37,13 +36,8 @@ import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManager;
 
-/**
- * Generate today normal/exam schedule card
- * @author Sangheon Lee
- */
-@Service("ScheduleServiceV0")
-@Primary
-public class ScheduleServiceV0 implements ScheduleServiceBase {
+@Service("ScheduleServiceV1")
+public class ScheduleServiceV1 implements ScheduleServiceBase {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
@@ -638,4 +632,5 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return output;
 		}
 	}
+	
 }
