@@ -12,7 +12,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UnsupportedErrorDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.exception;
+package com.tmax.WaplMath.Common.exception;
 
 public class InvalidTokenException extends GenericInternalException{
     public InvalidTokenException(){

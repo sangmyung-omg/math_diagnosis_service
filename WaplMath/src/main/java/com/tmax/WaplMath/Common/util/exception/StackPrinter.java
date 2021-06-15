@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.util.exception;
+package com.tmax.WaplMath.Common.util.exception;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

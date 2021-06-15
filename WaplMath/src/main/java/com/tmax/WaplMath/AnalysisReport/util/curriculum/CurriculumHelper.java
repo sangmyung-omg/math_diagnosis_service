@@ -4,7 +4,7 @@ package com.tmax.WaplMath.AnalysisReport.util.curriculum;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
 
 import lombok.Getter;
 

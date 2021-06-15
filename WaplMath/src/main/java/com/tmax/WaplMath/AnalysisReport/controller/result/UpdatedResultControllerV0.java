@@ -2,10 +2,10 @@ package com.tmax.WaplMath.AnalysisReport.controller.result;
 
 import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
-import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
 import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
-import com.tmax.WaplMath.AnalysisReport.util.exception.StackPrinter;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.service.mastery.MasteryServiceBase;
 

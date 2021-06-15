@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
-import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
-import com.tmax.WaplMath.AnalysisReport.exception.InvalidArgumentException;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.util.curriculum.CurriculumHelper;
 import com.tmax.WaplMath.AnalysisReport.util.curriculum.SchoolData;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.user.User;

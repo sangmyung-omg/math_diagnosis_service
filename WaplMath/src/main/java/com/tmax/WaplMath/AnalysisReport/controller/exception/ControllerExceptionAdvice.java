@@ -1,7 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.controller.exception;
 
 import com.tmax.WaplMath.AnalysisReport.dto.GenericErrorDTO;
-import com.tmax.WaplMath.AnalysisReport.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

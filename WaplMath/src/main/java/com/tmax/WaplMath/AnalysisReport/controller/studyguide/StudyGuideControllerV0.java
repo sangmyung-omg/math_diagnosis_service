@@ -16,7 +16,7 @@ import java.util.List;
 import com.tmax.WaplMath.AnalysisReport.config.Constants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController

@@ -1,11 +1,11 @@
-package com.tmax.WaplMath.AnalysisReport.util.auth;
+package com.tmax.WaplMath.Common.util.auth;
 
 import java.util.Base64;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.tmax.WaplMath.AnalysisReport.exception.InvalidTokenException;
+import com.tmax.WaplMath.Common.exception.InvalidTokenException;
 
 public class JWTUtil {
     static public String getJWTPayloadField(String token, String fieldName){
