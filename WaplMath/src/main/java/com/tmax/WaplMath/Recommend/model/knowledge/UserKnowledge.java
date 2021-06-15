@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

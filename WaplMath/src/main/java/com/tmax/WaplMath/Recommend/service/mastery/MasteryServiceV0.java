@@ -76,7 +76,7 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 //		if (userEmbeddingOptional.isPresent())
 //			userEmbedding = userEmbeddingOptional.get().getUserEmbedding();
 		userEmbedding = "";
-
+		
 		logger.info("User embedding input length = " + Integer.toString(userEmbedding.length()));
 
 		// generate triton server input: probId --> ukId

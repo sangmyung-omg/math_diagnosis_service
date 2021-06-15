@@ -18,7 +18,7 @@ import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
 @Component
-public class ScheduleHistoryManager {
+public class ScheduleHistoryManagerV0 {
 
 	// Constant
 	private final Integer MAX_RECENET_STATEMENT_NUM = 100;

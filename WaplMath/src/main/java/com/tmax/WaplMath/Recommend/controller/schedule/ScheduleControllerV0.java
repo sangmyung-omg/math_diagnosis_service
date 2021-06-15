@@ -45,7 +45,7 @@ public class ScheduleControllerV0 {
 	ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		logger.info("userId: "+userId);
-		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
+		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
 	}
 }

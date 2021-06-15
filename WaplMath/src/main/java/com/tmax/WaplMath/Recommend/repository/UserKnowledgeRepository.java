@@ -22,4 +22,9 @@ public interface UserKnowledgeRepository extends CrudRepository<UserKnowledge, U
 	List<UserKnowledge> findAllLowMasteryUkUuid(@Param("userId") String userId,
 			@Param("solvedUkIdList") List<Integer> solvedUkIdList,
 			@Param("suppleUkIdList") List<Integer> suppleCardUkList, @Param("threshold") Float SUP_UK_MASTERY_THRESHOLD);
+
+	@Query("select pt.typeId from ProblemType pt")
+	List<Integer> findAllLowMasteryTypeId(@Param("userId") String userId,
+			@Param("solvedTypeIdList") List<Integer> solvedTypeIdList,
+			@Param("suppleTypeIdList") List<Integer> suppleTypeIdList, @Param("threshold") Float LOW_MASTERY_THRESHOLD);
 }

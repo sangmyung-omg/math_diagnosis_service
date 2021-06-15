@@ -267,10 +267,9 @@ components:
       required:
         - "cardType"
         - "cardTitle"
-        - "sectionTitle"
-        - "probIdSetList"
         - "firstProbLevel"
         - "estimatedTime"
+        - "probIdSetList"
       properties:
         cardType:
           type: "string"
@@ -285,10 +284,6 @@ components:
           type: "string"
           example: "근의 공식을 활용한 이차방정식 풀이"
           description: "카드 이름. 유형 카드는 유형 UK 이름, 중간평가 카드는 중단원 이름, 나머지 카드는 빈 문자열 제공."
-        sectionTitle:
-          type: "string"
-          example: "이러저러한 소단원 명"
-          description: "카드의 범위 명"
         firstProbLevel:
           type: "string"
           example: "high"
