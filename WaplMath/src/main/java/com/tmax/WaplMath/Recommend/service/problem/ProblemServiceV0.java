@@ -66,6 +66,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			resultMap.put("error", "no userId in user table");
 			return resultMap;
 		}
+		
 		String limit_chapter = dao.getCurrentCurriculumId();
 		
 		List<String> errOrderList = new ArrayList<String>();
@@ -78,7 +79,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			for (Curriculum curr : currQueryResult){
 				chapterIdList.add(curr.getCurriculumId());
 			}
-			logger.info(chapterIdList.toString());
+			logger.info(partName + " 에 해당하는 대단원 : " + chapterIdList.toString());
 
 			// 진단 범위에 해당하는 대단원들 select - 현재 학기에서 2학기 전부터 현재 배우고 있는 단원 바로 이전까지 (가장 최근에 다 배운 단원 까지)
 			List<String> available_chaps = new ArrayList<String>();
@@ -91,15 +92,17 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				
 				// 현재 학기의 2학기 전까지의 범위 체크
 				if ((chap.compareToIgnoreCase(limit_chapter) <= 0) && (2*chap_grade + chap_semester >= 2*chapter_grade + chapter_semester -2)) {
-					if (!dao.getGrade().equalsIgnoreCase("3")) {
-						available_chaps.add(chap);					
-					} else {
-						if (2*chap_grade + chap_semester < 6) {				// 3학년 dummy 문제가 없어서
-							available_chaps.add(chap);
-						}
-					}
+//					if (!dao.getGrade().equalsIgnoreCase("3")) {
+//						available_chaps.add(chap);					
+//					} else {
+//						if (2*chap_grade + chap_semester < 6) {				// 3학년 dummy 문제가 없어서
+//							available_chaps.add(chap);
+//						}
+//					}
+					available_chaps.add(chap);
 				}
 			}
+			logger.info("available_chaps : " + available_chaps.toString());
 			
 			// available_chaps가 null이면, 각 영역에서 첫 단원 출제
 			String selected_chapter = "";
@@ -147,7 +150,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				
 				errOrderList.add(order);
 				// No problem set for the selected_chapter
-				logger.info("No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+				logger.info("No ACCEPTED problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 //				if (resultMap.containsKey("error")) {
 //					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 //				} else {
@@ -185,7 +188,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			if (resultMap.containsKey("Warning")) {
 				resultMap.replace("Warning", resultMap.get("error") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
 			} else {
-				resultMap.put("Warning", String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
+				resultMap.put("Warning", String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of ACCEPTED problem data in DB.");
 			}				
 		}
 		
