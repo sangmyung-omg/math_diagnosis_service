@@ -125,7 +125,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			// 해당하는 단원에 대한 문제 set 가져오기
 			logger.info("Getting problem set...");
 			DiagnosisProblem result;
-			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter);
+			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType);
 			List<Integer> prob_list = new ArrayList<Integer>();
 			
 			if (queryResult.size() != 0 && queryResult != null) {
@@ -253,7 +253,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		// 해당하는 단원에 대한 문제 set 가져오기
 		logger.info("Getting problem set...");
 		DiagnosisProblem result;
-		List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter);
+		List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType);
 		if (queryResult.size() != 0 && queryResult != null) {
 			logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
 			Collections.shuffle(queryResult);

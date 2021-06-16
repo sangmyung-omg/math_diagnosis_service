@@ -13,6 +13,9 @@ public interface DiagnosisProblemRepository extends CrudRepository<DiagnosisProb
 			+ " AND dp.basicProblem.status = 'ACCEPT'"
 			+ " AND dp.upperProblem.status = 'ACCEPT'"
 			+ " AND dp.lowerProblem.status = 'ACCEPT'"
+//			+ " AND dp.basicProblem.category = ?2"
+//			+ " AND dp.upperProblem.category = ?2"
+//			+ " AND dp.lowerProblem.category = ?2"
 			+ " ORDER BY dp.basicProblem.problemType.curriculumId")
-	List<DiagnosisProblem> findAllByChapter(String chapter);
+	List<DiagnosisProblem> findAllByChapter(String chapter, String diagType);
 }
