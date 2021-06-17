@@ -16,6 +16,8 @@ tags:
   description: "학습 스케줄 카드 추천 API"
 - name : 'User'
   description: "문제 추천을 위한 사용자 정보 입력 API"
+- name : 'Additional Learning'
+  description: "추가학습(완벽학습) 카드 추천 API"
 paths:
   /DiagnosisProblems:
     get:
@@ -199,6 +201,26 @@ paths:
           description: "실패"
           $ref: "#/components/responses/500-Generic"
 
+  /frequent:
+    put:
+      tags:
+        - Additional Learning
+      summary: "빈출카드 추천"
+      description: "완벽학습에서 빈출 카드 제공"
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref:  "#/components/requestBodies/SubsectionInfo"
+      responses:
+        "200":
+          description: "성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrequentCardResult"
+        "500":
+          description: "실패"
+          $ref: "#/components/responses/500-Generic"
 
 components:
   schemas:
@@ -439,6 +461,83 @@ components:
           type: string
           example: Successfully update user basic info.
           description: "성공 여부 메시지"
+          
+    
+    
+    
+    SubsectionInfo:
+      type: object
+      required:
+          - "is_firstFrequent"
+          - "todaySubsectionList"
+      properties:
+        is_firstFrequent:
+          type: boolean
+          example: true
+          description: "진단고사 직후 첫 접속인지 아닌지 (첫접속 = 1)"
+        todaySubsectionList:
+          type: array
+          description: "진단고사 or 오늘의 학습 카드 내 소단원 리스트"
+          items:
+            type: string
+          example:
+            - "소인수분해"
+            - "정수와 유리수"
+          
+    FrequentCardResult:
+      properties:
+        resultMessage:
+          type: string
+          example: "Successfully Returned"
+        cardType :
+          type: string
+          example: "빈출카드"
+        probSetList:
+          type: array
+          description: "카드를 구성하는 빈출문제 리스트"
+          items: 
+            $ref: "#/components/schemas/FreqProblems"
+          example:
+            - probId: 1
+            - probId: 2
+            - probId: 3
+        sectionSetList:
+          type: array
+          description: "추천된 빈출문제가 속해있는 중단원들과 이해도"
+          items: 
+            $ref: "#/components/schemas/FreqSectionMastery"    
+          example:
+            - section: "소인수분해"
+              sectionMastery: 0.6
+            - section: "정수와 유리수"
+              sectionMastery: 0.5
+          
+    FreqProblems:
+      type: object
+      required:
+          - "probId"
+      properties:
+        probId:
+          type: number
+          example: 1
+          description: "카드를 구성하는 빈출문제 ID"
+    FreqSectionMastery:
+      type: object
+      required:
+          - "section"
+          - "sectionMastery"
+      properties:
+        section:
+          type: string
+          example: "소인수분해"
+          description: "중단원 이름"
+        sectionMastery:
+          type: number
+          example: 0.6
+          description: "중단원 이해도"
+ 
+
+ 
   responses:
     500-Generic:
       description: "500 에러에 대한 generic response"
@@ -490,3 +589,11 @@ components:
         application/json:
           schema:
             $ref:  "#/components/schemas/UserBasicInfo"
+            
+    SubsectionInfo:
+      description: "오늘 학습 소단원 정보"
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref:  "#/components/schemas/SubsectionInfo"
