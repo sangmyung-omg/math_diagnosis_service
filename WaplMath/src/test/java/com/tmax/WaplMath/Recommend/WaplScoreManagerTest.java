@@ -18,7 +18,7 @@ public class WaplScoreManagerTest {
 		//given
 
 		//when
-		WaplScoreProbListDTO ukList = waplScore.getScheduleUkList("1-2-final", "중등-중1-1학-03-01-01", 18);
+		WaplScoreProbListDTO ukList = waplScore.getWaplScoreProbList("1-2-final", "중등-중1-1학-03-01-01", 18);
 
 		//then
 		//System.out.println(ukList);
