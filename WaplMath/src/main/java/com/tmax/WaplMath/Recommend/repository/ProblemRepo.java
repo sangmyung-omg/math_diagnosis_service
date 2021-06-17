@@ -44,4 +44,8 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	public List<Integer> findAllProbIdByTypeNotInList(@Param("typeId") Integer typeId,
 			@Param("probIdList") List<Integer> probIdList);
 
+	
+	//신
+	@Query("select p from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdList, null) is null or p.probId not in (:solvedProbIdList))")
+	public List<Problem> NfindAllProbByType(@Param("typeId") Integer typeId, @Param("solvedProbIdList") List<Integer> solvedProbIdList);
 }

@@ -14,6 +14,12 @@ public class DiffProblemListDTO {
 	public List<Problem> middleProbList;
 	public List<Problem> lowProbList;
 
+	public DiffProblemListDTO() {
+		this.highProbList = new ArrayList<Problem>();
+		this.middleProbList = new ArrayList<Problem>();
+		this.lowProbList = new ArrayList<Problem>();
+	}
+
 	public List<Problem> getDiffProbList(String difficulty) {
 		switch (difficulty) {
 		case "상":

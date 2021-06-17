@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import com.tmax.WaplMath.Recommend.dto.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.DiffProblemListDTO;
 import com.tmax.WaplMath.Recommend.dto.ProblemSetDTO;
+import com.tmax.WaplMath.Recommend.dto.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
@@ -34,6 +35,7 @@ public class CardManager {
 	private static final String SUPPLEMENT_CARD_TYPE = "supple";
 	private static final String MID_EXAM_CARD_TYPE = "midExam";
 	private static final String TRIAL_EXAM_CARD_TYPE = "trialExam";
+	private static final String SUPPLEMENT_CARD_TITLE_FORMAT = "취약 유형 %d개 복습";
 
 	@Autowired
 	private ProblemRepo problemRepo;
@@ -46,7 +48,7 @@ public class CardManager {
 
 	public List<Integer> solvedProbIdList = new ArrayList<Integer>();
 
-	public DiffProblemListDTO generateDiffProbListByProb(List<Problem> probList) {
+	public DiffProblemListDTO generateDiffProbList(List<Problem> probList) {
 		DiffProblemListDTO diffProbList = new DiffProblemListDTO();
 		for (Problem prob : probList) {
 			String difficulty = prob.getDifficulty();
@@ -55,32 +57,14 @@ public class CardManager {
 		return diffProbList;
 	}
 
-	public DiffProblemListDTO gerenateDiffProbListByUk(List<Integer> ukIdList, Integer CARD_UK_NUM) {
-		DiffProblemListDTO diffProbList = new DiffProblemListDTO();
-		for (Integer ukId : ukIdList) {
-			for (String difficulty : Arrays.asList("상", "중", "하")) {
-				List<Problem> probList = new ArrayList<Problem>();
-				if (solvedProbIdList.size() != 0)
-					probList = problemUkRelRepo.findProbByUkDifficultyNotInList(ukId, difficulty, solvedProbIdList);
-				else
-					probList = problemUkRelRepo.findProbByUkDifficulty(ukId, difficulty);
-				if (probList.size() > 0) {
-					Problem prob = probList.get(0);
-					diffProbList.addDiffProb(prob, difficulty);
-				}
-			}
-		}
-		return diffProbList;
-	}
-
 	public void printDiffProbList(DiffProblemListDTO diffProbList) {
-		logger.info("");
 		for (String difficulty : Arrays.asList("상", "중", "하")) {
 			List<Problem> probList = diffProbList.getDiffProbList(difficulty);
 			List<Integer> probIdList = new ArrayList<Integer>();
 			probList.forEach(prob -> probIdList.add(prob.getProbId()));
 			logger.info(String.format("%s 난이도 문제들 = " + probIdList.toString(), difficulty));
 		}
+		logger.info("");
 	}
 
 	public CardDTO addProblemList(CardDTO card, DiffProblemListDTO diffProbList, Integer MAX_PROBLEM_NUM) {
@@ -88,8 +72,8 @@ public class CardManager {
 		Integer estimatedTime = card.getEstimatedTime();
 		List<Problem> highProbList, middleProbList, lowProbList;
 		middleProbList = diffProbList.getMiddleProbList();
-		highProbList = diffProbList.getHighProbList() == null ? middleProbList : diffProbList.getHighProbList();
-		lowProbList = diffProbList.getLowProbList() == null ? middleProbList : diffProbList.getLowProbList();
+		highProbList = diffProbList.getHighProbList().size() == 0 ? middleProbList : diffProbList.getHighProbList();
+		lowProbList = diffProbList.getLowProbList().size() == 0 ? middleProbList : diffProbList.getLowProbList();
 
 		int probSetCnt = problemSetList.size();
 		int listIdx = 0;
@@ -107,15 +91,12 @@ public class CardManager {
 
 			// calc estimated time
 			Float highProbTime = highProb.getTimeRecommendation();
-			Integer highEstimateTime = (highProbTime == null || highProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
-					: Math.round(highProbTime);
+			Integer highEstimateTime = (highProbTime == null || highProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(highProbTime);
 			Float middleProbTime = middleProb.getTimeRecommendation();
-			Integer middleEstimateTime = (middleProbTime == null || middleProbTime == 0.0f)
-					? AVERAGE_PROB_ESTIMATED_TIME
-					: Math.round(middleProbTime);
+			Integer middleEstimateTime = (middleProbTime == null || middleProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
+				: Math.round(middleProbTime);
 			Float lowProbTime = lowProb.getTimeRecommendation();
-			Integer lowEstimateTime = (lowProbTime == null || lowProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
-					: Math.round(lowProbTime);
+			Integer lowEstimateTime = (lowProbTime == null || lowProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(lowProbTime);
 			timeTotal += Math.round((highEstimateTime + middleEstimateTime + lowEstimateTime) / 3);
 
 			probSetCnt += 1;
@@ -152,7 +133,7 @@ public class CardManager {
 				typeProbList = problemRepo.findAllProbByTypeNotInList(typeId, solvedProbIdList);
 			else
 				typeProbList = problemRepo.findAllProbByType(typeId);
-			DiffProblemListDTO diffProbList = generateDiffProbListByProb(typeProbList);
+			DiffProblemListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
 			if (diffProbList.getDiffProbList("중") == null)
 				return new CardDTO();
@@ -162,19 +143,25 @@ public class CardManager {
 		}
 	}
 
-	public CardDTO generateSupplementCard(List<UserKnowledge> lowMasteryList) {
+	public CardDTO generateSupplementCard(List<TypeMasteryDTO> lowMasteryTypeList) {
 		CardDTO supplementCard = new CardDTO();
-		String cardTitle = "";
+		String cardTitle = String.format(SUPPLEMENT_CARD_TITLE_FORMAT, lowMasteryTypeList.size());
 
 		supplementCard.setCardType(SUPPLEMENT_CARD_TYPE);
 		supplementCard.setCardTitle(cardTitle);
 		supplementCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
 		supplementCard.setEstimatedTime(0);
 
-		List<Integer> lowMasteryUkList = new ArrayList<Integer>();
-		lowMasteryList.forEach(uk -> lowMasteryUkList.add(uk.getUkId()));
-		DiffProblemListDTO diffProbList = gerenateDiffProbListByUk(lowMasteryUkList, MAX_SMALL_CARD_PROBLEM_NUM);
-		supplementCard = addProblemList(supplementCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
+		int cnt = 1;
+		for (TypeMasteryDTO typeMasteryDTO : lowMasteryTypeList) {
+			Integer typeId = typeMasteryDTO.getTypeId();
+			logger.info("보충카드 {}번째 유형 = {}", cnt, typeId);
+			List<Problem> typeProbList = problemRepo.NfindAllProbByType(typeId, solvedProbIdList);
+			DiffProblemListDTO diffProbList = generateDiffProbList(typeProbList);
+			printDiffProbList(diffProbList);
+			supplementCard = addProblemList(supplementCard, diffProbList, 3 * cnt);
+			cnt += 1;
+		}
 		supplementCard.setFirstProbLevel("low");
 		return supplementCard;
 	}
@@ -194,7 +181,7 @@ public class CardManager {
 			sectionProbList = problemRepo.findAllProbBySectionNotInList(sectionId, solvedProbIdList);
 		else
 			sectionProbList = problemRepo.findAllProbBySection(sectionId);
-		DiffProblemListDTO diffProbList = generateDiffProbListByProb(sectionProbList);
+		DiffProblemListDTO diffProbList = generateDiffProbList(sectionProbList);
 		midExamCard = addProblemList(midExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
 		midExamCard.setFirstProbLevel("middle");
 		return midExamCard;
@@ -214,7 +201,7 @@ public class CardManager {
 			trialExamProbList = problemRepo.findAllProbBySubSectionListNotInList(subSectionList, solvedProbIdList);
 		else
 			trialExamProbList = problemRepo.findAllProbBySubSectionList(subSectionList);
-		DiffProblemListDTO diffProbList = generateDiffProbListByProb(trialExamProbList);
+		DiffProblemListDTO diffProbList = generateDiffProbList(trialExamProbList);
 		trialExamCard = addProblemList(trialExamCard, diffProbList, MAX_EXAM_CARD_PROBLEM_NUM);
 		return trialExamCard;
 	}

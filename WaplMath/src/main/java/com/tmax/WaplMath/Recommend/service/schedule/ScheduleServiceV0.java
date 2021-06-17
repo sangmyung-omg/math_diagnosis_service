@@ -158,15 +158,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 			// calc estimated time
 			Float highProbTime = highProb.getTimeRecommendation();
-			Integer highEstimateTime = (highProbTime == null || highProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
-					: Math.round(highProbTime);
+			Integer highEstimateTime = (highProbTime == null || highProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(highProbTime);
 			Float middleProbTime = middleProb.getTimeRecommendation();
-			Integer middleEstimateTime = (middleProbTime == null || middleProbTime == 0.0f)
-					? AVERAGE_PROB_ESTIMATED_TIME
+			Integer middleEstimateTime = (middleProbTime == null || middleProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
 					: Math.round(middleProbTime);
 			Float lowProbTime = lowProb.getTimeRecommendation();
-			Integer lowEstimateTime = (lowProbTime == null || lowProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME
-					: Math.round(lowProbTime);
+			Integer lowEstimateTime = (lowProbTime == null || lowProbTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(lowProbTime);
 			timeTotal += Math.round((highEstimateTime + middleEstimateTime + lowEstimateTime) / 3);
 
 			probSetCnt += 1;
@@ -211,11 +208,10 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		supplementCard.setProbIdSetList(new ArrayList<ProblemSetDTO>());
 		supplementCard.setEstimatedTime(0);
 
-//		List<Integer> lowMasteryUkList = new ArrayList<Integer>();
-//		lowMasteryList.forEach(uk -> lowMasteryUkList.add(uk.getUkId()));
-		List<Integer> lowMasteryUkList = new ArrayList<Integer>(Arrays.asList(4605, 4672, 4660, 4661, 4975)); 
-		Map<String, List<Problem>> diffProbList = gerenateDiffProbListByUk(lowMasteryUkList,
-				MAX_SMALL_CARD_PROBLEM_NUM);
+		//		List<Integer> lowMasteryUkList = new ArrayList<Integer>();
+		//		lowMasteryList.forEach(uk -> lowMasteryUkList.add(uk.getUkId()));
+		List<Integer> lowMasteryUkList = new ArrayList<Integer>(Arrays.asList(4605, 4672, 4660, 4661, 4975));
+		Map<String, List<Problem>> diffProbList = gerenateDiffProbListByUk(lowMasteryUkList, MAX_SMALL_CARD_PROBLEM_NUM);
 		printDiffProbList(diffProbList);
 		supplementCard = addProblemList(supplementCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
 		supplementCard.setFirstProbLevel("low");
@@ -226,8 +222,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		CardDTO typeCard = new CardDTO();
 
 		String cardTitle = problemTypeRepo.findTypeNameById(typeId);
-//		String sectionTitle = problemTypeRepo.findSubSectionNameById(typeId);
-//		typeCard.setSectionTitle(sectionTitle);
+		//		String sectionTitle = problemTypeRepo.findSubSectionNameById(typeId);
+		//		typeCard.setSectionTitle(sectionTitle);
 
 		typeCard.setCardType(TYPE_CARD_TYPE);
 		typeCard.setCardTitle(cardTitle);
@@ -243,48 +239,48 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return new CardDTO();
 
 		else {
-//			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
-//			List<Integer> preUkIdList = ukRelRepo.findPreUkIdList(ukIdList, "선수");
-//			logger.info("유형카드 내 ukIdList: " + ukIdList.toString());
-//			logger.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
-//
-//			// 이해도가 낮은 애들 선별
-//			List<UkMasteryDTO> preUkMasteryList = new ArrayList<UkMasteryDTO>();
-//			for (Integer preUkId : preUkIdList) {
-//				UserKnowledgeKey preMasteryKey = new UserKnowledgeKey();
-//				preMasteryKey.setUserUuid(userId);
-//				preMasteryKey.setUkId(preUkId);
-//				UserKnowledge preUkUserKnowledge;
-//				try {
-//					preUkUserKnowledge = userKnowledgeRepo.findById(preMasteryKey)
-//							.orElseThrow(() -> new Exception(Integer.toString(preUkId)));
-//				} catch (Exception e) {
-//					logger.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
-//					continue;
-//				}
-//				Float preUkMastery = preUkUserKnowledge.getUkMastery();
-//				if (preUkMastery <= PRE_UK_MASTERY_THRESHOLD)
-//					preUkMasteryList.add(new UkMasteryDTO(preUkId, Float.toString(preUkMastery)));
-//			}
-//
-//			// preUk sort by uk mastery
-//			Collections.sort(preUkMasteryList, new Comparator<UkMasteryDTO>() {
-//				public int compare(UkMasteryDTO preUk1, UkMasteryDTO preUk2) {
-//					Float preUk1Mastery = Float.parseFloat(preUk1.getUkMastery());
-//					Float preUk2Mastery = Float.parseFloat(preUk2.getUkMastery());
-//					return preUk1Mastery.compareTo(preUk2Mastery);
-//				}
-//			});
-//			// preUK에 대해 triplet 구성
-//			Integer preUkProbNum = SMALL_CARD_PRE_UK_NUM > preUkMasteryList.size() ? preUkMasteryList.size()
-//					: SMALL_CARD_PRE_UK_NUM;
-//			List<Integer> preUkList = new ArrayList<Integer>();
-//			preUkMasteryList.forEach(preUkMastery -> preUkList.add(preUkMastery.getUkId()));
-//			logger.info("그중 이해도가 낮은 것들: " + preUkList.toString());
-//			Map<String, List<Problem>> diffPreProbList = gerenateDiffProbListByUk(preUkList, preUkProbNum);
-//			printDiffProbList(diffPreProbList);
-//			if (diffPreProbList.keySet().size() == 3)
-//				typeCard = addProblemList(typeCard, diffPreProbList, preUkProbNum);
+			//			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
+			//			List<Integer> preUkIdList = ukRelRepo.findPreUkIdList(ukIdList, "선수");
+			//			logger.info("유형카드 내 ukIdList: " + ukIdList.toString());
+			//			logger.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
+			//
+			//			// 이해도가 낮은 애들 선별
+			//			List<UkMasteryDTO> preUkMasteryList = new ArrayList<UkMasteryDTO>();
+			//			for (Integer preUkId : preUkIdList) {
+			//				UserKnowledgeKey preMasteryKey = new UserKnowledgeKey();
+			//				preMasteryKey.setUserUuid(userId);
+			//				preMasteryKey.setUkId(preUkId);
+			//				UserKnowledge preUkUserKnowledge;
+			//				try {
+			//					preUkUserKnowledge = userKnowledgeRepo.findById(preMasteryKey)
+			//							.orElseThrow(() -> new Exception(Integer.toString(preUkId)));
+			//				} catch (Exception e) {
+			//					logger.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
+			//					continue;
+			//				}
+			//				Float preUkMastery = preUkUserKnowledge.getUkMastery();
+			//				if (preUkMastery <= PRE_UK_MASTERY_THRESHOLD)
+			//					preUkMasteryList.add(new UkMasteryDTO(preUkId, Float.toString(preUkMastery)));
+			//			}
+			//
+			//			// preUk sort by uk mastery
+			//			Collections.sort(preUkMasteryList, new Comparator<UkMasteryDTO>() {
+			//				public int compare(UkMasteryDTO preUk1, UkMasteryDTO preUk2) {
+			//					Float preUk1Mastery = Float.parseFloat(preUk1.getUkMastery());
+			//					Float preUk2Mastery = Float.parseFloat(preUk2.getUkMastery());
+			//					return preUk1Mastery.compareTo(preUk2Mastery);
+			//				}
+			//			});
+			//			// preUK에 대해 triplet 구성
+			//			Integer preUkProbNum = SMALL_CARD_PRE_UK_NUM > preUkMasteryList.size() ? preUkMasteryList.size()
+			//					: SMALL_CARD_PRE_UK_NUM;
+			//			List<Integer> preUkList = new ArrayList<Integer>();
+			//			preUkMasteryList.forEach(preUkMastery -> preUkList.add(preUkMastery.getUkId()));
+			//			logger.info("그중 이해도가 낮은 것들: " + preUkList.toString());
+			//			Map<String, List<Problem>> diffPreProbList = gerenateDiffProbListByUk(preUkList, preUkProbNum);
+			//			printDiffProbList(diffPreProbList);
+			//			if (diffPreProbList.keySet().size() == 3)
+			//				typeCard = addProblemList(typeCard, diffPreProbList, preUkProbNum);
 
 			// type에 대해 triplet 구성
 			List<Problem> typeProbList;
@@ -450,8 +446,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList,
-				suppleUkIdList, SUP_UK_MASTERY_THRESHOLD);
+		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList, suppleUkIdList,
+				SUP_UK_MASTERY_THRESHOLD);
 
 		logger.info("8. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
 		for (UserKnowledge lowMastery : lowMasteryList)
@@ -508,7 +504,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return output;
 		}
 	}
-	
+
 	@Override
 	// set to dummy --> 4개 카드 종류별로 return
 	public NormalScheduleCardDTO getNormalScheduleCardDummy(String userId) {
@@ -548,8 +544,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			output.setMessage("One of user's info is null. Call UserInfo PUT service first.");
 			return output;
 		}
-		String gradeEndCurriculumId = ExamScope.examScope.get(grade+"-"+semester+"-final").get(1);
-		List<String> subSectionList = curriculumRepo.findSubSectionList(currentCurriculumId, gradeEndCurriculumId); // 시험범위
+		String gradeEndCurriculumId = ExamScope.examScope.get(grade + "-" + semester + "-final").get(1);
+		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, gradeEndCurriculumId); // 시험범위
 
 		logger.info("요번 학년 학기까지 범위 = ");
 		logger.info(subSectionList.toString());
@@ -559,11 +555,11 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		CardDTO typeCard;
 		typeCard = generateTypeCard(typeId);
 		cardList.add(typeCard);
-		
+
 		logger.info("2. 보충 카드");
 		CardDTO supplementCard = generateSupplementCard(new ArrayList<UserKnowledge>());
 		cardList.add(supplementCard);
-		
+
 		String sectionId = "중등-중3-1학-03-01";
 		logger.info("3. 중간평가 카드: " + sectionId);
 		CardDTO midExamCard = generateMidExamCard(sectionId);
@@ -572,7 +568,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		logger.info("4. 모의고사 카드");
 		CardDTO trialExamCard = generateTrialExamCard(subSectionList);
 		cardList.add(trialExamCard);
-		
+
 		output.setCardList(cardList);
 		output.setMessage("Successfully return curriculum card list.");
 		return output;
@@ -616,8 +612,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			output.setMessage("One of user's info is null. Call UserInfo PUT service first.");
 			return output;
 		}
-		String gradeEndCurriculumId = ExamScope.examScope.get(grade+"-"+semester+"-final").get(1);
-		List<String> subSectionList = curriculumRepo.findSubSectionList(currentCurriculumId, gradeEndCurriculumId); // 시험범위
+		String gradeEndCurriculumId = ExamScope.examScope.get(grade + "-" + semester + "-final").get(1);
+		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, gradeEndCurriculumId); // 시험범위
 
 		logger.info("요번 학년 학기까지 범위 = ");
 		logger.info(subSectionList.toString());
@@ -640,8 +636,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList,
-				suppleUkIdList, SUP_UK_MASTERY_THRESHOLD);
+		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList, suppleUkIdList,
+				SUP_UK_MASTERY_THRESHOLD);
 
 		logger.info("2. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
 		for (UserKnowledge lowMastery : lowMasteryList)
@@ -653,7 +649,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			CardDTO supplementCard = generateSupplementCard(lowMasteryList);
 			cardList.add(supplementCard);
 		}
-		
+
 		// 나머지 카드들 유형카드로 채우기
 		List<Integer> remainTypeIdList;
 		List<Integer> completedTypeIdList;

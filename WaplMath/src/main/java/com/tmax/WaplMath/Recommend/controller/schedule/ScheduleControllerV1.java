@@ -16,6 +16,7 @@ import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
+import com.tmax.WaplMath.Recommend.util.schedule.WaplScoreManager;
 
 @RestController
 @CrossOrigin(origins="*", allowedHeaders="*")
@@ -27,6 +28,9 @@ public class ScheduleControllerV1 {
 	@Autowired
 	@Qualifier("ScheduleServiceV1")
 	private ScheduleServiceBase scheduleMvc;
+	
+	@Autowired
+	WaplScoreManager wapScoreManager;
 
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
