@@ -156,40 +156,49 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 //				} else {
 //					resultMap.put("error", order + " element of diagnosisProblems isNo problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 //				}
-			
-				// 임시 err 처리 (dummy)
-				if (partName.equalsIgnoreCase("기하")) {
-					prob_list.add(7363);
-					prob_list.add(7361);
-					prob_list.add(7362);
-				} else if (partName.equalsIgnoreCase("확률과 통계")) {
-					prob_list.add(7352);
-					prob_list.add(7350);
-					prob_list.add(7351);					
-				} else if (partName.equalsIgnoreCase("함수")) {
-					prob_list.add(4505);
-					prob_list.add(5081);
-					prob_list.add(6595);					
-				} else if (partName.equalsIgnoreCase("문자와 식")) {
-					prob_list.add(4562);
-					prob_list.add(4594);
-					prob_list.add(4575);					
-				} else if (partName.equalsIgnoreCase("수와 연산")) {
-					prob_list.add(277);
-					prob_list.add(308);
-					prob_list.add(424);					
-				}
-				
+				if (diagType.equalsIgnoreCase("in-depth")) {
+					// 임시 err 처리 (dummy)
+					if (partName.equalsIgnoreCase("기하")) {
+						prob_list.add(7363);
+						prob_list.add(7361);
+						prob_list.add(7362);
+					} else if (partName.equalsIgnoreCase("확률과 통계")) {
+						prob_list.add(7352);
+						prob_list.add(7350);
+						prob_list.add(7351);					
+					} else if (partName.equalsIgnoreCase("함수")) {
+						prob_list.add(4505);
+						prob_list.add(5081);
+						prob_list.add(6595);					
+					} else if (partName.equalsIgnoreCase("문자와 식")) {
+						prob_list.add(4562);
+						prob_list.add(4594);
+						prob_list.add(4575);					
+					} else if (partName.equalsIgnoreCase("수와 연산")) {
+						prob_list.add(277);
+						prob_list.add(308);
+						prob_list.add(424);					
+					}
+					
+				}				
 			}
 			diagnosisProblems.add(prob_list);
 		}
 		
 		if (errOrderList.size() != 0) {
-			if (resultMap.containsKey("Warning")) {
-				resultMap.replace("Warning", resultMap.get("error") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
-			} else {
-				resultMap.put("Warning", String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of ACCEPTED problem data in DB.");
-			}				
+			if (diagType.equalsIgnoreCase("in-depth")) {
+				if (resultMap.containsKey("Warning")) {
+					resultMap.replace("Warning", resultMap.get("Warning") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
+				} else {
+					resultMap.put("Warning", String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of ACCEPTED problem data in DB.");
+				}								
+			} else if (diagType.equalsIgnoreCase("simple")) {
+				if (resultMap.containsKey("error")) {
+					resultMap.replace("error", resultMap.get("error") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is null due to lack of ACCEPTED 'simple' problem set in DB.");
+				} else {
+					resultMap.put("error", String.join(", ", errOrderList) + " element of diagnosisProblems is null due to lack of ACCEPTED 'simple' problem set in DB.");
+				}	
+			}
 		}
 		
 		resultMap.put("diagnosisProblems", diagnosisProblems);
