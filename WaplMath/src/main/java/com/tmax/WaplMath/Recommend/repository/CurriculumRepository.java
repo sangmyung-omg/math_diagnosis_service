@@ -41,4 +41,7 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 
 	@Query("select cm.subSection from Curriculum cm where cm.curriculumId=:subSectionId")
 	String findSubSectionName(@Param("subSectionId") String subSectionId);
+	
+	@Query("select pt.curriculum from ProblemType pt where pt.typeId = :typeId")
+	Curriculum findByType(@Param("typeId")Integer typeId);
 }

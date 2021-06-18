@@ -1,11 +1,11 @@
 package com.tmax.WaplMath.Recommend.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.Nullable;
 
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
 
@@ -46,6 +46,9 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 
 	
 	//신
-	@Query("select p from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdList, null) is null or p.probId not in (:solvedProbIdList))")
-	public List<Problem> NfindProbListByType(@Param("typeId") Integer typeId, @Param("solvedProbIdList") List<Integer> solvedProbIdList);
+	@Query("select p from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
+	public List<Problem> NfindProbListByType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+	
+	@Query("select p from Problem p where p.problemType.curriculumId in (:subSectionList) and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
+	public List<Problem> findProbListInSubSectionList(@Param("subSectionList") List<String> subSectionList, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 }

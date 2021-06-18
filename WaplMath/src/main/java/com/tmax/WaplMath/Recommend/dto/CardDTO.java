@@ -14,7 +14,7 @@ public class CardDTO {
 	private String cardTitle;
 	private String firstProbLevel;
 	private Integer estimatedTime;
-	private List<ProblemSetDTO> probIdSetList;
 	private Float cardScore;
 	private String cardDetail;
+	private List<ProblemSetDTO> probIdSetList;
 }

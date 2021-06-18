@@ -49,4 +49,13 @@ public class ScheduleControllerV1 {
 		System.out.println("version 1");
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
 	}
+	
+	@GetMapping(value = "/normalschedulecard/dummy", produces = "application/json; charset=utf-8")
+	ResponseEntity<Object> getNormalScheduleCardDummy(@RequestHeader("token") String token) {
+		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		logger.info("userId: "+userId);
+		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
+		System.out.println("version 1");
+		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
+	}
 }

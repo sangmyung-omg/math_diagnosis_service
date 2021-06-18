@@ -291,6 +291,8 @@ components:
         - "cardTitle"
         - "firstProbLevel"
         - "estimatedTime"
+        - "cardScore"
+        - "cardDetail"
         - "probIdSetList"
       properties:
         cardType:
@@ -304,8 +306,8 @@ components:
           description: "카드 종류"
         cardTitle:
           type: "string"
-          example: "근의 공식을 활용한 이차방정식 풀이"
-          description: "카드 이름. 유형 카드는 유형 UK 이름, 중간평가 카드는 중단원 이름, 나머지 카드는 빈 문자열 제공."
+          example: "유한소수와 무한소수"
+          description: "카드 이름. UI 가이드 참고"
         firstProbLevel:
           type: "string"
           example: "high"
@@ -318,6 +320,14 @@ components:
           type: number
           example: 900
           description: "카드 푸는데 걸리는 예상 소요 시간 (sec)"
+        cardScore:
+          type: "number"
+          example: 71.88207
+          description: "해당 카드의 점수 (보충 카드는 null)"
+        cardDetail:
+          type: "string"
+          example: "{\"subSection\":\"순환소수\",\"section\":\"유리수와 순환소수\",\"chapter\":\"수와 식\"}"
+          description: "카드 상세 정보를 담은 json string. \n1) 유형카드 : 유형이 속한 단원 이름. 'subSection'-'소단원 이름', 'section'-'중단원 이름', 'chapter'-'대단원 이름' \n2) 보충카드 : 보충 카드에 속한 '유형 이름'-'점수' \n3) 중간평가카드 : 중단원 내 소단원 (or 대단원 내 중단원) '이름'-'점수'"
         probIdSetList:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"

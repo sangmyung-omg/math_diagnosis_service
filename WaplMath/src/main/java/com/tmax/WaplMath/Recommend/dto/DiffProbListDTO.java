@@ -9,12 +9,12 @@ import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import lombok.Data;
 
 @Data
-public class DiffProblemListDTO {
+public class DiffProbListDTO {
 	public List<Problem> highProbList;
 	public List<Problem> middleProbList;
 	public List<Problem> lowProbList;
 
-	public DiffProblemListDTO() {
+	public DiffProbListDTO() {
 		this.highProbList = new ArrayList<Problem>();
 		this.middleProbList = new ArrayList<Problem>();
 		this.lowProbList = new ArrayList<Problem>();

@@ -81,7 +81,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 			return output;
 		}
 		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
-		cardManager.solvedProbIdList.addAll(solvedProbIdList);
+		cardManager.setSolvedProbIdSet(solvedProbIdList);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -108,6 +108,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		Set<String> sectionSet = new HashSet<String>(); // 토탈 범위 중 단원들
 		subSectionList.forEach(subSection -> sectionSet.add(subSection.substring(0, 14)));
 		logger.info("1.지금부터 중 단원들 : " + sectionSet.toString());
+		//		Set<String> sectionSet = new HashSet<String>(Arrays.asList("중등-중2-1학-01-02"));
 
 		List<Integer> completedTypeIdList;
 		try {
@@ -194,8 +195,6 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 					cardList.add(addtlSupplementCard);
 				}
 			}
-			output.setCardList(cardList);
-			output.setMessage("Successfully return curriculum card list.");
 		}
 		// 나머지 카드들 유형카드로 채우기
 		List<Integer> noProbTypeList = new ArrayList<Integer>();
@@ -225,10 +224,11 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		return output;
 	}
 
-	/*
 	@Override
 	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
 		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
+		return output;
+		/*
 		List<CardDTO> cardList = new ArrayList<CardDTO>();
 		
 		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
@@ -402,19 +402,89 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		}
+		*/
 	}
-	*/
 
 	@Override
+	// set to dummy --> 4개 카드 종류별로 return
 	public NormalScheduleCardDTO getNormalScheduleCardDummy(String userId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		NormalScheduleCardDTO output = new NormalScheduleCardDTO();
+		List<CardDTO> cardList = new ArrayList<CardDTO>();
 
-	@Override
-	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
-		// TODO Auto-generated method stub
-		return null;
+		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String today = LocalDate.now().format(formatter);
+
+		this.userId = userId;
+		cardManager.userId = userId;
+		this.today = today;
+		List<String> sourceTypeList = new ArrayList<String>(
+			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
+		try {
+			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+		} catch (Exception e) {
+			output.setMessage(e.getMessage());
+			return output;
+		}
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
+		cardManager.setSolvedProbIdSet(solvedProbIdList);
+
+		// Load user information from USER_MASTER TB
+		User userInfo;
+		try {
+			userInfo = userRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
+		} catch (NoSuchElementException e) {
+			output.setMessage(String.format("userId = %s is not in USER_MASTER TB.", e.getMessage()));
+			return output;
+		}
+
+		// Check whether user exam information is null
+		String grade = userInfo.getGrade();
+		String semester = userInfo.getSemester();
+		String currentCurriculumId = userInfo.getCurrentCurriculumId();
+		if (currentCurriculumId == null || grade == null || semester == null) {
+			output.setMessage("One of user's info is null. Call UserInfo PUT service first.");
+			return output;
+		}
+		String endCurriculumId = ExamScope.examScope.get("3-2-final").get(1);
+		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurriculumId); // 그냥 학년 마지막까지
+		logger.info("전체 소단원 범위 = {}", subSectionList);
+
+		// 유형카드 : 첫 번째 유형
+		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+		List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionList, null);
+		Integer typeId = remainTypeList.get(0).getTypeId();
+		logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
+		CardDTO typeCard;
+		typeCard = cardManager.generateTypeCard(typeId);
+		cardList.add(typeCard);
+
+		// 보충 카드 : 둘, 셋, 네번째 유형에 대해
+		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+		List<Integer> suppleTypeIdList = new ArrayList<Integer>();
+		List<Integer> solvedTypeIdList = new ArrayList<Integer>(
+			Arrays.asList(remainTypeList.get(1).getTypeId(), remainTypeList.get(2).getTypeId(), remainTypeList.get(3).getTypeId()));
+		List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, suppleTypeIdList,
+			LOW_MASTERY_THRESHOLD);
+		logger.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
+		for (TypeMasteryDTO typeMastery : lowMasteryTypeList)
+			logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
+		logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+		CardDTO firstSupplementCard = cardManager.generateSupplementCard(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM));
+		cardList.add(firstSupplementCard);
+
+		// 중간 평가 카드
+		logger.info(currentCurriculumId);
+		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+		String sectionId = currentCurriculumId.substring(0, 14);
+		logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
+		CardDTO midExamCard = cardManager.generateMidExamCard(sectionId);
+		cardList.add(midExamCard);
+		output.setCardList(cardList);
+		output.setMessage("Successfully return curriculum card list.");
+		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+
+		return output;
 	}
 
 }
