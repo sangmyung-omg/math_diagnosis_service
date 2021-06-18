@@ -33,12 +33,18 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 
 	//신
 	@Query("select pt from ProblemType pt where (coalesce(:subSectionList, null) is null or pt.curriculumId in (:subSectionList)) order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
-	List<ProblemType> findAllTypeInSubSectionList(@Param("subSectionList") List<String> subSectionList);
+	List<ProblemType> findTypeListInSubSectionList(@Param("subSectionList") List<String> subSectionList);
 
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId = :subSection order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
-	List<Integer> findAllTypeIdInSubSection(@Param("subSection") String subSection);
+	List<Integer> findTypeIdListInSubSection(@Param("subSection") String subSection);
 	
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId like concat(:section, '%') order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
-	List<Integer> findAllTypeIdInSection(@Param("section") String section);
+	List<Integer> findTypeIdListInSection(@Param("section") String section);
+
+	@Query("select pt from ProblemType pt where (coalesce(:subSectionList, null) is null or pt.curriculumId in (:subSectionList)) and (coalesce(:completedTypeIdList, null) is null or pt.typeId not in (:completedTypeIdList)) order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
+	List<ProblemType> NfindRemainTypeIdList(@Param("subSectionList") List<String> subSectionList, @Param("completedTypeIdList") List<Integer> completedTypeIdList);
+
+	@Query("select pt.typeName from ProblemType pt where pt.typeId=:typeId")
+	String NfindTypeNameById(@Param("typeId") Integer typeId);
 
 }
