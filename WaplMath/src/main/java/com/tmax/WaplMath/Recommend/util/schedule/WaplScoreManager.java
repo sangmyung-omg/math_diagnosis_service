@@ -20,7 +20,10 @@ import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
 import com.tmax.WaplMath.Recommend.repository.TypeUkRelRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 
-
+/**
+ * Generate expected schedule uk list for calculate wapl score
+ * @author Sangheon_lee
+ */
 @Component
 public class WaplScoreManager {
 
@@ -50,7 +53,7 @@ public class WaplScoreManager {
 	public List<WaplScoreProbDTO> generateSubSectionCardProbList(String subSection, Integer MAX_PROB_NUM) {
 		List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<WaplScoreProbDTO>();
 		int probCnt = 0;
-		List<Integer> typeList = problemTypeRepo.findAllTypeIdInSubSection(subSection);
+		List<Integer> typeList = problemTypeRepo.findTypeIdListInSubSection(subSection);
 		while (probCnt != EXAM_CARD_PROB_NUM) {
 			Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
 			List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
@@ -72,7 +75,7 @@ public class WaplScoreManager {
 		int probCnt = 0;
 
 		for (String subSection : midSubSectionList)
-			subSectionTypeMap.put(subSection, problemTypeRepo.findAllTypeIdInSubSection(subSection));
+			subSectionTypeMap.put(subSection, problemTypeRepo.findTypeIdListInSubSection(subSection));
 
 		while (probCnt != MID_EXAM_CARD_PROB_NUM) {
 			String subSection = midSubSectionList.get(probCnt % midSubSectionList.size());
@@ -99,7 +102,7 @@ public class WaplScoreManager {
 		int probCnt = 0;
 
 		for (String section : midSectionList)
-			sectionTypeMap.put(section, problemTypeRepo.findAllTypeIdInSection(section));
+			sectionTypeMap.put(section, problemTypeRepo.findTypeIdListInSection(section));
 
 		while (probCnt != MID_EXAM_CARD_PROB_NUM) {
 			String section = midSectionList.get(probCnt % midSectionList.size());
@@ -148,7 +151,7 @@ public class WaplScoreManager {
 			String EndCurrId = ExamScope.examScope.get("3-2-final").get(1);
 			List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, EndCurrId); // 이번학기마지막까지
 			Integer normalScheduleDay = remainDay - 14;
-			List<ProblemType> typeIdList = problemTypeRepo.findAllTypeInSubSectionList(subSectionList);
+			List<ProblemType> typeIdList = problemTypeRepo.findTypeListInSubSectionList(subSectionList);
 			if (printCardInfo)
 				logger.info("typeId 개수 = {}", typeIdList.size());
 

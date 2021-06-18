@@ -28,8 +28,7 @@ public class ScheduleHistoryManagerV1 {
 	@Autowired
 	LRSAPIManager lrsAPIManager = new LRSAPIManager();
 
-	public List<Integer> getCompletedProbIdList(String userId, String today, List<String> sourceTypeList)
-			throws Exception {
+	public List<Integer> getCompletedProbIdList(String userId, String today, List<String> sourceTypeList) throws Exception {
 		List<Integer> probIdList = new ArrayList<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
 		JsonArray LRSResult;
@@ -71,11 +70,10 @@ public class ScheduleHistoryManagerV1 {
 		return typeIdList;
 	}
 
-	public List<String> getCompletedSectionIdList(String userId, String today) throws Exception {
+	public List<String> getCompletedSectionCardIdList(String userId, String today) throws Exception {
 		List<Integer> probIdList;
 		try {
-			probIdList = getCompletedProbIdList(userId, today,
-					new ArrayList<String>(Arrays.asList("mid_exam_question")));
+			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList("mid_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
@@ -89,7 +87,7 @@ public class ScheduleHistoryManagerV1 {
 		List<Integer> probIdList;
 		try {
 			probIdList = getCompletedProbIdList(userId, today,
-					new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
+				new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}

@@ -38,4 +38,10 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	
 	@Query("select cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:chapterId, '%') and cm.subSection is null and cm.section is not null")
 	List<String> findSectionListInChapter(@Param("chapterId") String chapterId);
+
+	@Query("select cm.subSection from Curriculum cm where cm.curriculumId=:subSectionId")
+	String findSubSectionName(@Param("subSectionId") String subSectionId);
+	
+	@Query("select pt.curriculum from ProblemType pt where pt.typeId = :typeId")
+	Curriculum findByType(@Param("typeId")Integer typeId);
 }
