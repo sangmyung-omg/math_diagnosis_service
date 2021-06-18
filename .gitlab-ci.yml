@@ -1,0 +1,11 @@
+stages:
+  - deploy
+
+deploy-to-server:
+  stage: deploy
+  only:
+    - ae1-3/feature/schedule_recommend
+  script:
+    - echo 'hello world!'
+  tags:
+    - lsh-local
