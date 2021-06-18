@@ -17,6 +17,7 @@ gradle-build:
   image: java:8-jdk
   stage: build
   only:
+    - ae1-3/dev
     - ae1-3/feature/schedule_recommend
   before_script: 
   script: 
@@ -32,8 +33,10 @@ gradle-build:
 docker-build:
   stage: package
   only:
+    - ae1-3/dev
     - ae1-3/feature/schedule_recommend
   script:
+    - docker container rm -f $CONTAINER_NAME
     - docker rmi $IMAGE_NAME
     - docker build -t $IMAGE_NAME .
     - docker image ls
@@ -43,9 +46,9 @@ docker-build:
 docker-run:
   stage: deploy
   only:
+    - ae1-3/dev
     - ae1-3/feature/schedule_recommend
   script:
-    - docker container rm -f $CONTAINER_NAME
     - docker run -d -p 8080:8080 --name $CONTAINER_NAME $IMAGE_NAME
     - docker container ls -a
   tags:
