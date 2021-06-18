@@ -37,7 +37,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 	// Hyperparameter
 	private static final Integer MAX_CARD_NUM = 5;
 	private static final Integer SUPPLE_CARD_TYPE_NUM = 3;
-	private static final Float LOW_MASTERY_THRESHOLD = 0.4f;
+	private static final Float LOW_MASTERY_THRESHOLD = 0.8f;
 
 	// Repository
 	@Autowired

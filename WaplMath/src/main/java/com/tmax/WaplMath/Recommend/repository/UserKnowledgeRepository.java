@@ -31,17 +31,9 @@ public interface UserKnowledgeRepository extends CrudRepository<UserKnowledge, U
 		+ "and ukl.user_uuid = :userId " + "group by tur.type_id ) "
 		+ "where (coalesce(:solvedTypeIdList, null) is null or typeId in (:solvedTypeIdList)) "
 		+ "and (coalesce(:suppleTypeIdList, null) is null or typeId not in (:suppleTypeIdList)) "
-		+ "and mastery >= :threshold order by mastery asc", nativeQuery = true)
+		+ "and mastery <= :threshold order by mastery asc", nativeQuery = true)
 	List<TypeMasteryDTO> findLowTypeMasteryList(@Param("userId") String userId, @Param("solvedTypeIdList") List<Integer> solvedTypeIdList,
 		@Param("suppleTypeIdList") List<Integer> suppleTypeIdList, @Param("threshold") Float LOW_MASTERY_THRESHOLD);
-//	@Query(value = "select typeId, mastery from " + "( select avg(ukl.uk_mastery) mastery, tur.type_id typeId "
-//		+ "from user_knowledge ukl, uk_master um, type_uk_rel tur " + "where um.uk_id = tur.uk_id " + "and ukl.uk_id = um.uk_id "
-//		+ "and ukl.user_uuid = :userId " + "group by tur.type_id ) "
-//		+ "where (coalesce(:solvedTypeIdList, null) is null or typeId in (:solvedTypeIdList)) "
-//		+ "and (coalesce(:suppleTypeIdList, null) is null or typeId not in (:suppleTypeIdList)) "
-//		+ "and mastery >= :threshold order by mastery asc", nativeQuery = true)
-//	List<TypeMasteryDTO> findLowTypeMasteryList(@Param("userId") String userId, @Param("solvedTypeIdList") List<Integer> solvedTypeIdList,
-//		@Param("suppleTypeIdList") List<Integer> suppleTypeIdList, @Param("threshold") Float LOW_MASTERY_THRESHOLD);
 
 	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur where ukl.userUuid = :userId and tur.ukId = ukl.ukId and tur.typeId = :typeId group by tur.typeId")
 	TypeMasteryDTO findTypeMastery(@Param("userId") String userId, @Param("typeId") Integer typeId);

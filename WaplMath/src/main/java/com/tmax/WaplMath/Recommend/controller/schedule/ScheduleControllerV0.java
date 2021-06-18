@@ -38,6 +38,7 @@ public class ScheduleControllerV0 {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		logger.info("userId: "+userId);
 		ExamScheduleCardDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
+		System.out.println("version 0");
 		return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
 	}
 
@@ -46,6 +47,7 @@ public class ScheduleControllerV0 {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		logger.info("userId: "+userId);
 		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
+		System.out.println("version 0");
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
 	}
 }

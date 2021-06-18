@@ -56,11 +56,13 @@ public class CardManager {
 	public String userId;
 	public Set<Integer> solvedProbIdSet;
 
+	// 학생이 푼 문제 세팅
 	public void setSolvedProbIdSet(List<Integer> solvedProbIdList) {
 		this.solvedProbIdSet = new HashSet<Integer>();
 		this.solvedProbIdSet.addAll(solvedProbIdList);
 	}
 
+	// 난이도의 문제가 적을 때, 뒤를 제일 긴 문제 list 문제들로 패딩
 	public DiffProbListDTO padProbList(DiffProbListDTO diffProbList) {
 		List<Problem> highProbList, middleProbList, lowProbList;
 		List<Problem> maxProbList = new ArrayList<Problem>();
@@ -92,6 +94,7 @@ public class CardManager {
 		return diffProbList;
 	}
 
+	// 문제 난이도 별 문제 Id 모아놓는 모듈.
 	public DiffProbListDTO generateDiffProbList(List<Problem> probList) {
 		DiffProbListDTO diffProbList = new DiffProbListDTO();
 		for (Problem prob : probList) {
@@ -156,6 +159,7 @@ public class CardManager {
 		return card;
 	}
 
+	// 소단원 내 문제 출제 모듈. 마스터리가 낮은 유형 순서대로 많이 출제
 	public CardDTO addSubSectionProblem(CardDTO card, String subSectionId, Integer probNum, Integer verbose) {
 		List<Integer> typeIdList = problemTypeRepo.findTypeIdListInSubSection(subSectionId);
 		List<TypeMasteryDTO> typeMasteryList = userKnowledgeRepo.findTypeMasteryList(userId, typeIdList);
@@ -199,6 +203,7 @@ public class CardManager {
 		return card;
 	}
 
+	// 실력 향상 - 유형카드
 	public CardDTO generateTypeCard(Integer typeId) {
 		CardDTO typeCard = new CardDTO();
 		String cardTitle = problemTypeRepo.findTypeNameById(typeId);
@@ -232,6 +237,7 @@ public class CardManager {
 		}
 	}
 
+	// 실력 향상 - 보충카드
 	public CardDTO generateSupplementCard(List<TypeMasteryDTO> lowMasteryTypeList) {
 		CardDTO supplementCard = new CardDTO();
 		String cardTitle = String.format(SUPPLEMENT_CARD_TITLE_FORMAT, lowMasteryTypeList.size());
@@ -262,6 +268,7 @@ public class CardManager {
 		return supplementCard;
 	}
 
+	// 실력 향상 / 시험 대비 - (중단원) 중간 평가 카드
 	public CardDTO generateMidExamCard(String sectionId) {
 		CardDTO midExamCard = new CardDTO();
 		String cardTitle = curriculumRepo.findSectionName(sectionId);
@@ -308,6 +315,7 @@ public class CardManager {
 		return midExamCard;
 	}
 
+	// 시험 대비 - 모의고사 카드
 	public CardDTO generateTrialExamCard(List<String> subSectionList) {
 		CardDTO trialExamCard = new CardDTO();
 		String cardTitle = "";
