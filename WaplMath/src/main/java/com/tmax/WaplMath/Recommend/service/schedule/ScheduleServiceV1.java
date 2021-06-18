@@ -37,7 +37,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 	// Hyperparameter
 	private static final Integer MAX_CARD_NUM = 5;
 	private static final Integer SUPPLE_CARD_TYPE_NUM = 3;
-	private static final Float LOW_MASTERY_THRESHOLD = 0.4f;
+	private static final Float LOW_MASTERY_THRESHOLD = 0.8f;
 
 	// Repository
 	@Autowired
@@ -103,7 +103,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		String endCurriculumId = ExamScope.examScope.get("3-2-final").get(1);
 		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurriculumId); // 그냥 학년 마지막까지
 		logger.info("전체 소단원 범위 = {}", subSectionList);
-
+		
 		// 중간평가 판단 - 중단원만 일단
 		Set<String> sectionSet = new HashSet<String>(); // 토탈 범위 중 단원들
 		subSectionList.forEach(subSection -> sectionSet.add(subSection.substring(0, 14)));
