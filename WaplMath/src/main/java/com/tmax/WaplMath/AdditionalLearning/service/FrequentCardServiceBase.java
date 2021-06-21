@@ -22,11 +22,11 @@ public interface FrequentCardServiceBase {
 	//소단원 리스트를 받아 해당하는 빈출문제를 반환
 	//input : 1.최근 공부한 소단원 2.오늘 공부할 소단원(오늘의 학습 카드)
 	//각 소단원마다 빈출 문제 골고루 뽑는 로직 
-	List<FrequentProblemDTO> getSubsectionFreqProb(List<String> subsectionList, TodaySubsectionListDTO todaySubsectionList, List<Integer> solvedProbIdList);
+	List<FrequentProblemDTO> getSubsectionFreqProb(String userId, boolean isFirstFreq, List<String> subsectionList, TodaySubsectionListDTO todaySubsectionList, List<Integer> solvedProbIdList);
 	
 	//소단원 리스트를 받아 해당하는 중단원과 이해도를 반환
 	//굳이 추천된 빈출문제와 매핑 시키진 않을 것
-	List<SectionMasteryDTO> getSectionMasteryOfUser(String userId, List<Integer> probIdList);
+	List<SectionMasteryDTO> getSectionMasteryOfUser(String userId, List<FrequentProblemDTO> probIdList);
 	
 	//빈출카드 반환
 	FrequentCardDTO getFrequentCard(String userId, TodaySubsectionListDTO todaySubsectionList);
