@@ -100,7 +100,7 @@ paths:
         - 사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
         - Full path = http://192.168.153.213:8080/recommend/v1/examschedulecard
       servers:
-        - url: http://192.168.153.213:8080/recommend/v1/examschedulecard
+        - url: http://192.168.153.213:8080/recommend/v1/
       parameters:
         - $ref: "#/components/parameters/UserToken"
       responses:
@@ -122,7 +122,7 @@ paths:
         - 사용자의 실력 향상 학습 스케줄 오늘 카드 구성 리턴
         - Full path = http://192.168.153.213:8080/recommend/v1/normalschedulecard
       servers:
-        - url: http://192.168.153.213:8080/recommend/v1/normalschedulecard
+        - url: http://192.168.153.213:8080/recommend/v1/
       parameters:
         - $ref: "#/components/parameters/UserToken"
       responses:
