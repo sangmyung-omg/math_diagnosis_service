@@ -19,7 +19,6 @@ gradle-build:
   stage: build
   only:
     - ae1-3/dev
-    - ae1-3/feature/schedule_recommend
   script: 
     - cd WaplMath
     - ./gradlew build
@@ -33,7 +32,6 @@ docker-build:
   stage: package
   only:
     - ae1-3/dev
-    - ae1-3/feature/schedule_recommend
   script:
     - docker rm -f $CONTAINER_NAME 2>/dev/null || true
     - docker rmi $IMAGE_NAME 2>/dev/null || true
@@ -46,7 +44,6 @@ docker-run:
   stage: deploy
   only:
     - ae1-3/dev
-    - ae1-3/feature/schedule_recommend
   script:
     - docker run -d -p 8080:8080 --name $CONTAINER_NAME $IMAGE_NAME
     - docker container ls -a
