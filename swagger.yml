@@ -442,20 +442,20 @@ components:
       type: object
       required:
           - "is_firstFrequent"
-          - "todaySubsectionList"
+#          - "todaySubsectionList"
       properties:
         is_firstFrequent:
           type: boolean
           example: true
           description: "진단고사 직후 첫 접속인지 아닌지 (첫접속 = 1)"
-        todaySubsectionList:
-          type: array
-          description: "진단고사 or 오늘의 학습 카드 내 소단원 리스트"
-          items:
-            type: string
-          example:
-            - "소인수분해"
-            - "정수와 유리수"
+#        todaySubsectionList:
+#          type: array
+#          description: "진단고사 or 오늘의 학습 카드 내 소단원 리스트"
+#          items:
+#            type: string
+#          example:
+#            - "소인수분해"
+#            - "정수와 유리수"
           
     FrequentCardResult:
       properties:
@@ -591,7 +591,7 @@ components:
             $ref:  "#/components/schemas/UserBasicInfo"
             
     SubsectionInfo:
-      description: "오늘 학습 소단원 정보"
+      description: "진단고사 여부 & (삭제)오늘 학습 소단원 정보"
       required: true
       content:
         application/json:

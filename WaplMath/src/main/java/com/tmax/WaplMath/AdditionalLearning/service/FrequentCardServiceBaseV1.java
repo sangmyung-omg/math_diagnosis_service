@@ -9,7 +9,7 @@ import com.tmax.WaplMath.AdditionalLearning.dto.SectionMasteryDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.TodaySubsectionListDTO;
 
-public interface FrequentCardServiceBase {
+public interface FrequentCardServiceBaseV1 {
 	
 	
 	//조건에 맞는 문제 리스트를 반환하는 LRS 메소드
@@ -22,7 +22,7 @@ public interface FrequentCardServiceBase {
 	//소단원 리스트를 받아 해당하는 빈출문제를 반환
 	//input : 1.최근 공부한 소단원 2.오늘 공부할 소단원(오늘의 학습 카드)
 	//각 소단원마다 빈출 문제 골고루 뽑는 로직 
-	List<FrequentProblemDTO> getSubsectionFreqProb(String userId, boolean isFirstFreq, List<String> subsectionList, TodaySubsectionListDTO todaySubsectionList, List<Integer> solvedProbIdList);
+	List<FrequentProblemDTO> getSubsectionFreqProb(String userId, boolean isFirstFreq, List<String> diagnosisSubsectionList, List<String> subsectionList, List<String> todaySubsectionList, List<Integer> solvedProbIdList);
 	
 	//소단원 리스트를 받아 해당하는 중단원과 이해도를 반환
 	//굳이 추천된 빈출문제와 매핑 시키진 않을 것

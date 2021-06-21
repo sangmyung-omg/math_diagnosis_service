@@ -29,8 +29,8 @@ import com.tmax.WaplMath.AdditionalLearning.repository.UserTargetExamScopeRepo;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
-@Service("FrequentCardServiceV0")
-public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
+@Service("FrequentCardServiceV1")
+public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	
@@ -59,7 +59,6 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		}
 		if (LRSResult.size() != 0) {
 			for (JsonElement rowElement : LRSResult) {
-				int check =0;
 				JsonObject row = (JsonObject) rowElement;
 				String sourceId = row.get("sourceId").getAsString();
 				try {
@@ -106,7 +105,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		//최근(14일)동안 공부했던 소단원에 대한 평균 이해도 ==> 이해도 낮은 소단원에 대한 빈출문제 출제할 것
 		//타겟시험범위 내 소단원만 도출
 		List<UserSubSectionMastery> subsectionList = UserSubSecMasteryRepo.getSubSectionAndMastery(start,end,userId,probIdList);
-		logger.info("\n최근 공부한 (타겟시험범위 내)소단원과 평균 이해도 리스트 : " + subsectionList);
+		logger.info("\n소단원과 평균 이해도 리스트 : " + subsectionList);
 		
 		for(int i = 0 ; i<subsectionList.size() ; i++) {
 			recentSubsectionIdList.add(subsectionList.get(i).getCurriculumId());
@@ -125,26 +124,26 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 	
 	
 	@Override
-	public List<FrequentProblemDTO> getSubsectionFreqProb(String userId, boolean isFirstFreq, List<String> subsectionList, TodaySubsectionListDTO todaySubsectionList, List<Integer> solvedProbIdList){
+	public List<FrequentProblemDTO> getSubsectionFreqProb(String userId, boolean isFirstFreq, List<String> diagnosisSubsectionList, List<String> subsectionList, List<String> todayCardSubsectionList, List<Integer> solvedProbIdList){
 		List<FrequentProblemDTO> recommendFreqProbIdList = new ArrayList<FrequentProblemDTO>();
 		
 		
 		if(isFirstFreq) 
 		{
-			List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todaySubsectionList.getTodaySubsectionList());
+			List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,diagnosisSubsectionList);
 			logger.info("\n진단고사 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 		
-			recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todaySubsectionList.getTodaySubsectionList(),5));
+			recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
 		}
 		
 		else 
 		{
 			
-			List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todaySubsectionList.getTodaySubsectionList());
+			List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 			logger.info("\n오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 			
 			//오늘 소단원
-			recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todaySubsectionList.getTodaySubsectionList(),1));
+			recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
 			
 			
 			if(subsectionList.size()!=0) {
@@ -317,8 +316,20 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		//그동안 풀었던 문제 리스트(LRS) ==> 문제 중복 출제 방지 (그동안 풀었던 빈출문제 확인해야되니 모든 문제를 확인해야)
 		List<Integer> solvedProbIdList = new ArrayList<Integer>();
 		
+		
 		//과거 14일 동안 공부한 소단원리스트(이해도 낮은 순)
 		List<String> recentSectionList = new ArrayList<String>();
+		
+		
+		//오늘의 학습 카드에서 학습한 문제 리스트(LRS)
+		List<Integer> todayCardProbIdList = new ArrayList<Integer>();
+		//오늘의 학습 카드에서 학습한 소단원 리스트
+		List<String> todayCardSubsectionList = new ArrayList<String>();
+		
+		//진단고사에서 학습한 문제 리스트(LRS)
+		List<Integer> diagnosisProbIdList = new ArrayList<Integer>();
+		//진단고사에서 학습한 소단원 리스트
+		List<String> diagnosisSubsectionList = new ArrayList<String>();
 		
 		
 	
@@ -326,10 +337,32 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		//진단고사에서 출제된 소단원을 기준으로 문제 추천
 		if(isFirstFreq) 
 		{
+			logger.info("\n진단고사 응시 후 완벽 학습 최초 접속");
+			
 			solvedProbIdList.add(0); // query에러 방지
 			recentSectionList = null;
 			
-			logger.info("\n진단고사 응시 후 완벽 학습 최초 접속");
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			String today = LocalDate.now().format(formatter);
+			
+			List<String> sourceTypeList = new ArrayList<String>(
+					Arrays.asList("diagnosis")); // 진단고사 문제
+
+			try {
+				diagnosisProbIdList = this.getLRSProblemIdList(userId, today, null, sourceTypeList);
+				if(diagnosisProbIdList.size()==0) {
+					FrequentCard.setResultMessage("No diagnosis problems in LRS.");
+				}
+				
+			} catch (Exception e) {
+				FrequentCard.setResultMessage(e.getMessage());
+				return FrequentCard;
+			}
+			
+			logger.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
+			
+			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, diagnosisProbIdList);
+			
 		}
 		
 		//두번째 학습날 부터
@@ -347,7 +380,11 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			try {
 				recentSolvedProbIdList = this.getLRSProblemIdList(userId, Fromday, today, sourceTypeList);
 				solvedProbIdList = this.getLRSProblemIdList(userId, null, today, sourceTypeListAll); 
+				todayCardProbIdList = this.getLRSProblemIdList(userId, today, null, sourceTypeList);
 				
+				if(todayCardProbIdList.size()==0) {
+					FrequentCard.setResultMessage("No today-card problems in LRS.");
+				}
 				
 			} catch (Exception e) {
 				FrequentCard.setResultMessage(e.getMessage());
@@ -366,16 +403,21 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			
 			logger.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
 			logger.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
+			logger.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
 			
 			
 
 			recentSectionList = getSubsectionMasteryOfUser(userId, recentSolvedProbIdList);
+			todayCardSubsectionList = getSubsectionMasteryOfUser(userId, todayCardProbIdList);
 		}
 		
 
 		//추천할 빈출 문제
 		List<FrequentProblemDTO> recommendFreqProbList = new ArrayList<FrequentProblemDTO>();
-		recommendFreqProbList = getSubsectionFreqProb(userId, isFirstFreq,recentSectionList, todaySubsectionList, solvedProbIdList);
+		recommendFreqProbList = getSubsectionFreqProb(userId, isFirstFreq, diagnosisSubsectionList, recentSectionList, todayCardSubsectionList, solvedProbIdList);
+		if(recommendFreqProbList.size()!=0) {
+			FrequentCard.setResultMessage("Successfully return frequent card.");
+		}
 		
 		
 		//빈출 문제들에 해당하는 중단원들과 이해도

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.TodaySubsectionListDTO;
-import com.tmax.WaplMath.AdditionalLearning.service.FrequentCardServiceBase;
+import com.tmax.WaplMath.AdditionalLearning.service.FrequentCardServiceBaseV1;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -21,8 +21,8 @@ import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 public class AdditionalLearningController {
 	
 	@Autowired
-    @Qualifier("FrequentCardServiceV0")
-	private FrequentCardServiceBase FrequentCardService;
+    @Qualifier("FrequentCardServiceV1")
+	private FrequentCardServiceBaseV1 FrequentCardService;
 
 	@PutMapping(value = "/frequent", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> FrequentCard(@RequestHeader("token") String token, @RequestBody TodaySubsectionListDTO todaySubsectionList) {
