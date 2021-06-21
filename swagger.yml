@@ -25,20 +25,8 @@ paths:
       operationId: DiagnosisProblemsGet
       summary: 진단고사 문제 전체 요청
       parameters:
-        - name: token
-          in: header
-          description: 유저의 Access token (유저 ID에 대응되는 개념)
-          required: true
-          schema:
-            type: string
-            default: mkkang2
-        - name: diagType
-          in: path
-          description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
-          required: true
-          schema:
-            default: in-depth
-            type: string
+        - $ref: "#/components/parameters/UserToken"
+        - $ref:  "#/components/parameters/DiagnosisType"
       responses:
         200:
           description: 성공
@@ -56,40 +44,22 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"                
-  /AdaptiveProblem:
+  /ExtraProblems:
     get:
       tags: [Diagnosis]
-      operationId: AdaptiveProblemGet
-      summary: Adaptive한 다음 문제 요청
+      operationId: ExtraProblemsGet
+      summary: 시간 남을 경우, 추가 5 문제 요청
+      description: "[꼼꼼진단] 앞선 10문제의 진단문제 소요시간이 15분 미만일 경우, 다음 시험 범위와 연관된 범위에서 추가 5문제 제공"
       parameters:
-        - name: token
-          in: header
-          description: 유저 access token
-          required: true
-          schema:
-            default: mkkang2
-            type: string
-        - name: diagType
-          in: path
-          description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
-          required: true
-          schema:
-            default: in-depth
-            type: string
-        - name: probId
-          in: path
-          description: 방금 맞은 난이도 '상' 문제 ID
-          required: true
-          schema:
-            default: 1633
-            type: integer
+        - $ref: "#/components/parameters/UserToken"
+        - $ref: "#/components/parameters/ProbIdList"
       responses:
         200:
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdaptiveProblemResult'
+                $ref: '#/components/schemas/ExtraProblemsResult'
         500:
           description: 실패
           content:
@@ -191,7 +161,7 @@ paths:
       tags:
         - User
       summary: 학생 기본 정보 입력
-      description: 학년, 학기, 이름, 현재 배우고 있는 단원 정보 동기화
+      description: 학년, 이름 정보 동기화
       parameters:
         - $ref: "#/components/parameters/UserToken"
       requestBody:
@@ -244,14 +214,19 @@ components:
             - [1121,3141,5161]
             - [7181,9202,1222]
             - [3242,5262,7282]
-    AdaptiveProblemResult:
+    ExtraProblemsResult:
       properties:
         resultMessage:
           type: string
           example: "Successfully Returned"
         adaptiveProblem:
           type: integer
-          example: 9101
+          example: 
+            - 9101
+            - 1234
+            - 5678
+            - 2345
+            - 3456
     ExamScheduleCard:
       type: "object"
       description: "오늘의 시험 대비 학습 스케줄 카드 구성 정보"
@@ -421,9 +396,7 @@ components:
       description: 학생 기본 정보
       required:
         - grade
-        - semester
         - name
-        - currentCurriculumId
       properties:
         grade:
           type: string
@@ -433,22 +406,10 @@ components:
             - "1"
             - "2"
             - "3"
-        semester:
-          type: string
-          example: "1"
-          description: 학기
-          enum:
-            - "1"
-            - "2"
         name:
           type: string
           example: "박평우"
           description: 학생 이름
-        currentCurriculumId:
-          type: string
-          example: "중등-중2-1학-01"
-          description: 현재 학교에서 배우고 있는 단원. Null 이면 현재 학년-학기-03 대단원으로 초기화.
-
 
     MasteryUpdateResult:
       type: "object"
@@ -477,10 +438,6 @@ components:
           type: string
           example: Successfully update user basic info.
           description: "성공 여부 메시지"
-          
-    
-    
-    
     SubsectionInfo:
       type: object
       required:
@@ -579,6 +536,33 @@ components:
       schema:
         type: "string"
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiJta2thbmcifQ.ZjD-h4zkD2t8GsqA9or7F8NAbKVGTGEnBEeNvpI8Z5o"
+    DiagnosisType:
+      in: path
+      name: diagType
+      required: true
+      description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
+      schema:
+        type: "string"
+        default: in-depth
+    ProbIdList:
+      in: path
+      name: probIdList
+      required: true
+      description: 앞에서 푼 진단 10문제 (중복 체크)
+      schema:
+        type: array
+        default:
+          - 1633
+          - 1687
+          - 1541
+          - 1588
+          - 1234
+          - 5678
+          - 1111
+          - 2222
+          - 3333
+          - 4444
+
   requestBodies:
     ProblemSolveRecord:
       description: "학생 문제 풀이 기록"
