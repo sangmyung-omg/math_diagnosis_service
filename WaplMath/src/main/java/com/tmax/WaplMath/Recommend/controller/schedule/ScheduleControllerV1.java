@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Recommend.config.RecommendConstants;
 import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
-import com.tmax.WaplMath.Recommend.util.schedule.WaplScoreManager;
 
+/**
+ * Learning schedule recommendation api controller (version 1)
+ * @author Sangheon Lee
+ */
 @RestController
 @CrossOrigin(origins="*", allowedHeaders="*")
-@RequestMapping(path="/v1")
+@RequestMapping(path= RecommendConstants.apiPrefix + "/v1")
 public class ScheduleControllerV1 {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
@@ -28,9 +32,6 @@ public class ScheduleControllerV1 {
 	@Autowired
 	@Qualifier("ScheduleServiceV1")
 	private ScheduleServiceBase scheduleMvc;
-	
-	@Autowired
-	WaplScoreManager wapScoreManager;
 
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
