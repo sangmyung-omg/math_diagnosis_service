@@ -19,6 +19,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Record service v0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("RecordServiceV0")
 @Primary
 public class RecordServiceV0 implements RecordServiceBase{

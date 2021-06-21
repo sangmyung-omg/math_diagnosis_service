@@ -34,6 +34,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+
+/**
+ * Test REST Controller for unit testing
+ * @author Jonghyun Seong
+ */
 @RestController
 @RequestMapping(path=Constants.apiPrefix + "/v0")
 public class TestController {

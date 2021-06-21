@@ -4,6 +4,10 @@ import com.tmax.WaplMath.AnalysisReport.dto.SummaryReportDTO;
 
 import org.springframework.stereotype.Service;
 
+/**
+ * Summary service dummy implementation
+ * @author Jonghyun Seong
+ */
 @Service("SummaryServiceDummy")
 public class SummaryServiceDummy implements SummaryServiceBase{
     @Override

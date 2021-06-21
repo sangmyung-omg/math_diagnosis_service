@@ -18,6 +18,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+/**
+ * Summary service v0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("SummaryServiceV0")
 @Primary
 public class SummaryServiceV0 implements SummaryServiceBase{

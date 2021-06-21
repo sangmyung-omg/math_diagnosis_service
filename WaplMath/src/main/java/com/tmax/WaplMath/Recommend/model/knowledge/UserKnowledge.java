@@ -14,12 +14,17 @@ import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
 @Table(name = "USER_KNOWLEDGE")
 @IdClass(UserKnowledgeKey.class)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserKnowledge {
 	@Id
 	private String userUuid;

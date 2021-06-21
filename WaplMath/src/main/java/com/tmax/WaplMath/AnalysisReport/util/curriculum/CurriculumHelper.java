@@ -8,7 +8,10 @@ import com.tmax.WaplMath.Common.exception.GenericInternalException;
 
 import lombok.Getter;
 
-
+/**
+ * Helper class for curriculum ID calculation
+ * @author Jonghyun Seong
+ */
 public class CurriculumHelper {
     //Enum LUT for school types
     public static enum SchoolLUT {

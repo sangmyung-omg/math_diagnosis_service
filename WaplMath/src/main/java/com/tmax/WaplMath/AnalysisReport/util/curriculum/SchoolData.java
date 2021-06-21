@@ -3,6 +3,10 @@ package com.tmax.WaplMath.AnalysisReport.util.curriculum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * Class struct to hold school academic data
+ * @author Jonghyun Seong
+ */
 @Data
 @AllArgsConstructor
 public class SchoolData {

@@ -13,6 +13,10 @@ import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * REsult service dummy implementation
+ * @author Jonghyun Seong
+ */
 @Service("ResultServiceDummy")
 public class ResultServiceDummy implements ResultServiceBase{
     @Autowired

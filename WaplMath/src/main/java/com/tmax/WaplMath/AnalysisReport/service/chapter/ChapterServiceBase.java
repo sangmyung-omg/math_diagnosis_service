@@ -4,6 +4,11 @@ import java.util.List;
 
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 
+
+/**
+ * Chapter service base interface
+ * @author Jonghyun Seong
+ */
 public interface ChapterServiceBase {
 
     List<ChapterDetailDTO> getAllChapterListOfUser(String userID);

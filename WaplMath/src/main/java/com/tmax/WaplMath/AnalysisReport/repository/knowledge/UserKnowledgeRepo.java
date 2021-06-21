@@ -10,6 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+/**
+ * Repository for user knowledge mastery related to user + extra conditions
+ * @author Jonghyun Seong
+ */
 @Repository("AR-UserKnowledgeRepo")
 public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, String> {
     @Query("select know from UserKnowledge know where know.userUuid = :userID")

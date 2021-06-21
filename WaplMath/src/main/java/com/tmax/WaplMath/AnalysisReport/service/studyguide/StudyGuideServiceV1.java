@@ -21,6 +21,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+/**
+ * Studyguide service v1 implementation
+ * @author Jonghyun Seong
+ */
 @Service("AR-StudyGuideServiceV1")
 public class StudyGuideServiceV1 implements StudyGuideServiceBase{
 

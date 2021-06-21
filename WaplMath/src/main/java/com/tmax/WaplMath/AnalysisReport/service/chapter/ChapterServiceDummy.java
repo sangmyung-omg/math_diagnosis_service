@@ -11,7 +11,10 @@ import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 
 import org.springframework.stereotype.Service;
 
-
+/**
+ * Chapter service dummydata interface
+ * @author Jonghyun Seong
+ */
 @Service("ChapterServiceDummy")
 public class ChapterServiceDummy implements ChapterServiceBase{
     @Override

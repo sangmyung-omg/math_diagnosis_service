@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.dto;
+package com.tmax.WaplMath.Common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

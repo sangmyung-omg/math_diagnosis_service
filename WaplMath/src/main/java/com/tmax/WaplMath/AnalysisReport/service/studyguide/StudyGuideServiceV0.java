@@ -22,6 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+/**
+ * Studyguide service v0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("StudyGuideServiceV0")
 public class StudyGuideServiceV0 implements StudyGuideServiceBase{
     @Autowired

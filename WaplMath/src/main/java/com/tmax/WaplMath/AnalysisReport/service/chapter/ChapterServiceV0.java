@@ -26,6 +26,7 @@ import org.springframework.util.ResourceUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @NoArgsConstructor
 class ValueCount {
@@ -56,6 +57,12 @@ class ValueCount {
     }
 }
 
+
+
+/**
+ * Chapter service v0 interface
+ * @author Jonghyun Seong
+ */
 @Service("ChapterServiceV0")
 @Primary
 public class ChapterServiceV0 implements ChapterServiceBase{

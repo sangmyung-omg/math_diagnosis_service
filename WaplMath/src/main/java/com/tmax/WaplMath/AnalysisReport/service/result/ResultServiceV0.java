@@ -15,6 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+/**
+ * Result service V0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("ResultServiceV0")
 @Primary
 public class ResultServiceV0 implements ResultServiceBase{

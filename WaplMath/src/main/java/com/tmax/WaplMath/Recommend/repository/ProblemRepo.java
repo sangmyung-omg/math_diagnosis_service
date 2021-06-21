@@ -51,4 +51,12 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	
 	@Query("select p from Problem p where p.problemType.curriculumId in (:subSectionList) and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
 	public List<Problem> findProbListInSubSectionList(@Param("subSectionList") List<String> subSectionList, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+	
+	@Query("select p from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdList, null) is null or p.probId not in (:solvedProbIdList))")
+	public List<Problem> NfindAllProbByType(@Param("typeId") Integer typeId, @Param("solvedProbIdList") List<Integer> solvedProbIdList);
+
+
+	//2021-06-17 Added by Jonghyun Seong. gets Problem List from probIDList
+	@Query("select p from Problem p where p.probId in :probIdList")
+	public List<Problem> getProblemsByProbIdList(@Param("probIdList") List<Integer> probIdList);
 }

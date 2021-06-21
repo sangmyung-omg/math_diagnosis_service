@@ -18,6 +18,10 @@ import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
+/**
+ * Study Guide REST Controller
+ * @author Jonghyun Seong
+ */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping(path=Constants.apiPrefix + "/v0")

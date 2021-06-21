@@ -9,6 +9,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Repository for problem data to user + extra conditions
+ * @author Jonghyun Seong
+ */
 @Repository("AR-ProblemRepo")
 public interface ProblemRepo extends CrudRepository<Problem, Integer> {
     @Query("select prob from Problem prob INNER JOIN ProblemType pt on prob.problemType = pt.typeId where pt.curriculumId like :currID")

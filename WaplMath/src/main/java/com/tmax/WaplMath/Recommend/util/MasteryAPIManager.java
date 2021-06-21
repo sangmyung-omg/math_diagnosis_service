@@ -1,10 +1,14 @@
 package com.tmax.WaplMath.Recommend.util;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -15,6 +19,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tmax.WaplMath.AnalysisReport.util.exception.StackPrinter;
+import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
+import com.tmax.WaplMath.Recommend.exception.RecommendException;
 
 /**
  * Triton Inference Server HTTP Connection
@@ -22,20 +29,34 @@ import com.google.gson.JsonParser;
  * @author Sangheon Lee
  */
 @Component
+@PropertySource("classpath:masterytriton.properties")
 public class MasteryAPIManager {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 //	private static final String IP = System.getenv("KT_TRITON_IP");
 //	private static final String PORT = System.getenv("KT_TRITON_PORT");
-	private static final String IP = "192.168.158.31";
-	private static final String PORT = "8004";
-	private static final String MODEL_NAME = "knowledge-tracing";
-	private static final String MODEL_VERSION = "1";
-	private static final String TRITON_ADDR = String.format("http://%s:%s/v2/models/%s/versions/%s/infer", IP, PORT,
-			MODEL_NAME, MODEL_VERSION);
+	
+	private String TRITON_ADDR;
 
 	@Autowired
 	RestTemplate restTemplate;
+
+
+
+	/**
+	 * Added by Jonghyun seong. to get params from bean
+	 * @since 2021-06-21
+	 */
+	@Autowired
+	public MasteryAPIManager(@Value("${waplmath.recommend.masterytriton.host}") String IP, 
+							 @Value("${waplmath.recommend.masterytriton.port}")	String PORT,
+							 @Value("${waplmath.recommend.masterytriton.modelname}") String MODEL_NAME, 
+							 @Value("${waplmath.recommend.masterytriton.modelver}") String MODEL_VERSION){
+		
+		logger.info("constructor"  + IP+PORT);
+		this.TRITON_ADDR = String.format("http://%s:%s/v2/models/%s/versions/%s/infer", IP, PORT, MODEL_NAME, MODEL_VERSION);
+	}
+	public MasteryAPIManager(){}
 
 	public JsonArray generateInputs(List<String> ukIdList, List<String> corList, List<String> levelList,
 			String userEmbedding) {
@@ -171,6 +192,29 @@ public class MasteryAPIManager {
 		}
 
 		return output;
+	}
+
+
+	/**
+	 * 2021-06-18 Added by Jonghyun Seong. overloading of measureMastery to DTO
+	 */
+	public TritonMasteryDTO measureMasteryDTO(String userId, List<String> ukIdList, List<String> corList, List<String> levelList,	String userEmbedding){
+		try {
+			//Get result from original measureMastery
+			JsonObject result = measureMastery(userId, ukIdList, corList, levelList, userEmbedding);
+
+			//Create Map from the mastery json Object
+			JsonObject masteryDict = JsonParser.parseString(result.get("Mastery").getAsString()).getAsJsonObject();
+			Map<Integer, Float> masteryMap = new HashMap<>();
+			for(Map.Entry<String,JsonElement> entry: masteryDict.entrySet()){
+				masteryMap.put(Integer.parseInt(entry.getKey()), entry.getValue().getAsFloat());
+			}
+
+			return new TritonMasteryDTO(masteryMap, result.get("Embeddings").getAsString());
+		}
+		catch(Throwable e) {
+			throw new RecommendException(RecommendErrorCode.TRITON_INFERENCE_ERROR, StackPrinter.getStackTrace(e));
+		}		
 	}
 
 }

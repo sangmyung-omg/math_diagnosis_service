@@ -9,6 +9,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Repository for curriculum data related to userID
+ * @author Jonghyun Seong
+ */
 @Repository("AR-CurriculumInfoRepo")
 public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
     @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') order by curr.curriculumSequence")

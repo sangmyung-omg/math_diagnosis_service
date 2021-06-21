@@ -29,6 +29,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+/**
+ * Chapter service v2 interface
+ * @author Jonghyun Seong
+ */
 @Service("ChapterServiceV1")
 public class ChapterServiceV1 implements ChapterServiceBase{
     @Autowired

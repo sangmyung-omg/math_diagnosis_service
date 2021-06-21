@@ -15,6 +15,10 @@ import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 import com.tmax.WaplMath.Common.exception.InvalidTokenException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
+/**
+ * Summary REST Controller
+ * @author Jonghyun Seong
+ */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 @RequestMapping(path= Constants.apiPrefix + "/v0")

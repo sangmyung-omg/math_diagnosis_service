@@ -27,6 +27,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+/**
+ * Summary service v1 implementation
+ * @author Jonghyun Seong
+ */
 @Service("SummaryServiceV1")
 public class SummaryServiceV1 implements SummaryServiceBase {
 

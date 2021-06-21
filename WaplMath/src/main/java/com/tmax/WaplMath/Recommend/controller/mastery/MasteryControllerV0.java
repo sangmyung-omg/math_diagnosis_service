@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.controller;
+package com.tmax.WaplMath.Recommend.controller.mastery;
 
 import java.util.List;
 
