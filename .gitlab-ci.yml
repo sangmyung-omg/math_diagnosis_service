@@ -7,6 +7,7 @@ variables:
   DOCKER_DRIVER: overlay2
   IMAGE_NAME: waplmath-sap-backend:latest
   CONTAINER_NAME: waplmath-sap
+  HS_URL: hs-registry.220.90.208.8.nip.io:443
 
 stages:
   - build
@@ -29,15 +30,14 @@ gradle-build:
   tags:
     - lsh-local
 
-
 docker-build:
   stage: package
   only:
     - ae1-3/dev
     - ae1-3/feature/schedule_recommend
   script:
-    - docker container rm -f $CONTAINER_NAME
-    - docker rmi $IMAGE_NAME
+    - docker rm -f $CONTAINER_NAME 2>/dev/null || true
+    - docker rmi $IMAGE_NAME 2>/dev/null || true
     - docker build -t $IMAGE_NAME .
     - docker image ls
   tags:
