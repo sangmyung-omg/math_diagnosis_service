@@ -11,7 +11,7 @@
 	<property name="LOG_PATTERN"
 		value="%d{HH:mm:ss.SSS} [%-5level] [%thread] [%logger{36}] - %m%n" />
 		
-	<springProfile name="console-logging">
+	<springProfile name="default, dev">
 		<!-- Console Appender -->
 		<appender name="STDOUT"
 			class="ch.qos.logback.core.ConsoleAppender">
@@ -21,7 +21,7 @@
 		</appender>
 	</springProfile>
 
-	<springProfile name="file-info-logging">
+	<springProfile name="prod">
 		<!-- File Appender -->
 		<appender name="FILE"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -49,7 +49,7 @@
 		</appender>
 	</springProfile>
 
-	<springProfile name="file-error-logging">
+	<springProfile name="prod">
 		<!-- 에러 따로 모으기 -->
 		<appender name="ERROR"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">		
@@ -84,13 +84,13 @@
 
 	<!-- 기본 log level을 설정한다. -->
 	<root level="INFO">
-		<springProfile name="console-logging">
+		<springProfile name="default, dev">
 			<appender-ref ref="STDOUT" />
 		</springProfile>
-		<springProfile name="file-info-logging">
+		<springProfile name="prod">
 			<appender-ref ref="FILE" />
 		</springProfile>
-		<springProfile name="file-error-logging">		
+		<springProfile name="prod">
 			<appender-ref ref="ERROR" />
 		</springProfile>
 	</root>
