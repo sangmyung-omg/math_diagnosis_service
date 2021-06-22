@@ -34,8 +34,8 @@ docker-build:
     - ae1-3/dev
   script:
     - docker rm -f $CONTAINER_NAME 2>/dev/null || true
-    - docker rmi $IMAGE_NAME 2>/dev/null || true
-    - docker build -t $IMAGE_NAME .
+    - docker rmi -f $(docker images --format "{{.ID}} {{.Repository}}" | grep $IMAGE_NAME | awk '{print $1}') 2>/dev/null || true
+    - docker build -t $IMAGE_NAME:$(date +%Y%m%d_%H%M) .
     - docker image ls
   tags:
     - lsh-local
@@ -45,7 +45,7 @@ docker-run:
   only:
     - ae1-3/dev
   script:
-    - docker run -d -p 8080:8080 --name $CONTAINER_NAME $IMAGE_NAME
+    - docker run -d -p 8080:8080 --name $CONTAINER_NAME $(docker images -q --filter "reference=$IMAGE_NAME")
     - docker container ls -a
   tags:
     - lsh-local
