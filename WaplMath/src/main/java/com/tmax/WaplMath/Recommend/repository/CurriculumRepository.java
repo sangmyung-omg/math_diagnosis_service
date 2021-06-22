@@ -15,7 +15,6 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 
 	@Query("SELECT C FROM Curriculum C WHERE C.part = ?1 AND CHAR_LENGTH(C.curriculumId)=11 AND C.schoolType='중등' ORDER BY C.curriculumId ASC")
 	List<Curriculum> findChaptersByPart(String part);
-	// DB에 part 값이 없음.
 
 	@Query("SELECT DISTINCT CM.chapter FROM Curriculum CM WHERE CM.curriculumId LIKE ?1")
 	List<String> findAllByCurriculumIdLike(String curriculumId);
@@ -44,4 +43,8 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	
 	@Query("select pt.curriculum from ProblemType pt where pt.typeId = :typeId")
 	Curriculum findByType(@Param("typeId")Integer typeId);
+	
+	// 21.06.22. extra problems
+	@Query("SELECT DISTINCT C.part FROM Curriculum C, Curriculum SC, Curriculum EC WHERE SC.curriculumId = ?1 AND EC.curriculumId = ?2 AND C.curriculumSequence >= SC.curriculumSequence AND C.curriculumSequence <= EC.curriculumSequence AND C.subSection IS NOT NULL")
+	List<String> findDistinctPartBetween(String startSubSectionId, String endSubSectionId);
 }

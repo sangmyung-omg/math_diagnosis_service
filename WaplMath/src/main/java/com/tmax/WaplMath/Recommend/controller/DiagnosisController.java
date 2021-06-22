@@ -1,6 +1,8 @@
 package com.tmax.WaplMath.Recommend.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,8 @@ public class DiagnosisController {
 	CurriculumService curriculumService;
 	
 	*/
-	@GetMapping(value = "/DiagnosisProblems", produces = "application/json; charset=utf-8")
+	@GetMapping(value = "/diagnosis", produces = "application/json; charset=utf-8")
+//	@GetMapping(value = "/DiagnosisProblems", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getDiagnosisProblems(
 			@RequestHeader("token") String token,
 			@RequestParam String diagType) throws Exception {
@@ -65,11 +68,11 @@ public class DiagnosisController {
 		return new ResponseEntity<>(map, HttpStatus.OK);
 	}
 	
-	@GetMapping(value = "/AdaptiveProblem", produces = "application/json; charset=utf-8")
+	@GetMapping(value = "/diagnosis/extra", produces = "application/json; charset=utf-8")
+//	@GetMapping(value = "/ExtraProblems", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getAdaptiveProblem(
 			@RequestHeader("token") String token,
-			@RequestParam String diagType,
-			@RequestParam Integer probId) throws Exception {
+			@RequestParam List<Integer> probIdList) throws Exception {
 		// token check
 		if (token == null) {
 			Map<String, Object> map = new HashMap<String, Object>();
@@ -80,7 +83,7 @@ public class DiagnosisController {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		
 		Map<String, Object> map = new HashMap<String, Object>();
-		map = problemService.getAdaptiveProblem(userId, diagType, probId);
+		map = problemService.getExtraProblem(userId, probIdList);
 		if (map == null || map.keySet().size() == 0) {
 			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
 		} else {

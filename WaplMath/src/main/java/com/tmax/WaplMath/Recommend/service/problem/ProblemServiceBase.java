@@ -1,8 +1,9 @@
 package com.tmax.WaplMath.Recommend.service.problem;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ProblemServiceBase {
 	Map<String, Object> getDiagnosisProblems(String userId, String diagType);
-	Map<String, Object> getAdaptiveProblem(String token, String diagType, Integer probId);
+	Map<String, Object> getExtraProblem(String token, List<Integer> probIdList);
 }

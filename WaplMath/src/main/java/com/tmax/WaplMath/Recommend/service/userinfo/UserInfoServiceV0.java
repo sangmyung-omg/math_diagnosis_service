@@ -130,9 +130,9 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 	@Override
 	public ResultMessageDTO updateBasicInfo(String userId, UserBasicInfoDTO input) {
 		// 중간-기말 , 기말-다음학기 구분하는 임시 날짜
-		final String SPRING_MID_TERM = "2021-05-10";
+		final String SPRING_MID_TERM = "2021-05-01";
 		final String SPRING_VACATION = "2021-07-19";
-		final String FALL_MID_TERM = "2021-10-11";
+		final String FALL_MID_TERM = "2021-10-01";
 		final String FALL_VACATION = "2022-01-01";
 		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -204,14 +204,11 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		// 월, 주차 정보로 해당하는 커리큘럼 정보 중 가장 나중 거 curriculum_id 가져옴.
 		List<AcademicCalendar> curr_schedule = calendarRepo.findByMonthAndWeek(grade, month, week);
-		if (curr_schedule != null | curr_schedule.size() != 0) {
+		if (curr_schedule != null && curr_schedule.size() != 0) {
 			currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
-		}
-		
-		
-		if (currentCurriculumId == null) {
+		} else {
 			currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03";
-			logger.info("currentCurriculumId is null. Set default value to: " + currentCurriculumId);
+			logger.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);			
 		}
 
 		try {
@@ -229,10 +226,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			return output;
 		}
 		
-//		logger.info(userId);
 		// USER_MASTER 테이블에 유저 기본 정보 저장
 		User userObject = userRepository.findById(userId).orElse(new User());
-//		logger.info(userObject.toString());
 		userObject.setUserUuid(userId);
 		userObject.setGrade(grade);
 		userObject.setSemester(semester);
@@ -241,21 +236,32 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
 		userRepository.save(userObject);
 
-//		// Foreign key constraint violation TEST
-//		Optional<User> userObject = userRepository.findById(userId);
-//		if (userObject.isPresent()) {
-//			logger.info("exists");
-//			userObject.get().setUserUuid(userId);
-//			userObject.get().setGrade(grade);
-//			userObject.get().setSemester(semester);
-//			userObject.get().setName(name);
-//			userObject.get().setCurrentCurriculumId(currentCurriculumId);
-//			userRepository.save(userObject.get());
-//		} else {
-//			logger.info(userObject.toString());
-//			output.setMessage("queryResult is empty:" + userObject.toString());
-//			return output;
-//		}
+		/*
+		 * 시험 범위 (mid / final) 판단해서 USER_EXAM_SCOPE 테이블에 시작 소단원, 끝 소단원 넣기
+		*/
+		String term = "";
+		if (semester.equalsIgnoreCase("1")) {
+			if (format.format(time).toString().compareToIgnoreCase(SPRING_MID_TERM) < 0) {
+				term = "mid";
+			} else term = "final";
+		} else if (semester.equalsIgnoreCase("2")){
+			if (format.format(time).toString().compareToIgnoreCase(FALL_MID_TERM) < 0) {
+				term = "mid";
+			} else term = "final";
+		}
+		
+		// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
+		List<String> scope = examScope.get(grade+"-"+semester+"-"+term);
+		String start_sub_section = scope.get(0);
+		String end_sub_section = scope.get(1);
+		UserExamScope userExamScope = new UserExamScope();
+		
+		// USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
+		userExamScope.setUserUuid(userId);
+		userExamScope.setStartSubSection(start_sub_section);
+		userExamScope.setEndSubSection(end_sub_section);
+		
+		userExamScopeRepo.save(userExamScope);
 		
 		
 		output.setMessage("Successfully updated user basic info.");
