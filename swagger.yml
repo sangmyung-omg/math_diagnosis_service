@@ -19,7 +19,7 @@ tags:
 - name : 'Additional Learning'
   description: "추가학습(완벽학습) 카드 추천 API"
 paths:
-  /diagnosis:
+  /DiagnosisProblems:
     get:
       tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
@@ -44,7 +44,7 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"                
-  /diagnosis/extra:
+  /ExtraProblems:
     get:
       tags: [Diagnosis]
       operationId: ExtraProblemsGet
@@ -219,7 +219,7 @@ components:
         resultMessage:
           type: string
           example: "Successfully Returned"
-        extraProblems:
+        adaptiveProblem:
           type: integer
           example: 
             - 9101
@@ -444,7 +444,7 @@ components:
           - "isFirstFrequent"
 #          - "todaySubsectionList"
       properties:
-        is_firstFrequent:
+        isFirstFrequent:
           type: boolean
           example: true
           description: "진단고사 직후 첫 접속인지 아닌지 (첫접속 = 1)"
