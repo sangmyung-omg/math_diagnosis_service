@@ -127,26 +127,47 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 	public List<FrequentProblemDTO> getSubsectionFreqProb(String userId, boolean isFirstFreq, List<String> diagnosisSubsectionList, List<String> subsectionList, List<String> todayCardSubsectionList, List<Integer> solvedProbIdList){
 		List<FrequentProblemDTO> recommendFreqProbIdList = new ArrayList<FrequentProblemDTO>();
 		
-		
 		if(isFirstFreq) 
 		{
-			List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,diagnosisSubsectionList);
-			logger.info("\n진단고사 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
-		
-			recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
+			//초등 소단원 제외한 진단고사에서 학습한 소단원
+			List<String> notEleDiagnosisSubsectionList = new ArrayList<String>();
+			
+			//진단고사를 하나라도 푼 경우
+			if(diagnosisSubsectionList.size()!=0) {
+				for(int i =0 ; i<diagnosisSubsectionList.size(); i++) {
+					if(!diagnosisSubsectionList.get(i).contains("초등")) {
+						notEleDiagnosisSubsectionList.add(diagnosisSubsectionList.get(i));
+					}
+				}
+			}
+			
+			if(notEleDiagnosisSubsectionList.size()!=0) {
+				List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,notEleDiagnosisSubsectionList);
+				logger.info("\n진단고사 내 중등 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+			
+				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
+			}else {
+				List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
+				logger.info("\n(진단고사를 봤는데-모두 초등 소단원 or 한 문제도 풀지 않음,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				
+				//진단고사 소단원 대체할 오늘 소단원
+				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
+			}
 		}
 		
 		else 
 		{
-			
-			List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
-			logger.info("\n오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
-			
-			//오늘 소단원
-			recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
-			
-			
+			//최근 공부한 소단원이 있다면
 			if(subsectionList.size()!=0) {
+				
+				
+				List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
+				logger.info("\n(최근 공부한 소단원이 존재할 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				
+				//오늘 소단원
+				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
+				
+				
 				List<UserFrequentProblem> recentProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,subsectionList);
 				logger.info("\n최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + recentProbList);
 				
@@ -174,11 +195,20 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 						recommendFreqProbIdList.addAll(SortingAndRecommend(providedProbList,AnothersubsectionList,3-recommendFreqProbIdList.size()));
 					}
 				}
+				
+			}else{
+				
+				List<UserFrequentProblem> todayProbList = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
+				logger.info("\n(최근 공부한 소단원이 존재하지 않을 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				
+				//오늘 소단원
+				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
 			}
 			
 		}
 		
 		logger.info("\n최종 추천 빈출 문제 리스트 : " + recommendFreqProbIdList);
+		
 		return recommendFreqProbIdList;
 	};
 	
