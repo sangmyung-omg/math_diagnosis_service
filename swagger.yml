@@ -441,7 +441,7 @@ components:
     SubsectionInfo:
       type: object
       required:
-          - "is_firstFrequent"
+          - "isFirstFrequent"
 #          - "todaySubsectionList"
       properties:
         is_firstFrequent:
