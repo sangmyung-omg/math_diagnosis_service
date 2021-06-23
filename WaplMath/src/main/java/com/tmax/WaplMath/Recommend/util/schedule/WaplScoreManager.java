@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.tmax.WaplMath.Recommend.dto.WaplScoreProbDTO;
-import com.tmax.WaplMath.Recommend.dto.WaplScoreProbListDTO;
+import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbDTO;
+import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
@@ -125,7 +125,7 @@ public class WaplScoreManager {
 	public List<WaplScoreProbDTO> generateTrialExamCardProbList(List<String> examSubSectionList) {
 		List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<WaplScoreProbDTO>();
 		int probCnt = 0;
-		List<Integer> typeList = problemTypeRepo.findAllExamTypeIdList(examSubSectionList);
+		List<Integer> typeList = problemTypeRepo.findTypeIdListInSubSectionList(examSubSectionList);
 
 		while (probCnt != EXAM_CARD_PROB_NUM * 2) {
 			Integer typeId = typeList.get(new Random().nextInt(typeList.size()));

@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.Recommend.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -22,9 +23,6 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	@Query("SELECT CM FROM Curriculum CM WHERE CM.grade = ?1 AND CM.chapter = ?2 AND CHAR_LENGTH(CM.curriculumId)=11")
 	Curriculum findByChapter(String grade, String chapter);
 
-	@Query("select cm.section from Curriculum cm where cm.curriculumId=:curriculumId")
-	String findSectionName(@Param("curriculumId") String curriculum_id);
-
 	@Query("select cm.curriculumId from Curriculum cm where cm.curriculumSequence >= :startSeq and cm.curriculumSequence <= :endSeq and CHAR_LENGTH(cm.curriculumId)=17")
 	List<String> findSubSectionListBySeq(@Param("startSeq") Integer startSeq, @Param("endSeq") Integer endSeq);
 
@@ -32,14 +30,23 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null")
 	List<String> findSubSectionListBetween(@Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId);
 
-	@Query("select cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:sectionId, '%') and cm.subSection is not null")
+	@Query("select distinct cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:sectionId, '%') and cm.subSection is not null")
 	List<String> findSubSectionListInSection(@Param("sectionId") String sectionId);
 	
-	@Query("select cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:chapterId, '%') and cm.subSection is null and cm.section is not null")
+	@Query("select distinct cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:chapterId, '%') and cm.subSection is null and cm.section is not null")
 	List<String> findSectionListInChapter(@Param("chapterId") String chapterId);
+	
+	@Query("select distinct substr(cm.curriculumId, 1, 11) from Curriculum cm where cm.curriculumId in (:subSectionIdSet)")
+	List<String> findChapterListInSubSectionSet(@Param("subSectionIdSet") Set<String> subSectionIdSet);
 
 	@Query("select cm.subSection from Curriculum cm where cm.curriculumId=:subSectionId")
 	String findSubSectionName(@Param("subSectionId") String subSectionId);
+
+	@Query("select cm.section from Curriculum cm where cm.curriculumId=:sectionId")
+	String findSectionName(@Param("sectionId") String sectionId);
+	
+	@Query("select cm.chapter from Curriculum cm where cm.curriculumId=:chapterId")
+	String findChapterName(@Param("chapterId") String chapterId);
 	
 	@Query("select pt.curriculum from ProblemType pt where pt.typeId = :typeId")
 	Curriculum findByType(@Param("typeId")Integer typeId);

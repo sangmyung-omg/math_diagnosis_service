@@ -1,10 +1,10 @@
 package com.tmax.WaplMath.Recommend.util.schedule;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,6 +17,10 @@ import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
+/**
+ * Get schedule card solved history from LRS
+ * @author Sangheon_lee
+ */
 @Component
 public class ScheduleHistoryManagerV0 {
 
@@ -30,9 +34,8 @@ public class ScheduleHistoryManagerV0 {
 	@Autowired
 	LRSAPIManager lrsAPIManager = new LRSAPIManager();
 
-	public List<Integer> getCompletedProbIdList(String userId, String today, List<String> sourceTypeList)
-			throws Exception {
-		List<Integer> probIdList = new ArrayList<Integer>();
+	public Set<Integer> getCompletedProbIdList(String userId, String today, List<String> sourceTypeList) throws Exception {
+		Set<Integer> probIdList = new HashSet<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
 		JsonArray LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
@@ -61,7 +64,7 @@ public class ScheduleHistoryManagerV0 {
 	}
 
 	public List<Integer> getCompletedTypeIdList(String userId, String today) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdList;
 		try {
 			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList("type_question")));
 		} catch (Exception e) {
@@ -69,26 +72,25 @@ public class ScheduleHistoryManagerV0 {
 		}
 		List<Integer> typeIdList = new ArrayList<Integer>();
 		if (probIdList.size() != 0)
-			typeIdList = problemRepo.findAllTypeId(probIdList);
+			typeIdList = problemRepo.findTypeIdList(probIdList);
 		return typeIdList;
 	}
 
 	public List<String> getCompletedSectionIdList(String userId, String today) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdList;
 		try {
-			probIdList = getCompletedProbIdList(userId, today,
-					new ArrayList<String>(Arrays.asList("mid_exam_question")));
+			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList("mid_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
 		List<String> sectionIdList = new ArrayList<String>();
 		if (probIdList.size() != 0)
-			sectionIdList = problemRepo.findAllSectionId(probIdList);
+			sectionIdList = problemRepo.findSectionIdList(probIdList);
 		return sectionIdList;
 	}
 
 	public List<Integer> getCompletedSuppleUkIdList(String userId, String today) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdList;
 		try {
 			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList("supple_question")));
 		} catch (Exception e) {
@@ -96,21 +98,21 @@ public class ScheduleHistoryManagerV0 {
 		}
 		List<Integer> ukIdList = new ArrayList<Integer>();
 		if (probIdList.size() != 0)
-			ukIdList = probUkRelRepo.findAllUkIdList(probIdList);
+			ukIdList = probUkRelRepo.findUkIdList(probIdList);
 		return ukIdList;
 	}
 
 	public List<Integer> getSolvedUkIdList(String userId, String today) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdList;
 		try {
 			probIdList = getCompletedProbIdList(userId, today,
-					new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
+				new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
 		List<Integer> ukIdList = new ArrayList<Integer>();
 		if (probIdList.size() != 0)
-			ukIdList = probUkRelRepo.findAllUkIdList(probIdList);
+			ukIdList = probUkRelRepo.findUkIdList(probIdList);
 		return ukIdList;
 	}
 }

@@ -18,9 +18,6 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 	List<String> findAllSectionNotInTypeList(@Param("subSectionList") List<String> subSectionList,
 		@Param("completedTypeIdList") List<Integer> completedTypeIdList);
 
-	@Query("select pt.typeId from ProblemType pt where pt.curriculumId in (:subSectionList) order by pt.typeId asc")
-	List<Integer> findAllExamTypeIdList(@Param("subSectionList") List<String> subSectionList);
-
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId in (:subSectionList) and pt.typeId not in (:completedTypeIdList) order by pt.typeId asc")
 	List<Integer> findRemainTypeIdList(@Param("subSectionList") List<String> subSectionList,
 		@Param("completedTypeIdList") List<Integer> completedTypeIdList);
@@ -35,6 +32,9 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 	@Query("select pt from ProblemType pt where (coalesce(:subSectionList, null) is null or pt.curriculumId in (:subSectionList)) order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
 	List<ProblemType> findTypeListInSubSectionList(@Param("subSectionList") List<String> subSectionList);
 
+	@Query("select pt.typeId from ProblemType pt where pt.curriculumId in (:subSectionList) order by pt.typeId asc")
+	List<Integer> findTypeIdListInSubSectionList(@Param("subSectionList") List<String> subSectionList);
+	
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId = :subSection order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
 	List<Integer> findTypeIdListInSubSection(@Param("subSection") String subSection);
 	
@@ -46,5 +46,6 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 
 	@Query("select pt.typeName from ProblemType pt where pt.typeId=:typeId")
 	String NfindTypeNameById(@Param("typeId") Integer typeId);
+
 
 }

@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.config.RecommendConstants;
-import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
 
 /**

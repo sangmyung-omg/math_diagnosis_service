@@ -39,8 +39,7 @@ import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 
 /**
  * Call StatementList GET API from LRS Server
- * 
- * @author sangheonLee
+ * @author Sangheon_lee
  */
 @Component
 public class LRSAPIManager {

@@ -1,7 +1,7 @@
 package com.tmax.WaplMath.Recommend.service.schedule;
 
-import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTO;
 
 public interface ScheduleServiceBase {
 	ExamScheduleCardDTO getExamScheduleCard(String userId);

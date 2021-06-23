@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.tmax.WaplMath.Recommend.dto.CardDTO;
-import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.TypeMasteryDTO;
+import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
@@ -29,6 +29,10 @@ import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.schedule.CardManager;
 import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV1;
 
+/**
+ * Generate today normal/exam schedule card
+ * @author Sangheon_lee
+ */
 @Service("ScheduleServiceV1")
 public class ScheduleServiceV1 implements ScheduleServiceBase {
 
@@ -37,7 +41,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 	// Hyperparameter
 	private static final Integer MAX_CARD_NUM = 5;
 	private static final Integer SUPPLE_CARD_TYPE_NUM = 3;
-	private static final Float LOW_MASTERY_THRESHOLD = 0.8f;
+	private static final Float LOW_MASTERY_THRESHOLD = 1.0f;
 
 	// Repository
 	@Autowired
@@ -52,13 +56,13 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 	private UserKnowledgeRepository userKnowledgeRepo;
 
 	@Autowired
-	ScheduleHistoryManagerV1 historyManager;
+	CardManager cardManager = new CardManager();
 	@Autowired
-	CardManager cardManager;
+	ScheduleHistoryManagerV1 historyManager;
 
 	public String userId;
 	public String today;
-	public List<Integer> solvedProbIdList = new ArrayList<Integer>();
+	public Set<Integer> solvedProbIdSet = new HashSet<Integer>();
 
 	@Override
 	public NormalScheduleCardDTO getNormalScheduleCard(String userId) {
@@ -75,13 +79,13 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		List<String> sourceTypeList = new ArrayList<String>(
 			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
-			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+			this.solvedProbIdSet = historyManager.getCompletedProbIdSet(userId, today, sourceTypeList);
 		} catch (Exception e) {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
-		cardManager.setSolvedProbIdSet(solvedProbIdList);
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
+		cardManager.setSolvedProbIdSet(solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -103,7 +107,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		String endCurriculumId = ExamScope.examScope.get("3-2-final").get(1);
 		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurriculumId); // 그냥 학년 마지막까지
 		logger.info("전체 소단원 범위 = {}", subSectionList);
-		
+
 		// 중간평가 판단 - 중단원만 일단
 		Set<String> sectionSet = new HashSet<String>(); // 토탈 범위 중 단원들
 		subSectionList.forEach(subSection -> sectionSet.add(subSection.substring(0, 14)));
@@ -149,7 +153,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		if (sectionSet.size() != 0) {
 			String sectionId = sectionSet.iterator().next();
 			logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
-			CardDTO midExamCard = cardManager.generateMidExamCard(sectionId);
+			CardDTO midExamCard = cardManager.generateMidExamCard(sectionId, "section");
 			cardList.add(midExamCard);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
@@ -421,13 +425,13 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		List<String> sourceTypeList = new ArrayList<String>(
 			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
-			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+			this.solvedProbIdSet = historyManager.getCompletedProbIdSet(userId, today, sourceTypeList);
 		} catch (Exception e) {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
-		cardManager.setSolvedProbIdSet(solvedProbIdList);
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
+		cardManager.setSolvedProbIdSet(solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -447,11 +451,15 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 			return output;
 		}
 		String endCurriculumId = ExamScope.examScope.get("3-2-final").get(1);
+		String examStartCurriculumId = ExamScope.examScope.get(String.format("%s-%s-%s", grade, semester, "final")).get(0);
+		String examEndCurriculumId = ExamScope.examScope.get(String.format("%s-%s-%s", grade, semester, "final")).get(1);
 		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurriculumId); // 그냥 학년 마지막까지
+		List<String> examSubSectionList = curriculumRepo.findSubSectionListBetween(examStartCurriculumId, examEndCurriculumId); // 그냥 학년 마지막까지
+		cardManager.setExamSubsectionIdSet(examSubSectionList);
 		logger.info("전체 소단원 범위 = {}", subSectionList);
 
 		// 유형카드 : 첫 번째 유형
-		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+		logger.info("\nsolvedProbIdSet : " + cardManager.solvedProbIdSet);
 		List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionList, null);
 		Integer typeId = remainTypeList.get(0).getTypeId();
 		logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
@@ -460,7 +468,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		cardList.add(typeCard);
 
 		// 보충 카드 : 둘, 셋, 네번째 유형에 대해
-		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+		logger.info("\nsolvedProbIdSet : " + cardManager.solvedProbIdSet);
 		List<Integer> suppleTypeIdList = new ArrayList<Integer>();
 		List<Integer> solvedTypeIdList = new ArrayList<Integer>(
 			Arrays.asList(remainTypeList.get(1).getTypeId(), remainTypeList.get(2).getTypeId(), remainTypeList.get(3).getTypeId()));
@@ -473,13 +481,24 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		CardDTO firstSupplementCard = cardManager.generateSupplementCard(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM));
 		cardList.add(firstSupplementCard);
 
-		// 중간 평가 카드
+		// 중간 평가 카드 (중단원)
 		logger.info(currentCurriculumId);
-		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);
+		logger.info("\nsolvedProbIdSet : " + cardManager.solvedProbIdSet);
 		String sectionId = currentCurriculumId.substring(0, 14);
-		logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
-		CardDTO midExamCard = cardManager.generateMidExamCard(sectionId);
+		logger.info("\n중간평가 진행(중단원): " + sectionId);
+		CardDTO midExamCard = cardManager.generateMidExamCard(sectionId, "section");
 		cardList.add(midExamCard);
+
+//		String chapterId = currentCurriculumId.substring(0, 11);
+//		logger.info("\n중간평가 진행(대단원): " + chapterId);
+//		CardDTO midExamCard2 = cardManager.generateMidExamCard(chapterId, "chapter");
+//		cardList.add(midExamCard2);
+		
+		// 모의고사 카드
+		logger.info("\n모의고사 진행: " + String.format("%s-%s-%s", grade, semester, "final"));
+		CardDTO trialExamCard = cardManager.generateTrialExamCard(grade, semester, "final");
+		cardList.add(trialExamCard);
+
 		output.setCardList(cardList);
 		output.setMessage("Successfully return curriculum card list.");
 		logger.info("\nsolvedProbIdList : " + cardManager.solvedProbIdSet);

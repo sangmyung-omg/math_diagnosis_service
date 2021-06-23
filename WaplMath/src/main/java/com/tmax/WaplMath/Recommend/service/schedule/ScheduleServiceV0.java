@@ -18,10 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import com.tmax.WaplMath.Recommend.dto.CardDTO;
-import com.tmax.WaplMath.Recommend.dto.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.NormalScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.ProblemSetDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.model.user.User;
@@ -39,7 +39,7 @@ import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV0;
 
 /**
  * Generate today normal/exam schedule card
- * @author Sangheon Lee
+ * @author Sangheon_lee
  */
 @Service("ScheduleServiceV0")
 @Primary
@@ -85,7 +85,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 	public String userId;
 	public String today;
-	public List<Integer> solvedProbIdList = new ArrayList<Integer>();
+	public Set<Integer> solvedProbIdSet = new HashSet<Integer>();
 
 	public Map<String, List<Problem>> generateDiffProbListByProb(List<Problem> probList) {
 		Map<String, List<Problem>> diffProbList = new HashMap<String, List<Problem>>();
@@ -107,8 +107,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		for (Integer ukId : ukList) {
 			for (String difficulty : Arrays.asList("상", "중", "하")) {
 				List<Problem> probList = new ArrayList<Problem>();
-				if (solvedProbIdList.size() != 0)
-					probList = problemUkRelRepo.findProbByUkDifficultyNotInList(ukId, difficulty, solvedProbIdList);
+				if (solvedProbIdSet.size() != 0)
+					probList = problemUkRelRepo.findProbByUkDifficultyNotInList(ukId, difficulty, solvedProbIdSet);
 				else
 					probList = problemUkRelRepo.findProbByUkDifficulty(ukId, difficulty);
 				if (probList.size() > 0) {
@@ -187,8 +187,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 		// sectionId 내의 모든 문제 id 가져와
 		List<Problem> sectionProbList;
-		if (solvedProbIdList.size() != 0)
-			sectionProbList = problemRepo.findAllProbBySectionNotInList(sectionId, solvedProbIdList);
+		if (solvedProbIdSet.size() != 0)
+			sectionProbList = problemRepo.findAllProbBySectionNotInList(sectionId, solvedProbIdSet);
 		else
 			sectionProbList = problemRepo.findAllProbBySection(sectionId);
 		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(sectionProbList);
@@ -231,8 +231,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		typeCard.setEstimatedTime(0);
 
 		List<Integer> typeProbIdList;
-		if (solvedProbIdList.size() != 0)
-			typeProbIdList = problemRepo.findAllProbIdByTypeNotInList(typeId, solvedProbIdList);
+		if (solvedProbIdSet.size() != 0)
+			typeProbIdList = problemRepo.findAllProbIdByTypeNotInList(typeId, solvedProbIdSet);
 		else
 			typeProbIdList = problemRepo.findAllProbIdByType(typeId);
 		if (typeProbIdList.size() == 0)
@@ -290,9 +290,9 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 				preProbIdList.add(prob.getMiddle());
 				preProbIdList.add(prob.getLow());
 			});
-			this.solvedProbIdList.addAll(preProbIdList);
-			if (solvedProbIdList.size() != 0)
-				typeProbList = problemRepo.findAllProbByTypeNotInList(typeId, solvedProbIdList);
+			this.solvedProbIdSet.addAll(preProbIdList);
+			if (solvedProbIdSet.size() != 0)
+				typeProbList = problemRepo.findAllProbByTypeNotInList(typeId, solvedProbIdSet);
 			else
 				typeProbList = problemRepo.findAllProbByType(typeId);
 			Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(typeProbList);
@@ -316,8 +316,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		trialExamCard.setEstimatedTime(0);
 
 		List<Problem> trialExamProbList;
-		if (solvedProbIdList.size() != 0)
-			trialExamProbList = problemRepo.findAllProbBySubSectionListNotInList(subSectionList, solvedProbIdList);
+		if (solvedProbIdSet.size() != 0)
+			trialExamProbList = problemRepo.findAllProbBySubSectionListNotInList(subSectionList, solvedProbIdSet);
 		else
 			trialExamProbList = problemRepo.findAllProbBySubSectionList(subSectionList);
 		Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(trialExamProbList);
@@ -341,12 +341,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		List<String> sourceTypeList = new ArrayList<String>(
 				Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
-			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+			this.solvedProbIdSet = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
 		} catch (Exception e) {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -463,7 +463,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		// 나머지 카드들 유형카드로 채우기
 		List<Integer> remainTypeIdList;
 		if (completedTypeIdList.size() == 0)
-			remainTypeIdList = problemTypeRepo.findAllExamTypeIdList(subSectionList);
+			remainTypeIdList = problemTypeRepo.findTypeIdListInSubSectionList(subSectionList);
 		else
 			remainTypeIdList = problemTypeRepo.findRemainTypeIdList(subSectionList, completedTypeIdList);
 
@@ -520,12 +520,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		List<String> sourceTypeList = new ArrayList<String>(
 				Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
-			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+			this.solvedProbIdSet = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
 		} catch (Exception e) {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -588,12 +588,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		List<String> sourceTypeList = new ArrayList<String>(
 				Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
-			this.solvedProbIdList = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
+			this.solvedProbIdSet = historyManager.getCompletedProbIdList(userId, today, sourceTypeList);
 		} catch (Exception e) {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdList);
+		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -661,7 +661,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		}
 		logger.info("유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
 		if (completedTypeIdList.size() == 0)
-			remainTypeIdList = problemTypeRepo.findAllExamTypeIdList(subSectionList);
+			remainTypeIdList = problemTypeRepo.findTypeIdListInSubSectionList(subSectionList);
 		else
 			remainTypeIdList = problemTypeRepo.findRemainTypeIdList(subSectionList, completedTypeIdList);
 

@@ -2,7 +2,9 @@ package com.tmax.WaplMath.Recommend.util.schedule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,6 +17,10 @@ import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
+/**
+ * Get schedule card solved history from LRS
+ * @author Sangheon_lee
+ */
 @Component
 public class ScheduleHistoryManagerV1 {
 
@@ -28,8 +34,8 @@ public class ScheduleHistoryManagerV1 {
 	@Autowired
 	LRSAPIManager lrsAPIManager = new LRSAPIManager();
 
-	public List<Integer> getCompletedProbIdList(String userId, String today, List<String> sourceTypeList) throws Exception {
-		List<Integer> probIdList = new ArrayList<Integer>();
+	public Set<Integer> getCompletedProbIdSet(String userId, String today, List<String> sourceTypeList) throws Exception {
+		Set<Integer> probIdSet = new HashSet<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
 		JsonArray LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
@@ -48,52 +54,52 @@ public class ScheduleHistoryManagerV1 {
 				JsonObject row = (JsonObject) rowElement;
 				String sourceId = row.get("sourceId").getAsString();
 				try {
-					probIdList.add(Integer.parseInt(sourceId));
+					probIdSet.add(Integer.parseInt(sourceId));
 				} catch (NumberFormatException e) {
 					System.out.println(e.getMessage() + " is not number.");
 				}
 			}
 		}
-		return probIdList;
+		return probIdSet;
 	}
 
 	public List<Integer> getCompletedTypeIdList(String userId, String today, String sourceType) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdSet;
 		try {
-			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList(sourceType)));
+			probIdSet = getCompletedProbIdSet(userId, today, new ArrayList<String>(Arrays.asList(sourceType)));
 		} catch (Exception e) {
 			throw e;
 		}
 		List<Integer> typeIdList = new ArrayList<Integer>();
-		if (probIdList.size() != 0)
-			typeIdList = problemRepo.findAllTypeId(probIdList);
+		if (probIdSet.size() != 0)
+			typeIdList = problemRepo.findTypeIdList(probIdSet);
 		return typeIdList;
 	}
 
 	public List<String> getCompletedSectionCardIdList(String userId, String today) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdSet;
 		try {
-			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList("mid_exam_question")));
+			probIdSet = getCompletedProbIdSet(userId, today, new ArrayList<String>(Arrays.asList("mid_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
 		List<String> sectionIdList = new ArrayList<String>();
-		if (probIdList.size() != 0)
-			sectionIdList = problemRepo.findAllSectionId(probIdList);
+		if (probIdSet.size() != 0)
+			sectionIdList = problemRepo.findSectionIdList(probIdSet);
 		return sectionIdList;
 	}
 
 	public List<Integer> getSolvedUkIdList(String userId, String today) throws Exception {
-		List<Integer> probIdList;
+		Set<Integer> probIdSet;
 		try {
-			probIdList = getCompletedProbIdList(userId, today,
+			probIdSet = getCompletedProbIdSet(userId, today,
 				new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
 		List<Integer> ukIdList = new ArrayList<Integer>();
-		if (probIdList.size() != 0)
-			ukIdList = probUkRelRepo.findAllUkIdList(probIdList);
+		if (probIdSet.size() != 0)
+			ukIdList = probUkRelRepo.findUkIdList(probIdSet);
 		return ukIdList;
 	}
 }

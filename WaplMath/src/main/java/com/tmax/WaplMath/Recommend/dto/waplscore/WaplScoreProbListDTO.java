@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.dto;
+package com.tmax.WaplMath.Recommend.dto.waplscore;
 
 import java.util.List;
 

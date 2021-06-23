@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.tmax.WaplMath.Recommend.dto.CardDTO;
-import com.tmax.WaplMath.Recommend.dto.TypeMasteryDTO;
+import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import com.tmax.WaplMath.Recommend.util.schedule.CardManager;
 

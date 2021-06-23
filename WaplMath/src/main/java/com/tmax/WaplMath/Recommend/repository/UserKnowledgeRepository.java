@@ -1,14 +1,14 @@
 package com.tmax.WaplMath.Recommend.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.Recommend.dto.SectionMasteryDTO;
-import com.tmax.WaplMath.Recommend.dto.SubSectionMasteryDTO;
-import com.tmax.WaplMath.Recommend.dto.TypeMasteryDTO;
+import com.tmax.WaplMath.Recommend.dto.mastery.CurrMasteryDTO;
+import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledgeKey;
 
@@ -41,10 +41,22 @@ public interface UserKnowledgeRepository extends CrudRepository<UserKnowledge, U
 	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur where ukl.userUuid = :userId and tur.ukId = ukl.ukId and (coalesce(:typeIdList, null) is null or tur.typeId in (:typeIdList)) group by tur.typeId order by mastery asc")
 	List<TypeMasteryDTO> findTypeMasteryList(@Param("userId") String userId, @Param("typeIdList") List<Integer> typeIdList);
 
-	@Query("select ukl.uk.curriculumId as subSectionId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdList, null) is null or ukl.uk.curriculumId in (:subSectionIdList)) group by ukl.uk.curriculumId order by mastery asc")
-	List<SubSectionMasteryDTO> findSubSectionMasteryList(@Param("userId") String userId, @Param("subSectionIdList") List<String> subSectionIdList);
+	@Query("select ukl.uk.curriculumId as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.subSection as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdList, null) is null or ukl.uk.curriculumId in (:subSectionIdList)) group by ukl.uk.curriculumId, ukl.uk.curriculum.subSection order by mastery asc")
+	List<CurrMasteryDTO> findSubSectionMasteryList(@Param("userId") String userId, @Param("subSectionIdList") List<String> subSectionIdList);
 
-	@Query("select substr(ukl.uk.curriculumId, 1, 14) as sectionId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId like concat(:sectionId, '%') group by substr(ukl.uk.curriculumId, 1, 14)")
-	SectionMasteryDTO findSectionMastery(@Param("userId") String userId, @Param("sectionId") String sectionId);
+	@Query("select substr(ukl.uk.curriculumId, 1, 14) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.section as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:sectionIdList, null) is null or substr(ukl.uk.curriculumId, 1, 14) in (:sectionIdList)) group by substr(ukl.uk.curriculumId, 1, 14), ukl.uk.curriculum.section order by mastery asc")
+	List<CurrMasteryDTO> findSectionMasteryList(@Param("userId") String userId, @Param("sectionIdList") List<String> sectionIdList);
+
+	@Query("select substr(ukl.uk.curriculumId, 1, 11) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.chapter as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:chapterIdList, null) is null or substr(ukl.uk.curriculumId, 1, 11) in (:chapterIdList)) group by substr(ukl.uk.curriculumId, 1, 11), ukl.uk.curriculum.chapter order by mastery asc")
+	List<CurrMasteryDTO> findChapterMasteryList(@Param("userId") String userId, @Param("chapterIdList") List<String> chapterIdList);
+
+	@Query("select substr(ukl.uk.curriculumId, 1, 14) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.section as currName from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId like concat(:sectionId, '%') group by substr(ukl.uk.curriculumId, 1, 14), ukl.uk.curriculum.section")
+	CurrMasteryDTO findSectionMastery(@Param("userId") String userId, @Param("sectionId") String sectionId);
+	
+	@Query("select substr(ukl.uk.curriculumId, 1, 11) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.chapter as currName from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId like concat(:chapterId, '%') group by substr(ukl.uk.curriculumId, 1, 11), ukl.uk.curriculum.chapter")
+	CurrMasteryDTO findChapterMastery(@Param("userId") String userId, @Param("chapterId") String chapterId);
+
+	@Query("select avg(ukl.ukMastery) as mastery from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdSet, null) is null or ukl.uk.curriculumId in (:subSectionIdSet))")
+	CurrMasteryDTO findExamMastery(@Param("userId") String userId, @Param("subSectionIdSet") Set<String> subSectionIdSet);
 
 }

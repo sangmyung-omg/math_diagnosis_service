@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.dto;
+package com.tmax.WaplMath.Recommend.dto.mastery;
 
 public interface TypeMasteryDTO {
 	Integer getTypeId();

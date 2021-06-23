@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.dto;
+package com.tmax.WaplMath.Recommend.dto.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

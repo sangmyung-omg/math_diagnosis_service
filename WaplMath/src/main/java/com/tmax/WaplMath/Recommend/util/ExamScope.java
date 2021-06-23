@@ -7,6 +7,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Default exam scope in sub-sections by grade/semester/exam type
+ * @author Sangheon_lee
+ */
 public class ExamScope {
 	public static final Map<String, List<String>> examScope = new HashMap<String, List<String>>();
 	
