@@ -19,7 +19,7 @@ tags:
 - name : 'Additional Learning'
   description: "추가학습(완벽학습) 카드 추천 API"
 paths:
-  /DiagnosisProblems:
+  /diagnosis:
     get:
       tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
@@ -44,7 +44,7 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"                
-  /ExtraProblems:
+  /diagnosis/extra:
     get:
       tags: [Diagnosis]
       operationId: ExtraProblemsGet
@@ -219,7 +219,7 @@ components:
         resultMessage:
           type: string
           example: "Successfully Returned"
-        adaptiveProblem:
+        extraProblems:
           type: integer
           example: 
             - 9101
