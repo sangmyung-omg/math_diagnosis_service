@@ -308,7 +308,7 @@ components:
         cardDetail:
           type: "string"
           example: "{\"subSection\":\"순환소수\",\"section\":\"유리수와 순환소수\",\"chapter\":\"수와 식\"}"
-          description: "카드 상세 정보를 담은 json string. \n1) 유형카드 : 유형이 속한 단원 이름. 'subSection'-'소단원 이름', 'section'-'중단원 이름', 'chapter'-'대단원 이름' \n2) 보충카드 : 보충 카드에 속한 '유형 이름'-'점수' \n3) 중간평가카드 : 중단원 내 소단원 (or 대단원 내 중단원) '이름'-'점수'"
+          description: "카드 상세 정보를 담은 json string. \n1) 유형카드 : 유형이 속한 단원 이름. 'subSection'-'소단원 이름', 'section'-'중단원 이름', 'chapter'-'대단원 이름' \n2) 보충카드 : 보충 카드에 속한 유형 '이름'-'점수' \n3) 중간평가카드 : 중단원 내 소단원 (or 대단원 내 중단원) '이름'-'점수'\n4) 모의고사카드 : 시험범위 내 대단원 '이름'-'점수'"
         probIdSetList:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"

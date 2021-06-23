@@ -46,6 +46,9 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 
 	@Query("select pt.typeName from ProblemType pt where pt.typeId=:typeId")
 	String NfindTypeNameById(@Param("typeId") Integer typeId);
+	
+	@Query("select distinct pt.curriculumId from ProblemType pt where (coalesce(:typeIdList, null) is null or pt.typeId in (:typeIdList))")
+	List<String> findSubSectionListInTypeList(@Param("typeIdList") List<Integer> typeIdList);
 
 
 }

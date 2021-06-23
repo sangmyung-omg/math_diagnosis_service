@@ -21,7 +21,7 @@ gradle-build:
     - ae1-3/dev
   script: 
     - cd WaplMath
-    - ./gradlew build
+    - ./gradlew build -x test
   artifacts:
     paths:
       - WaplMath/build/libs/*.jar
