@@ -4,9 +4,7 @@ import java.util.List;
 
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentProblemDTO;
-import com.tmax.WaplMath.AdditionalLearning.dto.ProblemDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.SectionMasteryDTO;
-import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.TodaySubsectionListDTO;
 
 public interface FrequentCardServiceBaseV0 {

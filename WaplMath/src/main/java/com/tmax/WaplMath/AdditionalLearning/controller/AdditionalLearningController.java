@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -21,7 +20,7 @@ import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 public class AdditionalLearningController {
 	
 	@Autowired
-    @Qualifier("FrequentCardServiceV1")
+    @Qualifier("FrequentCardServiceV2")
 	private FrequentCardServiceBaseV1 FrequentCardService;
 
 	@PutMapping(value = "/frequent", produces = "application/json; charset=utf-8")
