@@ -8,5 +8,5 @@ import lombok.Data;
 @Data
 public class ScheduleConfigDTO {
 	public List<CardConfigDTO> cardConfigList;
-	public Set<String> addtlSubSectionIdList;
+	public Set<String> addtlSubSectionIdSet;
 }

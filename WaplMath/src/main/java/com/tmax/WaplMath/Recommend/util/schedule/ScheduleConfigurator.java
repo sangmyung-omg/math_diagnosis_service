@@ -108,7 +108,7 @@ public class ScheduleConfigurator {
 	public ScheduleConfigDTO getNormalScheduleConfig(String userId) throws Exception {
 		ScheduleConfigDTO output = new ScheduleConfigDTO();
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
-		Set<String> addtlSubSectionIdList = new HashSet<String>();
+		Set<String> addtlSubSectionIdSet = new HashSet<String>();
 
 		List<String> subSectionIdList = getSubSectionScope(userId);
 		logger.info("전체 소단원 범위 = {}", subSectionIdList);
@@ -157,9 +157,9 @@ public class ScheduleConfigurator {
 			String sectionId = sectionIdSet.iterator().next();
 			logger.info("중간에 다 풀었으니까 중간평가 진행: " + sectionId);
 			cardConfigList.add(CardConfigDTO.builder().cardType("midExam").midExamCurriculumId(sectionId).midExamType("section").build());
-			addtlSubSectionIdList.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
+			addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 			output.setCardConfigList(cardConfigList);
-			output.setAddtlSubSectionIdList(addtlSubSectionIdList);
+			output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
 			return output;
 		}
 
@@ -196,7 +196,7 @@ public class ScheduleConfigurator {
 					suppleCardTypeIdList.add(e.getTypeId());
 				cardConfigList
 					.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
-				addtlSubSectionIdList.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+				addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 
 				if (lowMasteryTypeList.size() >= SUPPLE_CARD_TYPE_NUM * 2) {
 					logger.info("	보충카드 하나 더 추가");
@@ -205,7 +205,7 @@ public class ScheduleConfigurator {
 						suppleCardTypeIdList.add(e.getTypeId());
 					cardConfigList.add(
 						CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2)).build());
-					addtlSubSectionIdList.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+					addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 				}
 			}
 		}
@@ -222,17 +222,17 @@ public class ScheduleConfigurator {
 					continue;
 				}
 				cardConfigList.add(CardConfigDTO.builder().cardType("type").typeId(typeId).build());
-				addtlSubSectionIdList.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
+				addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
 				if (cardConfigList.size() == MAX_CARD_NUM)
 					break;
 			}
 			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeIdList);
 			output.setCardConfigList(cardConfigList);
-			output.setAddtlSubSectionIdList(addtlSubSectionIdList);
+			output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
 			return output;
 		}
 		output.setCardConfigList(cardConfigList);
-		output.setAddtlSubSectionIdList(addtlSubSectionIdList);
+		output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
 		return output;
 	}
 	
@@ -241,7 +241,7 @@ public class ScheduleConfigurator {
 	public ScheduleConfigDTO getDummyScheduleConfig(String userId) throws Exception {
 		ScheduleConfigDTO output = new ScheduleConfigDTO();
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
-		Set<String> addtlSubSectionIdList = new HashSet<String>();
+		Set<String> addtlSubSectionIdSet = new HashSet<String>();
 
 		List<String> subSectionIdList = getSubSectionScope(userId);
 
@@ -272,7 +272,7 @@ public class ScheduleConfigurator {
 		Integer typeId = remainTypeList.get(0).getTypeId();
 		logger.info("중간평가 아니니까 유형 UK 카드 진행: " + typeId);
 		cardConfigList.add(CardConfigDTO.builder().cardType("type").typeId(typeId).build());
-		addtlSubSectionIdList.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
+		addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
 
 		// 보충 카드 : 둘, 셋, 네번째 유형에 대해
 		List<Integer> suppleTypeIdList = new ArrayList<Integer>();
@@ -289,13 +289,13 @@ public class ScheduleConfigurator {
 			suppleCardTypeIdList.add(e.getTypeId());
 		cardConfigList
 			.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
-		addtlSubSectionIdList.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+		addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 				
 		// 중간 평가 카드 (중단원)
 		String sectionId = currentCurriculumId.substring(0, 14);
 		logger.info("중간평가 진행(중단원): " + sectionId);
 		cardConfigList.add(CardConfigDTO.builder().cardType("midExam").midExamCurriculumId(sectionId).midExamType("section").build());
-		addtlSubSectionIdList.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
+		addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 		
 		//		String chapterId = currentCurriculumId.substring(0, 11);
 		//		logger.info("\n중간평가 진행(대단원): " + chapterId);
@@ -306,10 +306,10 @@ public class ScheduleConfigurator {
 		String trialExamType = String.format("%s-%s-%s", grade, semester, "final");
 		logger.info("모의고사 진행: " + String.format("%s-%s-%s", grade, semester, "final"));
 		cardConfigList.add(CardConfigDTO.builder().cardType("trialExam").trialExamType(trialExamType).build());
-		addtlSubSectionIdList.addAll(examSubSectionList);
+		addtlSubSectionIdSet.addAll(examSubSectionList);
 
 		output.setCardConfigList(cardConfigList);
-		output.setAddtlSubSectionIdList(addtlSubSectionIdList);
+		output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
 		return output;
 	}
 

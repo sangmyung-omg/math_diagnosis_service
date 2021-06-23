@@ -47,6 +47,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		CardDTO card;
+		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);
@@ -72,6 +73,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
 		CardDTO card;
+		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);

@@ -413,19 +413,19 @@ public class CardGenerator {
 		CardDTO card = new CardDTO();
 		switch (cardConfig.getCardType()) {
 		case "type":
-			logger.info("\n{} card (type {})", cardConfig.getCardType(), cardConfig.getTypeId());
+			logger.info("------ {} card (type {})", cardConfig.getCardType(), cardConfig.getTypeId());
 			card = generateTypeCard(cardConfig.getTypeId());
 			break;
 		case "supple":
-			logger.info("\n{} card", cardConfig.getCardType());
+			logger.info("------ {} card", cardConfig.getCardType());
 			card = generateSupplementCard(cardConfig.getLowMasteryTypeList());
 			break;
 		case "midExam":
-			logger.info("\n{} card ({} {})", cardConfig.getCardType(), cardConfig.getMidExamType(), cardConfig.getMidExamCurriculumId());
+			logger.info("------ {} card ({} {})", cardConfig.getCardType(), cardConfig.getMidExamType(), cardConfig.getMidExamCurriculumId());
 			card = generateMidExamCard(cardConfig.getMidExamCurriculumId(), cardConfig.getMidExamType());
 			break;
 		case "trialExam":
-			logger.info("\n{} card ({})", cardConfig.getCardType(), cardConfig.getTrialExamType());
+			logger.info("------ {} card ({})", cardConfig.getCardType(), cardConfig.getTrialExamType());
 			card = generateTrialExamCard(cardConfig.getTrialExamType());
 			break;
 		}
