@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 
-import lombok.Getter;
 
 /**
  * Helper class for curriculum ID calculation
@@ -151,5 +150,10 @@ public class CurriculumHelper {
     public static boolean isCurriculumInRange(){
         return true;
     }
+
+
+
+
+    //
     
 }

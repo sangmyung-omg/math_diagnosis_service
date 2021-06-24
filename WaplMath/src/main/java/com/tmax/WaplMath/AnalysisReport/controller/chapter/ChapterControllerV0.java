@@ -6,7 +6,7 @@ import java.util.List;
 
 import javax.websocket.server.PathParam;
 
-import com.tmax.WaplMath.AnalysisReport.config.Constants;
+import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 // import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
-@RequestMapping(path=Constants.apiPrefix + "/v0")
+@RequestMapping(path=ARConstants.apiPrefix + "/v0")
 public class ChapterControllerV0 {
 
     @Autowired

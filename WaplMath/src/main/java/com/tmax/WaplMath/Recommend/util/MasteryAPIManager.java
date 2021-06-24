@@ -29,7 +29,7 @@ import com.tmax.WaplMath.Recommend.exception.RecommendException;
  * @author Sangheon Lee
  */
 @Component
-@PropertySource("classpath:masterytriton.properties")
+@PropertySource("classpath:triton.properties")
 public class MasteryAPIManager {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 

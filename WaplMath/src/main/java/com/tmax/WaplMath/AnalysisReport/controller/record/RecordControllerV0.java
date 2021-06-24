@@ -2,7 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.controller.record;
 
 import java.util.List;
 
-import com.tmax.WaplMath.AnalysisReport.config.Constants;
+import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
@@ -28,7 +28,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
  */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
-@RequestMapping(path=Constants.apiPrefix + "/v0")
+@RequestMapping(path=ARConstants.apiPrefix + "/v0")
 public class RecordControllerV0 {
 
     @Autowired

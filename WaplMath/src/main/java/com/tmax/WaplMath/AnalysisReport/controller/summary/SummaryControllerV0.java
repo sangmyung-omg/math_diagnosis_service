@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tmax.WaplMath.AnalysisReport.config.Constants;
+import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 import com.tmax.WaplMath.Common.exception.InvalidTokenException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
@@ -21,7 +21,7 @@ import com.tmax.WaplMath.Common.util.auth.JWTUtil;
  */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
-@RequestMapping(path= Constants.apiPrefix + "/v0")
+@RequestMapping(path= ARConstants.apiPrefix + "/v0")
 class SummaryControllerV0 {
     
     @Autowired

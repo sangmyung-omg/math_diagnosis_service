@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.tmax.WaplMath.AnalysisReport.config.Constants;
+import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 // import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
 // import com.tmax.WaplMath.AnalysisReport.model.knowledge.UserKnowledgeJoined;
@@ -18,6 +18,7 @@ import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurricu
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.problem.ProblemCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
@@ -40,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jonghyun Seong
  */
 @RestController
-@RequestMapping(path=Constants.apiPrefix + "/v0")
+@RequestMapping(path=ARConstants.apiPrefix + "/v0")
 public class TestController {
     @Autowired
     ProblemCurriculumRepo repo;
@@ -107,4 +108,15 @@ public class TestController {
         chapterServicev1.getAllChapterListOfUser("mkkang");
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
+
+    @Autowired
+    WaplScoreServiceV0 waplScoreSvc;
+
+    @GetMapping("/testwaplscore")
+    ResponseEntity<Object> getWaplScore() {
+        waplScoreSvc.getWaplScore("mkkang");
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+    
 }
