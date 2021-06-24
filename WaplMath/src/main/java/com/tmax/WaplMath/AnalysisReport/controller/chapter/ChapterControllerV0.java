@@ -10,8 +10,9 @@ import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 // import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.UnsupportedErrorDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,8 @@ public class ChapterControllerV0 {
         // String userID =  JWTUtil.getJWTPayloadField(token, "userID");;
 
         // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
-        return new ResponseEntity<>(new UnsupportedErrorDTO(), HttpStatus.NOT_FOUND);
+        throw new GenericInternalException(ARErrorCode.UNSUPPORTED_API_ERROR);
+        // return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/chapters/{userID}")
@@ -76,6 +78,7 @@ public class ChapterControllerV0 {
                                                             @RequestBody ChapterIDListDTO chapterIDList){
        
         // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
-        return new ResponseEntity<>(new UnsupportedErrorDTO(), HttpStatus.NOT_FOUND);
+        throw new GenericInternalException(ARErrorCode.UNSUPPORTED_API_ERROR);
+        // return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 }

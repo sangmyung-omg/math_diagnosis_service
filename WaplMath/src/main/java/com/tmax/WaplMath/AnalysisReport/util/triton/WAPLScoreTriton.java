@@ -20,7 +20,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.triton.TritonResponseDTO;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.exception.StackPrinter;
-import com.tmax.WaplMath.Recommend.dto.WaplScoreProbDTO;
+import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbDTO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

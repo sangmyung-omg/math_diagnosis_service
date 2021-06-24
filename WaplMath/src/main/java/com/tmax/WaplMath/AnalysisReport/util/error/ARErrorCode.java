@@ -21,6 +21,9 @@ public enum ARErrorCode implements ErrorCodeBase {
 
     NUMBER_PARSE_ERROR("0008", "Error while parsing number."),
 
+
+    UNSUPPORTED_API_ERROR("0009", "Unsupported API."),
+
     //The lower bound error code;
     UNKNOWN_ERROR("ERR-AR-999", "Unknown error");
 

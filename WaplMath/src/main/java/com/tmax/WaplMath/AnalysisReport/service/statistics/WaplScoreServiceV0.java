@@ -9,7 +9,7 @@ import java.util.Map;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.util.triton.WAPLScoreTriton;
-import com.tmax.WaplMath.Recommend.dto.WaplScoreProbListDTO;
+import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
