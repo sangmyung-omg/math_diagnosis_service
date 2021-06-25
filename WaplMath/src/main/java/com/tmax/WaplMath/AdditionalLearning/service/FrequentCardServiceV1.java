@@ -81,7 +81,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 	UserTargetExamScopeRepo UserTargetExamScopeRepo ;
 	
 	@Override
-	public List<String> getSubsectionMasteryOfUser(String userId, List<Integer> probIdList){
+	public List<String> getSubsectionMasteryOfUser(String userId, boolean isFirstFreq, List<Integer> probIdList){
 		
 		List<String> recentSubsectionIdList = new ArrayList<String>();
 		
@@ -90,15 +90,22 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 		String start;
 		String end;
 		
-		//임시 에러 방지
-		if(targetExamScope==null) {
+		//진단고사용 빈출 카드는 출제 범위를 타겟시험으로 제한하지 않음 
+		if(isFirstFreq) {
 			start = "중등-중1-1학-01-01-01";
 			end = "중등-중3-2학-03-02-01";
 		}else {
-			start = targetExamScope.getStartSubSection();
-			end = targetExamScope.getEndSubSection();
+			
+			//임시 에러 방지
+			if(targetExamScope==null) {
+				start = "중등-중1-1학-01-01-01";
+				end = "중등-중3-2학-03-02-01";
+			}else {
+				start = targetExamScope.getStartSubSection();
+				end = targetExamScope.getEndSubSection();
+			}
+			
 		}
-		
 		
 	
 		
@@ -391,7 +398,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			
 			logger.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
 			
-			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, diagnosisProbIdList);
+			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
 			
 		}
 		
@@ -437,8 +444,8 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			
 			
 
-			recentSectionList = getSubsectionMasteryOfUser(userId, recentSolvedProbIdList);
-			todayCardSubsectionList = getSubsectionMasteryOfUser(userId, todayCardProbIdList);
+			recentSectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, recentSolvedProbIdList);
+			todayCardSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, todayCardProbIdList);
 		}
 		
 

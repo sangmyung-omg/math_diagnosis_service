@@ -15,7 +15,7 @@ public interface FrequentCardServiceBaseV1 {
 	List<Integer> getLRSProblemIdList(String userId, String dayFrom, String today, List<String> sourceTypeList)throws Exception;
 	
 	//문제 리스트를 받아 해당하는 이해도가 낮은 순서로 소단원 리스트 반환
-	List<String> getSubsectionMasteryOfUser(String userId, List<Integer> probIdList);
+	List<String> getSubsectionMasteryOfUser(String userId, boolean isFirstFreq, List<Integer> probIdList);
 	
 	//소단원 리스트를 받아 해당하는 빈출문제를 반환
 	//input : 1.최근 공부한 소단원 2.오늘 공부할 소단원(오늘의 학습 카드)
