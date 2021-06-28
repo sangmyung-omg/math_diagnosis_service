@@ -2,9 +2,9 @@
 <!DOCTYPE configuration>
 <configuration>
 	<!-- log file path -->
-	<property name="LOG_PATH" value="./logs/local" />
+	<property name="LOG_PATH" value="./data/log" />
 	<!-- log file name -->
-	<property name="LOG_FILE_NAME" value="local_log" />
+	<property name="LOG_FILE_NAME" value="log" />
 	<!-- err log file name -->
 	<property name="ERR_LOG_FILE_NAME" value="err_log" />
 	<!-- pattern -->

@@ -14,7 +14,21 @@ stages:
   - package
   - deploy
 
-gradle-build:
+java-build-check:
+  image: java:8-jdk
+  stage: build
+  only:
+    - /^ae1-3\/feature\/.*$/
+  script: 
+    - cd WaplMath
+    - ./gradlew build -x test
+  artifacts:
+    paths:
+      - WaplMath/build/libs/*.jar
+  tags:
+    - lsh-build
+
+java-build:
   image: java:8-jdk
   stage: build
   only:
@@ -44,6 +58,16 @@ docker-run:
   stage: deploy
   only:
     - ae1-3/dev
+  script:
+    - docker run -d -p 8080:8080 --name $CONTAINER_NAME $(docker images -q --filter "reference=$IMAGE_NAME")
+    - docker container ls -a
+  tags:
+    - lsh-local
+
+docker-push:
+  stage: deploy
+  only:
+    - master
   script:
     - docker run -d -p 8080:8080 --name $CONTAINER_NAME $(docker images -q --filter "reference=$IMAGE_NAME")
     - docker container ls -a

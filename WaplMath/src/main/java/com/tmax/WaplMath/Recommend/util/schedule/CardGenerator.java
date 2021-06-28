@@ -48,7 +48,7 @@ public class CardGenerator {
 	private static final String MID_EXAM_CARD_TYPE = "midExam";
 	private static final String TRIAL_EXAM_CARD_TYPE = "trialExam";
 	private static final String SUPPLEMENT_CARD_TITLE_FORMAT = "취약 유형 %d개 복습";
-	private static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s";
+	private static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s 대비";
 	
 	// logging option
 	private final Boolean printProbInfo = false; //level 1
