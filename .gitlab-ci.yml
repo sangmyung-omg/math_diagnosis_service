@@ -6,7 +6,7 @@ variables:
   SPRING_PROFILES_ACTIVE: gitlab-ci
   DOCKER_DRIVER: overlay2
   IMAGE_NAME: waplmath-sap-backend
-  CONTAINER_NAME: waplmath-sap
+  CONTAINER_NAME: waplmath
   HCDC_URL: wapl-math.220.90.208.8.nip.io:443
 
 stages:
@@ -71,6 +71,6 @@ docker-push:
     - master
   script:
     - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$(date +%Y%m%d_%H%M)
-    - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep wapl-math.220.90.208.8.nip.io:443/waplmath-sap-backend | awk '{print $2":"$3}')
+    - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep $HCDC_URL/$IMAGE_NAME | awk '{print $2":"$3}')
   tags:
     - lsh-local
