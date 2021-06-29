@@ -52,6 +52,10 @@ public class ScheduleServiceV1 implements ScheduleServiceBase {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);
 		}
+		if (cardList.size() == 0) {
+			output.setMessage("No cards were created. User seems to have solved all the problems.");
+			return output;
+		}
 		output.setCardList(cardList);
 		output.setMessage("Successfully return curriculum card list.");
 		return output;
