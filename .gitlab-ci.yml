@@ -8,6 +8,8 @@ variables:
   IMAGE_NAME: waplmath-sap-backend
   CONTAINER_NAME: waplmath
   HCDC_URL: wapl-math.220.90.208.8.nip.io:443
+  HCDC_ID: admin
+  HCDC_PASSWD: admin
 
 stages:
   - build
@@ -70,6 +72,7 @@ docker-push:
   only:
     - master
   script:
+    - docker login $HCDC_URL -u $HCDC_ID -p $HCDC_PASSWD
     - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$(date +%Y%m%d_%H%M)
     - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep $HCDC_URL/$IMAGE_NAME | awk '{print $2":"$3}')
   tags:
