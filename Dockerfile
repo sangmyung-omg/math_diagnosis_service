@@ -4,7 +4,9 @@ FROM openjdk:8u111-jdk-alpine
 WORKDIR /home/tmax
 
 #환경변수
-ENV SCRIPT_HOME = /home/tmax/script
+ENV SCRIPT_HOME /home/tmax/script
+
+RUN mkdir -p ${SCRIPT_HOME}
 
 #Setting
 COPY config/start.sh ${SCRIPT_HOME}/start.sh
@@ -14,5 +16,5 @@ RUN chmod -R 755 /home/tmax/script
 
 ADD /WaplMath/build/libs/*.jar /home/tmax/app.jar
 
-ENTRYPOINT ["/bin/sh", "--"]
-CMD ["script/start.sh"]
+#ENTRYPOINT ["/bin/sh", "--"]
+ENTRYPOINT ["./script/start.sh"]

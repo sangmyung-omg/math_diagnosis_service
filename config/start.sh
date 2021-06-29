@@ -1,3 +1,4 @@
+#!/bin/sh
 . /home/tmax/script/env.sh
 
-java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod -jar ./app.jar &
+exec java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod -jar /home/tmax/app.jar
