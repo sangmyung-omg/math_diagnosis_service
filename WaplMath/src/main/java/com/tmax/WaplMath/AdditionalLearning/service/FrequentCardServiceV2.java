@@ -204,12 +204,19 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				//오늘 소단원
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
 				
+				//오늘 소단원에서 출제할 문제는, 최근 공부 소단원에서 출제할 문제와 중복되면 안됨.
+				int todayProvidedProbId = recommendFreqProbIdList.get(0).getProblemId();
+				List<Integer> forNotProvided = new ArrayList<Integer>();
+				forNotProvided.addAll(solvedProbIdList);
+				forNotProvided.add(todayProvidedProbId);
 				
 				
-				
-				List<UserFrequentProblem> recentProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,subsectionList);
+				logger.info("\nforNotProvided : " + forNotProvided);
+				//
+				List<UserFrequentProblem> recentProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(forNotProvided,subsectionList);
 				List<FreqProbCurriDTO> recentProbList = entityToDto(recentProbList_m);
 				logger.info("\n최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + recentProbList);
+				
 				
 				List<UserFrequentProblem> providedRecentProbList_m = UserFreqProbRepo.getFrequentProvidedProblem(solvedProbIdList,subsectionList);
 				List<FreqProbCurriDTO> providedRecentProbList = entityToDto(providedRecentProbList_m);
@@ -225,11 +232,17 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				//최소 3문제를 확보하지 못한다면 과거 14일 기준 가장 예전에 배운 소단원보다 더 오래된 소단원들에서 빈출문제 선정 
 				if(recommendFreqProbIdList.size()<3) {
 					
+					//
+					for(int i= 0; i<recommendFreqProbIdList.size();i++) {
+						forNotProvided.add(recommendFreqProbIdList.get(i).getProblemId());
+					}
+					
 					
 					List<String> AnothersubsectionList = new ArrayList<String>();
 					AnothersubsectionList.addAll(getAnotherSubsectionMasteryOfUser(userId,subsectionList));
 					
-					List<UserFrequentProblem> probList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,AnothersubsectionList);
+					//
+					List<UserFrequentProblem> probList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(forNotProvided,AnothersubsectionList);
 					List<FreqProbCurriDTO> probList = entityToDto(probList_m);
 					recommendFreqProbIdList.addAll(SortingAndRecommend(probList,AnothersubsectionList,3-recommendFreqProbIdList.size()));
 					
