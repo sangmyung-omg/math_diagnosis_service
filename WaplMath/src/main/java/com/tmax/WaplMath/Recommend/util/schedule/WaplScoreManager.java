@@ -57,9 +57,11 @@ public class WaplScoreManager {
 		while (probCnt != EXAM_CARD_PROB_NUM) {
 			Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
 			List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-			if (printProbInfo)
-				logger.info("	소단원 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
-			cardProbDTOList.add(new WaplScoreProbDTO(ukList, "시험대비"));
+			if(ukList.size() != 0) {
+				if (printProbInfo)
+					logger.info("	소단원 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
+				cardProbDTOList.add(new WaplScoreProbDTO(ukList, "시험대비"));
+			}
 			probCnt += 1;
 		}
 		totalProbCnt += probCnt;
@@ -83,9 +85,11 @@ public class WaplScoreManager {
 
 			Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
 			List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-			if (printProbInfo)
-				logger.info("	중간 평가 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
-			cardProbDTOList.add(new WaplScoreProbDTO(ukList, type));
+			if(ukList.size() != 0) {
+				if (printProbInfo)
+					logger.info("	중간 평가 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
+				cardProbDTOList.add(new WaplScoreProbDTO(ukList, type));
+			}
 			probCnt += 1;
 		}
 		totalProbCnt += probCnt;
@@ -110,9 +114,11 @@ public class WaplScoreManager {
 
 			Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
 			List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-			if (printProbInfo)
-				logger.info("	중간 평가 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
-			cardProbDTOList.add(new WaplScoreProbDTO(ukList, type));
+			if(ukList.size() != 0) {
+				if (printProbInfo)
+					logger.info("	중간 평가 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
+				cardProbDTOList.add(new WaplScoreProbDTO(ukList, type));
+			}
 			probCnt += 1;
 		}
 		totalProbCnt += probCnt;
@@ -130,9 +136,11 @@ public class WaplScoreManager {
 		while (probCnt != EXAM_CARD_PROB_NUM * 2) {
 			Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
 			List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-			if (printProbInfo)
-				logger.info("	모의고사 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
-			cardProbDTOList.add(new WaplScoreProbDTO(ukList, "시험대비"));
+			if(ukList.size() != 0) {
+				if (printProbInfo)
+					logger.info("	모의고사 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
+				cardProbDTOList.add(new WaplScoreProbDTO(ukList, "시험대비"));
+			}
 			probCnt += 1;
 		}
 		totalProbCnt += probCnt;
@@ -184,11 +192,13 @@ public class WaplScoreManager {
 					for (ProblemType type : typeIdList.subList(nextTypeIdx, Math.min(nextTypeIdx + TYPE_CARD_NUM, typeIdList.size()))) {
 						Integer typeId = type.getTypeId();
 						List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-						if (printCardInfo)
-							logger.info("실력향상 {}번째 날 {}번째 유형 카드 (유형={}, 소단원={}) uk 추가: {}", cnt + 1, cardCnt++, typeId, type.getCurriculumId(),
-								ukList);
-						for (int i = 0; i < TYPE_CARD_PROB_NUM; i++)
-							cardProbDTOList.add(new WaplScoreProbDTO(ukList, "실력향상"));
+						if(ukList.size() != 0) {
+							if (printCardInfo)
+								logger.info("실력향상 {}번째 날 {}번째 유형 카드 (유형={}, 소단원={}) uk 추가: {}", cnt + 1, cardCnt++, typeId, type.getCurriculumId(),
+									ukList);
+							for (int i = 0; i < TYPE_CARD_PROB_NUM; i++)
+								cardProbDTOList.add(new WaplScoreProbDTO(ukList, "실력향상"));
+						}
 						totalProbCnt += TYPE_CARD_PROB_NUM;
 					}
 					nextTypeIdx += TYPE_CARD_NUM;
