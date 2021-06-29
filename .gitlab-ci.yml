@@ -7,12 +7,13 @@ variables:
   DOCKER_DRIVER: overlay2
   IMAGE_NAME: waplmath-sap-backend
   CONTAINER_NAME: waplmath-sap
-  HS_URL: hs-registry.220.90.208.8.nip.io:443
+  HCDC_URL: wapl-math.220.90.208.8.nip.io:443
 
 stages:
   - build
   - package
   - deploy
+  - push
 
 java-build-check:
   image: java:8-jdk
@@ -65,11 +66,11 @@ docker-run:
     - lsh-local
 
 docker-push:
-  stage: deploy
+  stage: push
   only:
     - master
   script:
-    - docker run -d -p 8080:8080 --name $CONTAINER_NAME $(docker images -q --filter "reference=$IMAGE_NAME")
-    - docker container ls -a
+    - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$(date +%Y%m%d_%H%M)
+    - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep wapl-math.220.90.208.8.nip.io:443/waplmath-sap-backend | awk '{print $2":"$3}')
   tags:
     - lsh-local
