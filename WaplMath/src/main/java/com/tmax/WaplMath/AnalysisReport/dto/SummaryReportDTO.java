@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class SummaryReportDTO {
     private double score;
     private double percentile;
+    private String commentary;
 }

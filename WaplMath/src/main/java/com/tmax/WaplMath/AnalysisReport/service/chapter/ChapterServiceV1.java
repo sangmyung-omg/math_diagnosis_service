@@ -143,6 +143,12 @@ public class ChapterServiceV1 implements ChapterServiceBase{
             case "chaponly":
                 currList =  currInfoRepo.getChaptersLikeId(subrangeList.get(0));
                 break;
+            case "partonly":
+                currList = currInfoRepo.getPartsLikeId(subrangeList.get(0));
+                break;
+            case "partinc":
+                currList = currInfoRepo.getPartsNotNullLikeId(subrangeList.get(0));
+                break;
             case "":
             default:
                 currList =  currInfoRepo.getChaptersLikeId(subrangeList.get(0));    

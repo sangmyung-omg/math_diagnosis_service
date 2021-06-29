@@ -112,6 +112,18 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         }
     }
 
+    @Override
+    public int updateCustomUserStat(String userID, String statName, Statistics.Type dataType, String data){
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        statisticUserRepo.save(statsToAnalyticsUser(
+                                                    userID, 
+                                                    new Statistics(statName, dataType, data), 
+                                                    now));
+        return 0;
+    }
+    
+
+
     private StatsAnalyticsUser statsToAnalyticsUser(String userID, Statistics stats, Timestamp now){
         return statsToAnalyticsUser(userID, "", stats, now);
     }

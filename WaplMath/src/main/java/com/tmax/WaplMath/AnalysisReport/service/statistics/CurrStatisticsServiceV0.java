@@ -8,9 +8,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsCurr;
+import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsCurrKey;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticCurrRepo;
@@ -113,6 +115,18 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         statisticCurrRepo.saveAll(updateSet);
         logger.info("Saved: " + updateSet.size());
 
+    }
+
+    @Override
+    public Statistics getStatistics(String currId, String statName) {
+        StatsAnalyticsCurrKey id = new StatsAnalyticsCurrKey();
+        Optional<StatsAnalyticsCurr> result = statisticCurrRepo.findById(id);
+        
+        if(!result.isPresent())
+            return null;
+
+        StatsAnalyticsCurr res = result.get();
+        return new Statistics(res.getName(), Statistics.Type.getFromValue(res.getType()), res.getData());
     }
 
     private StatsAnalyticsCurr statToAnalyticsCurr(String currId, Statistics stat, Timestamp now){

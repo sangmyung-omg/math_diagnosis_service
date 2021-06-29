@@ -8,4 +8,6 @@ public interface UserStatisticsServiceBase {
     public void updateSpecificUser(String userID);
 
     public void updateAllUsers();
+
+    public int updateCustomUserStat(String userID, String statName, Statistics.Type dataType, String data);
 }

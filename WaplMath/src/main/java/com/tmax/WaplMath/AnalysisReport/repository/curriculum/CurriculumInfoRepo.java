@@ -18,6 +18,9 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
     @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') order by curr.curriculumSequence")
     List<Curriculum> getCurriculumLikeId(@Param("currIdLike") String currIdLike);
 
+    //2021-06-29 add parts search
+    @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') and curr.part is not null and curr.chapter is not null and curr.section is null and curr.subSection is null order by curr.curriculumSequence")
+    List<Curriculum> getPartsLikeId(@Param("currIdLike") String currIdLike);
 
     @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') and curr.chapter is not null and curr.section is null and curr.subSection is null order by curr.curriculumSequence")
     List<Curriculum> getChaptersLikeId(@Param("currIdLike") String currIdLike);
@@ -36,4 +39,9 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
 
     @Query("select curr from Curriculum curr left outer join Uk uk on curr.curriculumId = uk.curriculumId left outer join UserKnowledge know on know.ukId = uk.ukId where know.userUuid = :userID order by know.updateDate")
     List<Curriculum> getRecentCurriculumOfUser(@Param("userID") String userID);
+
+
+    //2021-06-29 add parts search
+    @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') and curr.part is not null order by curr.curriculumSequence")
+    List<Curriculum> getPartsNotNullLikeId(@Param("currIdLike") String currIdLike);
 }
