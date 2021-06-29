@@ -12,11 +12,10 @@ import java.util.Map;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.SkillStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
-import com.tmax.WaplMath.AnalysisReport.repository.curriculum.UserCurriculumRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurriculumRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -25,6 +24,7 @@ import org.springframework.util.ResourceUtils;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 
 @Data
 @NoArgsConstructor
@@ -56,6 +56,12 @@ class ValueCount {
     }
 }
 
+
+
+/**
+ * Chapter service v0 interface
+ * @author Jonghyun Seong
+ */
 @Service("ChapterServiceV0")
 @Primary
 public class ChapterServiceV0 implements ChapterServiceBase{
@@ -94,31 +100,6 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         return this.createListFromDBResult(mid2result, "subsection");
     }
 
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList) {
-        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList.getChapterIDList());
-        return this.createListFromDBResult(result, "none");
-    }
-
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList,
-            String saturation) {
-        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList.getChapterIDList());
-        return this.createListFromDBResult(result, saturation);
-    }
-
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList) {
-        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList);
-        return this.createListFromDBResult(result, "none");
-    }
-
-    @Override
-    public List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList,
-            String saturation) {
-        List<UserMasteryCurriculum> result = currRepo.getUserCurriculumWithCurrIDList(userID, chapterIDList);
-        return this.createListFromDBResult(result, saturation);
-    }
 
     private List<ChapterDetailDTO> createListFromDBResult(List<UserMasteryCurriculum> dbresult, String saturation) {
         //Create a hashmap to save the average of mastery per section
@@ -260,5 +241,11 @@ public class ChapterServiceV0 implements ChapterServiceBase{
             return 0;
 
         return 100 * total / (double)count;
+    }
+
+    @Override
+    public List<ChapterDetailDTO> getChapterListOfUserInRange(String userID, String range, String subrange) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

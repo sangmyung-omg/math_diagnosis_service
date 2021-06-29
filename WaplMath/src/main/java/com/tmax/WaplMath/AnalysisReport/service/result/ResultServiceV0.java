@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 // import java.util.UUID;
 
-// import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
@@ -15,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+/**
+ * Result service V0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("ResultServiceV0")
 @Primary
 public class ResultServiceV0 implements ResultServiceBase{

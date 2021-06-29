@@ -1,0 +1,76 @@
+image: docker:latest
+services:
+  - docker:dind 
+
+variables:
+  SPRING_PROFILES_ACTIVE: gitlab-ci
+  DOCKER_DRIVER: overlay2
+  IMAGE_NAME: waplmath-sap-backend
+  CONTAINER_NAME: waplmath
+  HCDC_URL: wapl-math.220.90.208.8.nip.io:443
+
+stages:
+  - build
+  - package
+  - deploy
+  - push
+
+java-build-check:
+  image: java:8-jdk
+  stage: build
+  only:
+    - /^ae1-3\/feature\/.*$/
+  script: 
+    - cd WaplMath
+    - ./gradlew build -x test
+  artifacts:
+    paths:
+      - WaplMath/build/libs/*.jar
+  tags:
+    - lsh-build
+
+java-build:
+  image: java:8-jdk
+  stage: build
+  only:
+    - ae1-3/dev
+  script: 
+    - cd WaplMath
+    - ./gradlew build -x test
+  artifacts:
+    paths:
+      - WaplMath/build/libs/*.jar
+  tags:
+    - lsh-local
+
+docker-build:
+  stage: package
+  only:
+    - ae1-3/dev
+  script:
+    - docker rm -f $CONTAINER_NAME 2>/dev/null || true
+    - docker rmi -f $(docker images --format "{{.ID}} {{.Repository}}" | grep $IMAGE_NAME | awk '{print $1}') 2>/dev/null || true
+    - docker build -t $IMAGE_NAME:$(date +%Y%m%d_%H%M) .
+    - docker image ls
+  tags:
+    - lsh-local
+
+docker-run:
+  stage: deploy
+  only:
+    - ae1-3/dev
+  script:
+    - docker run -d -p 8080:8080 --name $CONTAINER_NAME $(docker images -q --filter "reference=$IMAGE_NAME")
+    - docker container ls -a
+  tags:
+    - lsh-local
+
+docker-push:
+  stage: push
+  only:
+    - master
+  script:
+    - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$(date +%Y%m%d_%H%M)
+    - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep $HCDC_URL/$IMAGE_NAME | awk '{print $2":"$3}')
+  tags:
+    - lsh-local

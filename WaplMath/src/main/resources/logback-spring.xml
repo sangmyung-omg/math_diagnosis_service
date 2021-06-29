@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+	<!-- log file path -->
+	<property name="LOG_PATH" value="./logs/" />
+	<!-- log file name -->
+	<property name="LOG_FILE_NAME" value="sap_log" />
+	<!-- err log file name -->
+	<property name="ERR_LOG_FILE_NAME" value="err_log" />
+	<!-- pattern -->
+	<property name="LOG_PATTERN"
+		value="%d{HH:mm:ss.SSS} [%-5level] [%thread] [%logger{36}] - %m%n" />
+		
+	<springProfile name="default, dev">
+		<!-- Console Appender -->
+		<appender name="STDOUT"
+			class="ch.qos.logback.core.ConsoleAppender">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<Pattern>${LOG_PATTERN}</Pattern>
+			</layout>
+		</appender>
+	</springProfile>
+
+	<springProfile name="prod">
+		<!-- File Appender -->
+		<appender name="FILE"
+			class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<!-- 파일경로 설정 -->
+			<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+			<!-- 출력패턴 설정 -->
+			<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				<pattern>${LOG_PATTERN}</pattern>
+			</encoder>
+			<!-- Rolling 정책 -->
+			<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
+				<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+					<!-- 파일당 최고 용량 kb, mb, gb -->
+					<maxFileSize>10MB</maxFileSize>
+				</timeBasedFileNamingAndTriggeringPolicy>
+				<!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거 -->
+				<maxHistory>10</maxHistory>
+				<!--<MinIndex>1</MinIndex> <MaxIndex>10</MaxIndex> -->
+			</rollingPolicy>
+		</appender>
+	</springProfile>
+
+	<springProfile name="prod">
+		<!-- 에러 따로 모으기 -->
+		<appender name="ERROR"
+			class="ch.qos.logback.core.rolling.RollingFileAppender">		
+			<filter class="ch.qos.logback.classic.filter.LevelFilter">
+				<level>error</level>
+				<onMatch>ACCEPT</onMatch>
+				<onMismatch>DENY</onMismatch>
+			</filter>
+			<!-- 파일경로 설정 -->
+			<file>${LOG_PATH}/${ERR_LOG_FILE_NAME}.log</file>
+			<!-- 출력패턴 설정 -->
+			<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				<pattern>${LOG_PATTERN}</pattern>
+			</encoder>
+			<!-- Rolling 정책 -->
+			<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
+				<fileNamePattern>${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+					<!-- 파일당 최고 용량 kb, mb, gb -->
+					<maxFileSize>10MB</maxFileSize>
+				</timeBasedFileNamingAndTriggeringPolicy>
+				<!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거 -->
+				<maxHistory>10</maxHistory>
+				<!--<MinIndex>1</MinIndex> <MaxIndex>10</MaxIndex> -->
+			</rollingPolicy>
+		</appender>
+	</springProfile>
+
+	<!-- 기본 log level을 설정한다. -->
+	<root level="INFO">
+		<springProfile name="default, dev">
+			<appender-ref ref="STDOUT" />
+		</springProfile>
+		<springProfile name="prod">
+			<appender-ref ref="FILE" />
+		</springProfile>
+		<springProfile name="prod">
+			<appender-ref ref="ERROR" />
+		</springProfile>
+	</root>
+</configuration>

@@ -1,10 +1,12 @@
 package com.tmax.WaplMath.Recommend.service.problem;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -14,13 +16,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import com.tmax.WaplMath.Problem.model.Problem;
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
-import com.tmax.WaplMath.Recommend.model.Curriculum;
-import com.tmax.WaplMath.Recommend.model.DiagnosisProblem;
-import com.tmax.WaplMath.Recommend.model.User;
+import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Recommend.model.problem.DiagnosisProblem;
+import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Recommend.model.user.User;
+import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
+import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;
 
 
@@ -44,6 +48,9 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	@Autowired
 	CurriculumRepository curriculumRepository;
 	
+	@Autowired
+	UserExamScopeRepo userExamScopeRepo;
+	
 	@Override
 	public Map<String, Object> getDiagnosisProblems(String userId, String diagType){
 
@@ -66,7 +73,10 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			resultMap.put("error", "no userId in user table");
 			return resultMap;
 		}
+		
 		String limit_chapter = dao.getCurrentCurriculumId();
+		
+		List<String> errOrderList = new ArrayList<String>();
 		
 		for (String partName : partList) {
 			// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
@@ -76,7 +86,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			for (Curriculum curr : currQueryResult){
 				chapterIdList.add(curr.getCurriculumId());
 			}
-			logger.info(chapterIdList.toString());
+			logger.info(partName + " 에 해당하는 대단원 : " + chapterIdList.toString());
 
 			// 진단 범위에 해당하는 대단원들 select - 현재 학기에서 2학기 전부터 현재 배우고 있는 단원 바로 이전까지 (가장 최근에 다 배운 단원 까지)
 			List<String> available_chaps = new ArrayList<String>();
@@ -89,15 +99,17 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				
 				// 현재 학기의 2학기 전까지의 범위 체크
 				if ((chap.compareToIgnoreCase(limit_chapter) <= 0) && (2*chap_grade + chap_semester >= 2*chapter_grade + chapter_semester -2)) {
-					if (!dao.getGrade().equalsIgnoreCase("3")) {
-						available_chaps.add(chap);					
-					} else {
-						if (2*chap_grade + chap_semester < 6) {				// 3학년 dummy 문제가 없어서
-							available_chaps.add(chap);
-						}
-					}
+//					if (!dao.getGrade().equalsIgnoreCase("3")) {
+//						available_chaps.add(chap);					
+//					} else {
+//						if (2*chap_grade + chap_semester < 6) {				// 3학년 dummy 문제가 없어서
+//							available_chaps.add(chap);
+//						}
+//					}
+					available_chaps.add(chap);
 				}
 			}
+			logger.info("available_chaps : " + available_chaps.toString());
 			
 			// available_chaps가 null이면, 각 영역에서 첫 단원 출제
 			String selected_chapter = "";
@@ -110,42 +122,90 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 
 				selected_chapter = chapterIdList.get(0);				
 				logger.info("No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-				if (resultMap.containsKey("error")) {
-					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-				} else {
-					resultMap.put("error", "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-				}
+//				if (resultMap.containsKey("error")) {
+//					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
+//				} else {
+//					resultMap.put("error", "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
+//				}
 			}
 			
 			// 해당하는 단원에 대한 문제 set 가져오기
 			logger.info("Getting problem set...");
 			DiagnosisProblem result;
-			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter);
+			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType);
+			List<Integer> prob_list = new ArrayList<Integer>();
+			
 			if (queryResult.size() != 0 && queryResult != null) {
 				logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
 				Collections.shuffle(queryResult);
 				result = queryResult.get(0);
+				
+				// 문제 set의 각 문제에 대한 정보 불러오기
+				prob_list.add(result.getLowerProbId());
+				prob_list.add(result.getBasicProbId());
+				prob_list.add(result.getUpperProbId());
+				
 			} else {
-				// No problem set for the selected_chapter
-				logger.info("No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-				if (resultMap.containsKey("error")) {
-					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+				String order = Integer.toString(partList.indexOf(partName)+1);
+				if (order.equals("1")) {
+					order += "st";
+				} else if (order.contentEquals("2")) {
+					order += "nd";
 				} else {
-					resultMap.put("error", "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+					order += "th";
 				}
-//				partNames.add(partName);
-				diagnosisProblems.add(null);
-				continue;
+				
+				errOrderList.add(order);
+				// No problem set for the selected_chapter
+				logger.info("No ACCEPTED problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+//				if (resultMap.containsKey("error")) {
+//					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+//				} else {
+//					resultMap.put("error", order + " element of diagnosisProblems isNo problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+//				}
+				if (diagType.equalsIgnoreCase("in-depth")) {
+					// 임시 err 처리 (dummy)
+					if (partName.equalsIgnoreCase("기하")) {
+						prob_list.add(7363);
+						prob_list.add(7361);
+						prob_list.add(7362);
+					} else if (partName.equalsIgnoreCase("확률과 통계")) {
+						prob_list.add(7352);
+						prob_list.add(7350);
+						prob_list.add(7351);					
+					} else if (partName.equalsIgnoreCase("함수")) {
+						prob_list.add(4505);
+						prob_list.add(5081);
+						prob_list.add(6595);					
+					} else if (partName.equalsIgnoreCase("문자와 식")) {
+						prob_list.add(4562);
+						prob_list.add(4594);
+						prob_list.add(4575);					
+					} else if (partName.equalsIgnoreCase("수와 연산")) {
+						prob_list.add(277);
+						prob_list.add(308);
+						prob_list.add(424);					
+					}
+					
+				}				
 			}
-			
-			// 문제 set의 각 문제에 대한 정보 불러오기
-			List<Integer> prob_list = new ArrayList<Integer>();
-			prob_list.add(result.getLowerProbId());
-			prob_list.add(result.getBasicProbId());
-			prob_list.add(result.getUpperProbId());
-			
 			diagnosisProblems.add(prob_list);
-//			partNames.add(partName);
+		}
+		
+		if (errOrderList.size() != 0) {
+			if (diagType.equalsIgnoreCase("in-depth")) {
+				if (resultMap.containsKey("Warning")) {
+					resultMap.replace("Warning", resultMap.get("Warning") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of problem data in DB.");
+				} else {
+					resultMap.put("Warning", String.join(", ", errOrderList) + " element of diagnosisProblems is dummy data due to lack of ACCEPTED problem data in DB.");
+				}								
+			} else if (diagType.equalsIgnoreCase("simple")) {
+				if (resultMap.containsKey("error")) {
+					resultMap.replace("error", resultMap.get("error") + "\n" + String.join(", ", errOrderList) + " element of diagnosisProblems is null due to lack of ACCEPTED 'simple' problem set in DB.");
+				} else {
+					resultMap.put("error", String.join(", ", errOrderList) + " element of diagnosisProblems is null due to lack of ACCEPTED 'simple' problem set in DB.");
+				}	
+			}
 		}
 		
 		resultMap.put("diagnosisProblems", diagnosisProblems);
@@ -154,87 +214,133 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	}
 	
 	@Override
-	public Map<String, Object> getAdaptiveProblem(String token, String diagType, Integer probId){
+	public Map<String, Object> getExtraProblem(String userId, List<Integer> probIdList){
 		Map<String, Object> resultMap = new HashMap<String, Object>();
-		User dao = userService.getUserInfo(token);
-//		logger.info("dao : " + dao);
-		if (dao == null || dao.getUserUuid() == null) {
-			resultMap.put("error", "no user token in user table");
-			return resultMap;
-		}
-		String limit_chapter = dao.getCurrentCurriculumId();
+		List<Integer> extraProblems = new ArrayList<Integer>();
 		
-		// DB에서 해당 문제가 어떤 part의 문제인지 불러오기
-		logger.info("Getting the part of given problem......");
-		String partName = "";
-		String chapter = "";
-		Optional<Problem> partOptional = problemRepository.findById(probId);
-		if (partOptional.isPresent()) {
-			partName = partOptional.get().getProblemType().getCurriculum().getPart();
-			chapter = partOptional.get().getProblemType().getCurriculum().getCurriculumId();
-		} else {
-			logger.info("No problem for the probId : " + Integer.toString(probId));
-			resultMap.put("error", "No problem for the probId : " + Integer.toString(probId));
-			return resultMap;
-		}
+		// USER_MASTER 테이블에서 현재까지 배운 단원 정보 조회 & USER_EXAM_SCOPE 테이블에서 다음 시험의 범위 (단원) 조회
+		logger.info("Getting user info......");
+		UserExamScope examScope = userExamScopeRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
+		String start_sub_section = examScope.getStartSubSection();
+		String end_sub_section = examScope.getEndSubSection();
+		String current_chapter = examScope.getUser().getCurrentCurriculumId();
+		logger.info(userId + "'s Sub section range for the next exam : " + start_sub_section + " ~ " + end_sub_section);
 		
-		// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
-		List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
-		List<String> chapterIdList = new ArrayList<String>();
-		for (Curriculum curr : currQueryResult){
-			chapterIdList.add(curr.getCurriculumId());
-		}
-		logger.info(chapterIdList.toString());
+		// 학생의 시험 범위에 해당하는 파트 (내용영역) 조회
+		logger.info("Selecting target parts for the next exam......");
+		List<String> partList = curriculumRepository.findDistinctPartBetween(start_sub_section, end_sub_section);
+		logger.info("Parts for next exam : " + partList.toString());
 		
-		// 같은 파트에서 다음 문제 줄 만한 단원 선정
-		List<String> available_chaps = new ArrayList<String>();
-		for (String chap : chapterIdList) {
-			System.out.println(chap + ", " + chapter + ", " + limit_chapter + " : " + (chap.compareToIgnoreCase(chapter) > 0) + ", " + (chap.compareToIgnoreCase(limit_chapter) < 0));
-			if (chap.compareToIgnoreCase(chapter) > 0 && chap.compareToIgnoreCase(limit_chapter) < 0) {
-				available_chaps.add(chap);
-			}
-		}
-		
-		// 푼 문제의 단원보다 크고, 학생의 현재 진도 단원보다 적은 사이 단원이 존재하면 거기서 출제, 없으면 그냥 원래 문제의 단원에서 출제
-		String selected_chapter = "";
-		if (available_chaps.size() == 0) {
-			selected_chapter = chapter.substring(0, 11);
-		} else {
-			Collections.shuffle(available_chaps);
-			selected_chapter = available_chaps.get(0);
-		}
-		System.out.println(selected_chapter);
-		
-		
-		// 해당하는 단원에 대한 문제 set 가져오기
-		logger.info("Getting problem set...");
-		DiagnosisProblem result;
-		List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter);
-		if (queryResult.size() != 0 && queryResult != null) {
-			logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
-			Collections.shuffle(queryResult);
-			result = queryResult.get(0);
-			if (result.getUpperProbId().intValue() == probId.intValue()) {
-				if (queryResult.size() > 1) {
-					result = queryResult.get(1);					
-				} else {
-					resultMap.put("error", "No other problem set in the chapter : " + selected_chapter);
+		// 시험 범위 파트에 해당하는 대단원들 조회
+		Map<String, List<String>> partChapterList = new HashMap<String, List<String>>();
+		for (String part : partList) {
+			logger.info("Getting chapters of part : " + part);
+			List<Curriculum> chapters = curriculumRepository.findChaptersByPart(part);
+			for (Curriculum chapter : chapters) {
+				// 현재까지 배운 소단원까지만 keep.
+				if (chapter.getCurriculumId().equalsIgnoreCase(current_chapter.substring(0, 11)) ||
+						chapter.getCurriculumId().compareToIgnoreCase(current_chapter.substring(0, 11)) < 0) {
+					if (partChapterList.containsKey(chapter.getPart())) {
+						partChapterList.get(chapter.getPart()).add(chapter.getCurriculumId());
+					} else {
+						partChapterList.put(chapter.getPart(), new ArrayList<String>(Arrays.asList(chapter.getCurriculumId())));
+					}					
 				}
 			}
-		} else {
-			// No problem set for the selected_chapter
-			logger.info("No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-			if (resultMap.containsKey("error")) {
-				resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-			} else {
-				resultMap.put("error", "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+		}
+		logger.info(partChapterList.toString());
+		
+		
+		// 문제 찾을 대단원 5개 선정 
+		String grade = examScope.getUser().getGrade();
+		Map<String, List<String>> available_chapters = new HashMap<String, List<String>>();
+		for (int i=0; i<partList.size(); i++) {
+			List<String> candidate_chapters = new ArrayList<String>();
+			
+			for (String chapter : partChapterList.get(partList.get(i))) {
+				if (chapter.substring(4, 5).equalsIgnoreCase(grade)) {
+					logger.info(chapter);
+					candidate_chapters.add(chapter);
+				}
 			}
-//						partNames.add(partName);
-			return resultMap;
+			if (candidate_chapters != null && candidate_chapters.size() != 0) {
+				available_chapters.put(partList.get(i), candidate_chapters);				
+			}
+		}
+		logger.info(available_chapters.toString());
+		
+		if (available_chapters.size() == 0 || available_chapters == null) {
+			// 에러 처리
+		}
+		// 파트별 문제 개수 결정 (임의로 : 시험 범위에 파트 2~3개 고정, 범위에 맞는 파트 최대 3개)
+		List<Integer> num_list = new ArrayList<Integer>();
+		if (available_chapters.keySet().size() == 1) {
+			num_list.add(5);
+		} else if (available_chapters.keySet().size() == 2) {
+			num_list.add(3);
+			num_list.add(2);
+		} else if (available_chapters.keySet().size() == 3) {
+			num_list.add(2);
+			num_list.add(2);
+			num_list.add(1);
+		}
+		Collections.shuffle(num_list);
+		
+		Map<String, List<Integer>> partProblemMap = new HashMap<String, List<Integer>>();
+		for (String key : available_chapters.keySet()) {
+			partProblemMap.put(key, new ArrayList<Integer>(Arrays.asList()));
 		}
 		
-		// 문제 set의 난이도 '상' 문제의 ID 반환
-		resultMap.put("adaptiveProblem", result.getUpperProbId());
+		int idx = 0;
+		for (String part : available_chapters.keySet()) {
+			List<String> list = available_chapters.get(part);
+			
+			// 문제들 서치해올 대단원들 SQL 조건 생성  
+			String chapter_condition = "";
+			int i = 0;
+			for (String cid : list) {
+				if (i==0) {
+					chapter_condition += "'" + cid + "'";
+					i++;
+				} else {
+					chapter_condition += " OR SUBSTR(dp.basicProblem.problemType.curriculumId, 0, 11) = '" + cid + "'";
+				}
+			}
+			
+			logger.info(chapter_condition);
+			// 해당 단원의 문제 조회
+			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, "꼼꼼");
+			if (diagList.size() != 0 && diagList != null) {
+				int queryIdx = 0;
+				while (partProblemMap.get(part).size() < num_list.get(idx)) {
+					int basic = diagList.get(queryIdx).getBasicProbId();
+					int upper = diagList.get(queryIdx).getUpperProbId();
+					int lower = diagList.get(queryIdx).getLowerProbId();
+					
+					if (!probIdList.contains(basic) && !partProblemMap.get(part).contains(basic)) {
+						partProblemMap.get(part).add(basic);
+					}
+					if (!probIdList.contains(upper) && !partProblemMap.get(part).contains(upper)) {
+						partProblemMap.get(part).add(upper);
+					}
+					if (!probIdList.contains(lower) && !partProblemMap.get(part).contains(lower)) {
+						partProblemMap.get(part).add(lower);
+					}
+					queryIdx++;
+					if (queryIdx >= partProblemMap.get(part).size()) {
+						break;
+					}
+				}
+				
+				
+			}
+			logger.info(diagList.toString());
+			idx++;
+		}
+		logger.info(partProblemMap.toString());
+		
+		
+//		resultMap.put("extraProblems", result.getUpperProbId());
 		return resultMap;
 	}
 }

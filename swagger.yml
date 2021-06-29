@@ -5,36 +5,28 @@ info:
   description: |
     지식 수준, 진단고사, 시험 대비 추천 관련 API
 servers:
-  - url: http://192.168.153.212:8080/
+  - url: http://192.168.153.213:8080/
     description: "example server address"
 tags:
 - name : 'Diagnosis'
   description: "진단고사 API"
 - name : 'Mastery'
   description: "학생 지식 수준 업데이트 API"
-- name : 'ExamSchedule'
-  description: "시험 대비 학습 스케줄 추천 API"
+- name : 'Schedule'
+  description: "학습 스케줄 카드 추천 API"
+- name : 'User'
+  description: "문제 추천을 위한 사용자 정보 입력 API"
+- name : 'Additional Learning'
+  description: "추가학습(완벽학습) 카드 추천 API"
 paths:
-  /DiagnosisProblems:
+  /diagnosis:
     get:
       tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
       summary: 진단고사 문제 전체 요청
       parameters:
-        - name: token
-          in: header
-          description: 유저의 Access token (유저 ID에 대응되는 개념)
-          required: true
-          schema:
-            type: string
-            default: mkkang2
-        - name: diagType
-          in: path
-          description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
-          required: true
-          schema:
-            default: in-depth
-            type: string
+        - $ref: "#/components/parameters/UserToken"
+        - $ref:  "#/components/parameters/DiagnosisType"
       responses:
         200:
           description: 성공
@@ -52,40 +44,22 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"                
-  /AdaptiveProblem:
+  /diagnosis/extra:
     get:
       tags: [Diagnosis]
-      operationId: AdaptiveProblemGet
-      summary: Adaptive한 다음 문제 요청
+      operationId: ExtraProblemsGet
+      summary: 시간 남을 경우, 추가 5 문제 요청
+      description: "[꼼꼼진단] 앞선 10문제의 진단문제 소요시간이 15분 미만일 경우, 다음 시험 범위와 연관된 범위에서 추가 5문제 제공"
       parameters:
-        - name: token
-          in: header
-          description: 유저 access token
-          required: true
-          schema:
-            default: mkkang2
-            type: string
-        - name: diagType
-          in: path
-          description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
-          required: true
-          schema:
-            default: in-depth
-            type: string
-        - name: probId
-          in: path
-          description: 방금 맞은 난이도 '상' 문제 ID
-          required: true
-          schema:
-            default: 1633
-            type: integer
+        - $ref: "#/components/parameters/UserToken"
+        - $ref: "#/components/parameters/ProbIdList"
       responses:
         200:
           description: 성공
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdaptiveProblemResult'
+                $ref: '#/components/schemas/ExtraProblemsResult'
         500:
           description: 실패
           content:
@@ -120,10 +94,13 @@ paths:
   /examschedulecard:
     get:
       tags:
-        - "ExamSchedule"
-      summary: "오늘의 학습 스케줄 카드 구성 리턴"
+        - "Schedule"
+      summary: "오늘의 시험 대비 학습 스케줄 카드 구성 리턴"
       description: |
-        사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
+        - 사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
+        - Full path = http://192.168.153.213:8080/recommend/v1/examschedulecard
+      servers:
+        - url: http://192.168.153.213:8080/recommend/v1/
       parameters:
         - $ref: "#/components/parameters/UserToken"
       responses:
@@ -135,8 +112,91 @@ paths:
                 $ref: "#/components/schemas/ExamScheduleCard"
         "500":
           description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic"
+  /normalschedulecard:
+    get:
+      tags:
+        - "Schedule"
+      summary: "오늘의 실력 향상 학습 스케줄 카드 구성 리턴"
+      description: |
+        - 사용자의 실력 향상 학습 스케줄 오늘 카드 구성 리턴
+        - Full path = http://192.168.153.213:8080/recommend/v1/normalschedulecard
+      servers:
+        - url: http://192.168.153.213:8080/recommend/v1/
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NormalScheduleCard"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic"
+  /userexaminfo:
+    put:
+      tags:
+        - 'User'
+      summary: "학생 시험 정보 입력"
+      description: 
+        학생이 시험 대비 진입 시 입력한 시험 정보 동기화
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref: "#/components/requestBodies/UserExamInfo"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserExamInfoResult"
+        "500":
+          description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic" 
+  /userbasicinfo:
+    put:
+      tags:
+        - User
+      summary: 학생 기본 정보 입력
+      description: 학년, 이름 정보 동기화
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref:  "#/components/requestBodies/UserBasicInfo"
+      responses:
+        "200":
+          description: "성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserBasicInfoResult"
+        "500":
+          description: "실패"
+          $ref: "#/components/responses/500-Generic"
 
+  /frequent:
+    put:
+      tags:
+        - Additional Learning
+      summary: "빈출카드 추천"
+      description: "완벽학습에서 빈출 카드 제공"
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref:  "#/components/requestBodies/SubsectionInfo"
+      responses:
+        "200":
+          description: "성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FrequentCardResult"
+        "500":
+          description: "실패"
+          $ref: "#/components/responses/500-Generic"
 
 components:
   schemas:
@@ -154,33 +214,51 @@ components:
             - [1121,3141,5161]
             - [7181,9202,1222]
             - [3242,5262,7282]
-    AdaptiveProblemResult:
+    ExtraProblemsResult:
       properties:
         resultMessage:
           type: string
           example: "Successfully Returned"
-        adaptiveProblem:
+        extraProblems:
           type: integer
-          example: 9101
+          example: 
+            - 9101
+            - 1234
+            - 5678
+            - 2345
+            - 3456
     ExamScheduleCard:
       type: "object"
-      description: "오늘의 학습 스케줄 카드 구성 정보"
+      description: "오늘의 시험 대비 학습 스케줄 카드 구성 정보"
       required:
         - "message"
-        - "isCompletable"
+        - "remainTypeCard"
         - "cardList"
       properties:
         message:
           type: "string"
-          example: "Successfully return exam card."
+          example: "Successfully returned today exam card."
           description: "결과 메시지"
-        isCompletable:
+        remainTypeCard:
+          type: number
+          example: 30
+          description: "진도에서 남은 유형 카드 개수"
+        cardList:
+          type: "array"
+          description: "오늘 카드 목록"
+          items:
+            $ref: "#/components/schemas/CardObject"
+    NormalScheduleCard:
+      type: "object"
+      description: "오늘의 실력 향상 학습 스케줄 카드 구성 정보"
+      required:
+        - "message"
+        - "cardList"
+      properties:
+        message:
           type: "string"
-          example: "true"
-          enum:
-            - "true"
-            - "false"
-          description: "남은 기간 동안 유형 카드를 모두 커버할 수 있는 지 여부"
+          example: "Successfully returned today exam card."
+          description: "결과 메시지"
         cardList:
           type: "array"
           description: "오늘 카드 목록"
@@ -190,59 +268,78 @@ components:
       type: "object"
       description: "카드 정보. 유형/보충은 4-6문제, 중간평가/모의고사는 20문제"
       required:
-        - "cardId"
         - "cardType"
         - "cardTitle"
+        - "firstProbLevel"
+        - "estimatedTime"
+        - "cardScore"
+        - "cardDetail"
         - "probIdSetList"
       properties:
-        cardId:
-          type: "string"
-          example: "mkkang-03-유형"
-          description: "카드 ID"
         cardType:
           type: "string"
-          example: "유형"
+          example: "type"
           enum:
-            - "유형"
-            - "보충"
-            - "중간평가"
-            - "모의고사"
+            - "type"
+            - "supple"
+            - "midExam"
+            - "trialExam"
           description: "카드 종류"
         cardTitle:
           type: "string"
-          example: "근의 공식을 활용한 이차방정식 풀이"
-          description: "카드 이름. 유형 카드는 유형 UK 이름, 중간평가 카드는 중단원 이름, 나머지 카드는 빈 문자열 제공."
+          example: "유한소수와 무한소수"
+          description: "카드 이름. UI 가이드 참고"
+        firstProbLevel:
+          type: "string"
+          example: "high"
+          description: "학생의 이해도 기반, 첫 번째 문제의 난이도"
+          enum:
+            - "high"
+            - "middle"
+            - "low"
+        estimatedTime:
+          type: number
+          example: 900
+          description: "카드 푸는데 걸리는 예상 소요 시간 (sec)"
+        cardScore:
+          type: "number"
+          example: 71.88207
+          description: "해당 카드의 점수 (보충 카드는 null)"
+        cardDetail:
+          type: "string"
+          example: "{\"subSection\":\"순환소수\",\"section\":\"유리수와 순환소수\",\"chapter\":\"수와 식\"}"
+          description: "카드 상세 정보를 담은 json string. \n1) 유형카드 : 유형이 속한 단원 이름. 'subSection'-'소단원 이름', 'section'-'중단원 이름', 'chapter'-'대단원 이름' \n2) 보충카드 : 보충 카드에 속한 유형 '이름'-'점수' \n3) 중간평가카드 : 중단원 내 소단원 (or 대단원 내 중단원) '이름'-'점수'\n4) 모의고사카드 : 시험범위 내 대단원 '이름'-'점수'"
         probIdSetList:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"
           items:
             $ref: "#/components/schemas/ProbIdSet"
           example:
-            - 상: "10"
-              중: "11"
-              하: "12"
-            - 상: "20"
-              중: "21"
-              하: "22"
+            - high: 10
+              middle: 11
+              low: 12
+            - high: 20
+              middle: 21
+              low: 22
     ProbIdSet:
       type: "object"
       required:
-        - "상"
-        - "중"
-        - "하"
+        - "high"
+        - "middle"
+        - "low"
       properties:
-        상:
-          type: "string"
-          example: "11"
+        high:
+          type: number
+          example: 11
           description: "상 난이도 문제 Id"
-        중:
-          type: "string"
-          example: "12"
-          description: "상 난이도 문제 Id"
-        하:
-          type: "string"
-          example: "13"
-          description: "상 난이도 문제 Id"
+        middle:
+          type: number
+          example: 12
+          description: "중 난이도 문제 Id"
+        low:
+          type: number
+          example: 13
+          description: "하 난이도 문제 Id"
     ProbIdList:
       type: array
       description: "문제 ID 목록"
@@ -265,6 +362,55 @@ components:
           - "true"
           - "false"
           - "pass"
+    UserExamInfo:
+      type: "object"
+      description: "사용자 시험 정보"
+      required:
+        - "examType"
+        - "examStartDate"
+        - "examDueDate"
+        - "targetScore"
+      properties:
+        examType:
+          type: "string"
+          example: "mid"
+          description: "시험 종류. mid/final"
+          enum:
+            - "mid"
+            - "final"
+        examStartDate:
+          type: "string"
+          example: "2021-06-01"
+          description: "시험 준비 시작 날짜. yyyy-mm-dd 형식"
+        examDueDate:
+          type: "string"
+          example: "2021-06-14"
+          description: "시험 날짜. yyyy-mm-dd 형식"
+        targetScore:
+          type: number
+          example: 85
+          description: "목표 시험 점수"
+    
+    UserBasicInfo:
+      type: object
+      description: 학생 기본 정보
+      required:
+        - grade
+        - name
+      properties:
+        grade:
+          type: string
+          example: "2"
+          description: 학년
+          enum:
+            - "1"
+            - "2"
+            - "3"
+        name:
+          type: string
+          example: "박평우"
+          description: 학생 이름
+
     MasteryUpdateResult:
       type: "object"
       required:
@@ -274,6 +420,97 @@ components:
           type: "string"
           example: "Successfully update user mastery."
           description: "성공 여부 메시지"
+    UserExamInfoResult:
+      type: "object"
+      required:
+        - "message"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully update user exam info."
+          description: "성공 여부 메시지"
+    UserBasicInfoResult:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Successfully update user basic info.
+          description: "성공 여부 메시지"
+    SubsectionInfo:
+      type: object
+      required:
+          - "isFirstFrequent"
+#          - "todaySubsectionList"
+      properties:
+        isFirstFrequent:
+          type: boolean
+          example: true
+          description: "진단고사 직후 첫 접속인지 아닌지 (첫접속 = 1)"
+#        todaySubsectionList:
+#          type: array
+#          description: "진단고사 or 오늘의 학습 카드 내 소단원 리스트"
+#          items:
+#            type: string
+#          example:
+#            - "소인수분해"
+#            - "정수와 유리수"
+          
+    FrequentCardResult:
+      properties:
+        resultMessage:
+          type: string
+          example: "Successfully Returned"
+        cardType :
+          type: string
+          example: "빈출카드"
+        probSetList:
+          type: array
+          description: "카드를 구성하는 빈출문제 리스트"
+          items: 
+            $ref: "#/components/schemas/FreqProblems"
+          example:
+            - probId: 1
+            - probId: 2
+            - probId: 3
+        sectionSetList:
+          type: array
+          description: "추천된 빈출문제가 속해있는 중단원들과 이해도"
+          items: 
+            $ref: "#/components/schemas/FreqSectionMastery"    
+          example:
+            - section: "소인수분해"
+              sectionMastery: 0.6
+            - section: "정수와 유리수"
+              sectionMastery: 0.5
+          
+    FreqProblems:
+      type: object
+      required:
+          - "probId"
+      properties:
+        probId:
+          type: number
+          example: 1
+          description: "카드를 구성하는 빈출문제 ID"
+    FreqSectionMastery:
+      type: object
+      required:
+          - "section"
+          - "sectionMastery"
+      properties:
+        section:
+          type: string
+          example: "소인수분해"
+          description: "중단원 이름"
+        sectionMastery:
+          type: number
+          example: 0.6
+          description: "중단원 이해도"
+ 
+
+ 
   responses:
     500-Generic:
       description: "500 에러에 대한 generic response"
@@ -298,7 +535,34 @@ components:
       description: "유저의 Access token"
       schema:
         type: "string"
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiJta2thbmcifQ.ZjD-h4zkD2t8GsqA9or7F8NAbKVGTGEnBEeNvpI8Z5o"
+    DiagnosisType:
+      in: path
+      name: diagType
+      required: true
+      description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
+      schema:
+        type: "string"
+        default: in-depth
+    ProbIdList:
+      in: path
+      name: probIdList
+      required: true
+      description: 앞에서 푼 진단 10문제 (중복 체크)
+      schema:
+        type: array
+        default:
+          - 1633
+          - 1687
+          - 1541
+          - 1588
+          - 1234
+          - 5678
+          - 1111
+          - 2222
+          - 3333
+          - 4444
+
   requestBodies:
     ProblemSolveRecord:
       description: "학생 문제 풀이 기록"
@@ -311,4 +575,25 @@ components:
                 $ref: "#/components/schemas/ProbIdList"
               correctList:
                 $ref: "#/components/schemas/CorrectList"
-              
+    UserExamInfo:
+      description: "학생 시험 정보"
+      required: true
+      content:
+        application/json:
+          schema:
+              $ref: "#/components/schemas/UserExamInfo"
+    UserBasicInfo:
+      description: "학생 기본 정보"
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref:  "#/components/schemas/UserBasicInfo"
+            
+    SubsectionInfo:
+      description: "진단고사 여부 & (삭제)오늘 학습 소단원 정보"
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref:  "#/components/schemas/SubsectionInfo"

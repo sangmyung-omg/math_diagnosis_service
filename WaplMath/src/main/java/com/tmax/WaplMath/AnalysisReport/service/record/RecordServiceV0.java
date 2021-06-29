@@ -19,6 +19,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Record service v0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("RecordServiceV0")
 @Primary
 public class RecordServiceV0 implements RecordServiceBase{
@@ -43,55 +47,66 @@ public class RecordServiceV0 implements RecordServiceBase{
         getStatementDTO.setUserIdList(userIdList);
         getStatementDTO.setVerbTypeList(verbTypeList);
 
-        URI lrsServer = URI.create("http://192.168.153.132:8080/GetStatement");
-        String result = restTemplate.postForObject(lrsServer, getStatementDTO, String.class);
-        JsonArray resultArray = JsonParser.parseString(result).getAsJsonArray();
+        URI lrsServer = URI.create("http://192.168.153.132:8080/StatementList");
+        String result = null;
+        
+        try {
+            restTemplate.postForObject(lrsServer, getStatementDTO, String.class);
 
-        System.out.println(resultArray.size());
 
-        int countCorrect = 0;
-        int countWrong = 0;
-        int countPass = 0;
-        int duration = 0;
-    
-        for(JsonElement eachElem : resultArray){
-            JsonObject object = (JsonObject)eachElem;
+            JsonArray resultArray = JsonParser.parseString(result).getAsJsonArray();
 
-            // System.out.println(object.toString());
+            System.out.println(resultArray.size());
 
-            if(object.get("userAnswer").getAsString().equals("PASS")){
-                countPass++;
-                continue;
-            }
+            int countCorrect = 0;
+            int countWrong = 0;
+            int countPass = 0;
+            int duration = 0;
+        
+            for(JsonElement eachElem : resultArray){
+                JsonObject object = (JsonObject)eachElem;
 
-            if(!object.get("duration").isJsonNull()){
-                if(object.get("duration").getAsInt() == 0){
-                    duration++;
+                // System.out.println(object.toString());
+
+                if(object.get("userAnswer").getAsString().equals("PASS")){
+                    countPass++;
                     continue;
                 }
-            }
 
-            if(!object.get("isCorrect").isJsonNull()){
-                if(object.get("isCorrect").getAsInt() == 0){
-                    countWrong++;
-                    continue;
+                if(!object.get("duration").isJsonNull()){
+                    if(object.get("duration").getAsInt() == 0){
+                        duration++;
+                        continue;
+                    }
                 }
-                else
-                    countCorrect++;
+
+                if(!object.get("isCorrect").isJsonNull()){
+                    if(object.get("isCorrect").getAsInt() == 0){
+                        countWrong++;
+                        continue;
+                    }
+                    else
+                        countCorrect++;
+                }
+
+                
+
             }
 
-            
+            // Dummy svc
+            LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
+            output.setNumCorrect(countCorrect);
+            output.setNumDontknow(countPass);
+            output.setNumWrong(countWrong);
+            output.setTimeConsumed(duration);
+
+            return output;
 
         }
-
-        // Dummy svc
-        LevelDiagnosisRecordDTO output = new LevelDiagnosisRecordDTO();
-        output.setNumCorrect(countCorrect);
-        output.setNumDontknow(countPass);
-        output.setNumWrong(countWrong);
-        output.setTimeConsumed(duration);
-
-        return output;
+        catch(Throwable e){
+            //CASE: LRS server error
+            return null;
+        }
     }
 
     @Override

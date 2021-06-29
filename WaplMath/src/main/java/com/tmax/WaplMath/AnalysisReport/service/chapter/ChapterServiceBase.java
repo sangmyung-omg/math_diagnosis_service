@@ -3,8 +3,12 @@ package com.tmax.WaplMath.AnalysisReport.service.chapter;
 import java.util.List;
 
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 
+
+/**
+ * Chapter service base interface
+ * @author Jonghyun Seong
+ */
 public interface ChapterServiceBase {
 
     List<ChapterDetailDTO> getAllChapterListOfUser(String userID);
@@ -13,10 +17,5 @@ public interface ChapterServiceBase {
     List<ChapterDetailDTO> getAllChapterListOfUserSectionOnly(String userID);
     List<ChapterDetailDTO> getAllChapterListOfUserSubSectionOnly(String userID);
 
-    
-    List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList, String saturation);
-    List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, ChapterIDListDTO chapterIDList);
-
-    List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList, String saturation);
-    List<ChapterDetailDTO> getSpecificChapterListOfUser(String userID, List<String> chapterIDList);
+    List<ChapterDetailDTO> getChapterListOfUserInRange(String userID, String range, String subrange);
 }

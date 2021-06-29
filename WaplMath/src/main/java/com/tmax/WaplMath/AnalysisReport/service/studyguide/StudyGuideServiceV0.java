@@ -1,7 +1,6 @@
 package com.tmax.WaplMath.AnalysisReport.service.studyguide;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,14 +10,21 @@ import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
-import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
-import com.tmax.WaplMath.AnalysisReport.repository.curriculum.UserCurriculumRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.CurriculumInfoRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurriculumRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
-import com.tmax.WaplMath.Recommend.model.Curriculum;
+import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Recommend.model.user.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+/**
+ * Studyguide service v0 implementation
+ * @author Jonghyun Seong
+ */
 @Service("StudyGuideServiceV0")
 public class StudyGuideServiceV0 implements StudyGuideServiceBase{
     @Autowired
@@ -28,8 +34,15 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
     UserCurriculumRepo userCurrRepo;
 
     @Autowired
+    @Qualifier("ChapterServiceV0")
     ChapterServiceBase chapterSvc;
 
+
+    @Autowired
+    @Qualifier("AR-UserInfoRepo")
+    UserInfoRepo userInfoRepo;
+
+    
     @Override
     public StudyGuideDTO getStudyGuideOfUser(String userID) {
         List<Curriculum> currList = currInfoRepo.getCurriculumListByRangeSectionOnly("중등-중3-1학%");
@@ -58,7 +71,9 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
         // }
         
         //가져온후 sorting
-        List<ChapterDetailDTO> chapList = chapterSvc.getSpecificChapterListOfUser(userID, currIDList, "section");
+        // List<ChapterDetailDTO> chapList = chapterSvc.getAllChapterListOfUser(userID, currIDList, "section");
+        List<ChapterDetailDTO> chapList = chapterSvc.getAllChapterListOfUser(userID);
+
         Collections.sort(chapList, (h1, h2) -> new Integer(h1.getSequence()).compareTo(h2.getSequence()) );
         
         //강제로 초기 값을 5로 맞춤
@@ -70,7 +85,7 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
                 chapList.remove(1);
         }
 
-        System.out.println(chapList.size());
+        // System.out.println(chapList.size());
 
 
 
@@ -88,7 +103,7 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
             Collections.sort(ukList, (uk1, uk2)-> new Double(uk1.getSkillScore()).compareTo(uk2.getSkillScore()));
 
             //Get the first UK
-            System.out.println(chapDetail.getName() + ") worst UK : " + ukList.get(0).toString());
+            // System.out.println(chapDetail.getName() + ") worst UK : " + ukList.get(0).toString());
 
             //If worst is below 0.5
             if(ukList.get(0).getSkillScore() > 0.53)
@@ -105,10 +120,12 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
                 }
 
                 // extraCurrIDList.add(ukmas.getCurriculumId()); //일단 하나만 넣자
-                System.out.println(ukmas.getCurriculumId() +"해야함");
+                // System.out.println(ukmas.getCurriculumId() +"해야함");
 
                 //ChapDTO 가져옴
-                List<ChapterDetailDTO> chap = chapterSvc.getSpecificChapterListOfUser(userID, Arrays.asList(ukmas.getCurriculumId()), "section");
+                // List<ChapterDetailDTO> chap = chapterSvc.getSpecificChapterListOfUser(userID, Arrays.asList(ukmas.getCurriculumId()), "section");
+                List<ChapterDetailDTO> chap = chapterSvc.getAllChapterListOfUser(userID);
+
                 // System.out.println("DDDD" + chap);
 
                 indexCurrIDMap.put(index, chap.get(0));
@@ -130,8 +147,14 @@ public class StudyGuideServiceV0 implements StudyGuideServiceBase{
 
 
         guide.setChapterDetailList(chapList);
-        guide.setCommentary("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 90점까지 상승 가능할거에요");
 
+
+        //Get commentary
+        User data = userInfoRepo.getUserInfoByUUID(userID);
+        // guide.setCommentary("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 90점까지 상승 가능할거에요");
+        guide.setCommentary(String.format("다음 시험을 위해서는 선수개념에 대한 개념을 보충할 필요가 있어요! 와플수학에서 %s학생을 위한 맞춤 커리큘럼을 준비해 놓았으니 다음 시험에는 잘 할 수 있을꺼에요!",
+            data.getName()        
+        ));
 
         return guide;
     }

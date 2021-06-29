@@ -9,10 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.tmax.WaplMath.Problem.model.Problem;
-import com.tmax.WaplMath.Problem.model.ProblemImage;
 import com.tmax.WaplMath.Problem.repository.ProblemImageRepository;
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
+import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Recommend.model.problem.ProblemImage;
 
 @Service
 public class ProblemInfoService {

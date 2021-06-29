@@ -8,6 +8,10 @@ import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 
 import org.springframework.stereotype.Service;
 
+/**
+ * Record service dummy data implmentation
+ * @author Jonghyun Seong
+ */
 @Service("RecordServiceDummy")
 public class RecordServiceDummy implements RecordServiceBase{
     @Override

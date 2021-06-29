@@ -4,15 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-// import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * REsult service dummy implementation
+ * @author Jonghyun Seong
+ */
 @Service("ResultServiceDummy")
 public class ResultServiceDummy implements ResultServiceBase{
     @Autowired

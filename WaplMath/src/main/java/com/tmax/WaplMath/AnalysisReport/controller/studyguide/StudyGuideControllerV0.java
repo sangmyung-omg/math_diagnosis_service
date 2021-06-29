@@ -13,14 +13,18 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tmax.WaplMath.AnalysisReport.config.Constants;
+import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
+/**
+ * Study Guide REST Controller
+ * @author Jonghyun Seong
+ */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
-@RequestMapping(path=Constants.apiPrefix + "/v0")
+@RequestMapping(path=ARConstants.apiPrefix + "/v0")
 public class StudyGuideControllerV0 {
 
     @Autowired

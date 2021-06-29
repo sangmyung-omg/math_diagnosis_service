@@ -1,24 +1,6 @@
 package com.tmax.WaplMath.Recommend.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.tmax.WaplMath.Recommend.common.DemoChapterPartMapper;
-import com.tmax.WaplMath.Recommend.model.ChapterMasteryDTO;
-import com.tmax.WaplMath.Recommend.model.Uk;
-import com.tmax.WaplMath.Recommend.model.UserKnowledge;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 
 
 @Service
