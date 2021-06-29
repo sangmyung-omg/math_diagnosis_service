@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,12 +18,15 @@ import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
+import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.user.User;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,8 @@ import org.springframework.util.ResourceUtils;
  */
 @Service("ChapterServiceV1")
 public class ChapterServiceV1 implements ChapterServiceBase{
+    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+
     @Autowired
     @Qualifier("AR-CurriculumInfoRepo")
     CurriculumInfoRepo currInfoRepo;
@@ -117,8 +122,32 @@ public class ChapterServiceV1 implements ChapterServiceBase{
             throw new InvalidArgumentException("subrange is missing");
         }
 
+        //ADD: 2021-06-29 jonghyun seong --> add option to bound range.
+        List<Curriculum> currList = null;
 
-        List<Curriculum> currList =  currInfoRepo.getChaptersLikeId(subrange);
+        List<String> subrangeList = Arrays.asList(subrange.split("\\*"));
+
+        if(subrangeList.size() == 0)
+            throw new GenericInternalException(ARErrorCode.GENERIC_ERROR,"Invalid subrange format");
+
+        
+        String rangeParam = subrangeList.size() == 2 ? subrangeList.get(1) : "";
+
+        switch(rangeParam){
+            case "seconly":
+                currList =  currInfoRepo.getSectionsLikeId(subrangeList.get(0));
+                break;
+            case "subseconly":
+                currList =  currInfoRepo.getSubSectionLikeId(subrangeList.get(0));
+                break;
+            case "chaponly":
+                currList =  currInfoRepo.getChaptersLikeId(subrangeList.get(0));
+                break;
+            case "":
+            default:
+                currList =  currInfoRepo.getChaptersLikeId(subrangeList.get(0));    
+        }
+        
         List<ChapterDetailDTO> output = new ArrayList<>();
 
         //Fill the output list from the output
@@ -180,7 +209,7 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         chapDetail.setName(curr.getChapter());
         chapDetail.setSequence(curr.getCurriculumSequence());
 
-        chapDetail.setType("대단원");
+        chapDetail.setType(getTypeFromChapter(curr));
 
         Map<Integer, UserKnowledge> ukMap = getChapterUKData(userID, curr.getCurriculumId());
 
@@ -191,6 +220,23 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         chapDetail.setUkDetailList(getUKDetailFromUKMap(ukMap));
 
         return chapDetail;
+    }
+
+    private String getTypeFromChapter(Curriculum curr) {
+        String type = "소단원";
+
+        if(curr.getSubSection() == null)
+            type = "중단원";
+        
+        if(curr.getSection() == null)
+            type = "대단원";
+
+        if(curr.getChapter() == null)
+            type = "파트";
+
+        // logger.info(curr.getSubSection()  + "-"+ curr.toString()  + "-"+ curr.getSection()  + "-"+ curr.getChapter() + "-"+ type);
+
+        return type;
     }
 
 

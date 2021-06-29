@@ -6,8 +6,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.dto.SummaryReportDTO;
@@ -20,7 +18,6 @@ import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

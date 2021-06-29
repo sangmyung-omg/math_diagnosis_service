@@ -2,8 +2,8 @@ package com.tmax.WaplMath.AnalysisReport.service.result;
 
 import java.util.List;
 
-import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultDTO;
 
 /**
  * Result service base interface

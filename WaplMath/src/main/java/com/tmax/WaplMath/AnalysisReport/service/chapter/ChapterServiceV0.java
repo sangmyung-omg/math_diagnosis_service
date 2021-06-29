@@ -12,7 +12,6 @@ import java.util.Map;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.SkillStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;

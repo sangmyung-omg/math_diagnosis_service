@@ -1,7 +1,6 @@
 package com.tmax.WaplMath.AnalysisReport.service.studyguide;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

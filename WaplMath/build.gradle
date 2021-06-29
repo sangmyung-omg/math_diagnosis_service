@@ -36,6 +36,9 @@ dependencies {
 	compile('io.springfox:springfox-swagger-ui:2.9.2')
 
 	compile 'org.springframework.boot:spring-boot-starter-webflux'
+
+	compile 'net.javacrumbs.shedlock:shedlock-spring:4.24.0'
+	compile 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:2.1.0'
 }
 
 test {

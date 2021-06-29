@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.ChapterIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.SkillStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
 

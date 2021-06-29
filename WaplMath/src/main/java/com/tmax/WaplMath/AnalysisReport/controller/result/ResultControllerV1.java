@@ -7,7 +7,8 @@ import javax.websocket.server.PathParam;
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultDTO;
-import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBase;
+import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultV1DTO;
+import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBaseV1;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,25 +29,25 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
-@RequestMapping(path=ARConstants.apiPrefix + "/v0")
-public class ResultControllerV0 {
+@RequestMapping(path=ARConstants.apiPrefix + "/v1")
+public class ResultControllerV1 {
 
     @Autowired
-    @Qualifier("ResultServiceV0")
-    private ResultServiceBase resultSvc;
+    @Qualifier("ResultServiceV1")
+    private ResultServiceBaseV1 resultSvc;
     
     @GetMapping("/result")
     ResponseEntity<Object> getResult(@RequestHeader("token") String token) {
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
-        DiagnosisResultDTO output = resultSvc.getResultOfUser(userID);
+        DiagnosisResultV1DTO output = resultSvc.getResultOfUserV1(userID);
 
         return new ResponseEntity<>(output, HttpStatus.OK);
     }
 
     @GetMapping("/result/{userID}")
     ResponseEntity<Object> getUserIDResult(@RequestHeader("token") String token, @PathParam("userID") String userID) {
-        DiagnosisResultDTO output = resultSvc.getResultOfUser(userID);
+        DiagnosisResultV1DTO output = resultSvc.getResultOfUserV1(userID);
 
         return new ResponseEntity<>(output, HttpStatus.OK);
     }

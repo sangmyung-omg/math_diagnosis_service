@@ -1,6 +1,10 @@
-package com.tmax.WaplMath.AnalysisReport.dto;
+package com.tmax.WaplMath.AnalysisReport.dto.result;
 
 import java.util.List;
+
+import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.LevelDiagnosisRecordDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.SummaryReportDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -18,6 +18,9 @@ import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurricu
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.problem.ProblemCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.CurrStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.UKStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
@@ -118,5 +121,33 @@ public class TestController {
         waplScoreSvc.getWaplScore("mkkang");
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
-    
+
+
+    @Autowired
+    @Qualifier("UKStatisticsServiceV0")
+    private UKStatisticsServiceBase ukStatSvc;
+
+    @GetMapping("/teststatistic")
+    ResponseEntity<Object> updateStat() {
+        ukStatSvc.updateAllStatistics();
+        return null;
+    }
+
+    @Autowired
+    private UserStatisticsServiceBase userStatSvc;
+
+    @GetMapping("/teststatistic2")
+    ResponseEntity<Object> updateStat2() {
+        userStatSvc.updateAllUsers();
+        return null;
+    }
+
+    @Autowired
+    private CurrStatisticsServiceBase currStatSvc;
+
+    @GetMapping("/teststatistic3")
+    ResponseEntity<Object> updateStat3() {
+        currStatSvc.updateStatistics();
+        return null;
+    }
 }

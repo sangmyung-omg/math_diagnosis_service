@@ -18,6 +18,7 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
     @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') order by curr.curriculumSequence")
     List<Curriculum> getCurriculumLikeId(@Param("currIdLike") String currIdLike);
 
+
     @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') and curr.chapter is not null and curr.section is null and curr.subSection is null order by curr.curriculumSequence")
     List<Curriculum> getChaptersLikeId(@Param("currIdLike") String currIdLike);
 

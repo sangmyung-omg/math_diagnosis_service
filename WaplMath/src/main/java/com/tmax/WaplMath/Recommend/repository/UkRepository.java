@@ -11,4 +11,8 @@ public interface UkRepository extends CrudRepository<Uk, Integer>{
 	
 	@Query("SELECT ud FROM Uk ud WHERE SUBSTR(ud.curriculumId, 1, 11) = ?1 order by ud.curriculumId")
 	List<Uk> findAllByCurriculumId(String chapterId);
+
+	//2021-06-25 Jonghyun Seong. Override findAll method to List type return.
+	@Override
+	List<Uk> findAll();
 }

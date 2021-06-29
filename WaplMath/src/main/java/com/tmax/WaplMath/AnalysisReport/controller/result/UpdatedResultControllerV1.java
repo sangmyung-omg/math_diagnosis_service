@@ -1,8 +1,8 @@
 package com.tmax.WaplMath.AnalysisReport.controller.result;
 
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
-import com.tmax.WaplMath.AnalysisReport.dto.DiagnosisResultDTO;
-import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBase;
+import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultV1DTO;
+import com.tmax.WaplMath.AnalysisReport.service.result.ResultServiceBaseV1;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
@@ -33,8 +33,8 @@ public class UpdatedResultControllerV1 {
     private MasteryServiceBaseV1 masterySvc;
 
     @Autowired
-    @Qualifier("ResultServiceV0")
-    private ResultServiceBase resultSvc;
+    @Qualifier("ResultServiceV1")
+    private ResultServiceBaseV1 resultSvc;
     
     @PutMapping("/updatedresult")
     ResponseEntity<Object> putUpdatedResult(@RequestHeader("token") String token){
@@ -49,9 +49,9 @@ public class UpdatedResultControllerV1 {
         }
 
         //Step 2:
-        DiagnosisResultDTO output = null;
+        DiagnosisResultV1DTO output = null;
         try {
-            output = resultSvc.getResultOfUser(userID);
+            output = resultSvc.getResultOfUserV1(userID);
         }
         catch (Throwable e){
             throw new GenericInternalException(ARErrorCode.RESULT_SERVICE_ERROR, StackPrinter.getStackTrace(e));
