@@ -217,7 +217,6 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				List<FreqProbCurriDTO> recentProbList = entityToDto(recentProbList_m);
 				logger.info("\n최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + recentProbList);
 				
-				
 				List<UserFrequentProblem> providedRecentProbList_m = UserFreqProbRepo.getFrequentProvidedProblem(solvedProbIdList,subsectionList);
 				List<FreqProbCurriDTO> providedRecentProbList = entityToDto(providedRecentProbList_m);
 				logger.info("\n최근 공부한 소단원에 대한 출제한 적 있는 빈출 문제 리스트 : " + providedRecentProbList);
@@ -236,7 +235,6 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 					for(int i= 0; i<recommendFreqProbIdList.size();i++) {
 						forNotProvided.add(recommendFreqProbIdList.get(i).getProblemId());
 					}
-					
 					
 					List<String> AnothersubsectionList = new ArrayList<String>();
 					AnothersubsectionList.addAll(getAnotherSubsectionMasteryOfUser(userId,subsectionList));
