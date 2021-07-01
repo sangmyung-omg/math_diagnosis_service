@@ -70,4 +70,39 @@ public class DiffProbListDTO {
 			break;
 		}
 	}
+
+	public List<String> getLenOrderedDiffList() {
+		List<String> temp = new ArrayList<String>();
+		if (this.highProbList.size() >= this.middleProbList.size() && this.highProbList.size() >= this.lowProbList.size()) {
+			temp.add("상");
+			if (this.middleProbList.size() >= this.lowProbList.size()) {
+				temp.add("중");
+				temp.add("하");
+			} else {
+				temp.add("하");
+				temp.add("중");
+			}
+		}
+		if (this.middleProbList.size() >= this.highProbList.size() && this.middleProbList.size() >= this.lowProbList.size()) {
+			temp.add("중");
+			if (this.highProbList.size() >= this.lowProbList.size()) {
+				temp.add("상");
+				temp.add("하");
+			} else {
+				temp.add("하");
+				temp.add("상");
+			}
+		}
+		if (this.lowProbList.size() >= this.highProbList.size() && this.lowProbList.size() >= this.middleProbList.size()) {
+			temp.add("하");
+			if (this.highProbList.size() >= this.middleProbList.size()) {
+				temp.add("상");
+				temp.add("중");
+			} else {
+				temp.add("중");
+				temp.add("상");
+			}
+		}
+		return temp;
+	}
 }

@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,8 @@ import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 @Component
 public class ScheduleHistoryManagerV1 {
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+
 	// Constant
 	private final Integer MAX_RECENET_STATEMENT_NUM = 100;
 
@@ -34,12 +38,14 @@ public class ScheduleHistoryManagerV1 {
 	@Autowired
 	LRSAPIManager lrsAPIManager = new LRSAPIManager();
 
-	public Set<Integer> getCompletedProbIdSet(String userId, String today, List<String> sourceTypeList) throws Exception {
+	public Set<Integer> getCompletedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
 		Set<Integer> probIdSet = new HashSet<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
 		JsonArray LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
 		LRSinput.setDateTo(today);
+		if (dateFrom != "")
+			LRSinput.setDateFrom(dateFrom);
 		LRSinput.setSourceTypeList(sourceTypeList);
 		LRSinput.setActionTypeList(new ArrayList<String>(Arrays.asList("submit")));
 		LRSinput.setRecentStatementNum(MAX_RECENET_STATEMENT_NUM);
@@ -63,10 +69,36 @@ public class ScheduleHistoryManagerV1 {
 		return probIdSet;
 	}
 
-	public List<Integer> getCompletedTypeIdList(String userId, String today, String sourceType) throws Exception {
+
+	public String getRecentSuppleCardDate(String userId, String today) throws Exception {
+		String date;
+		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
+		JsonArray LRSResult;
+		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
+		LRSinput.setDateTo(today);
+		LRSinput.setSourceTypeList(new ArrayList<String>(Arrays.asList("supple_question")));
+		LRSinput.setActionTypeList(new ArrayList<String>(Arrays.asList("submit")));
+		LRSinput.setRecentStatementNum(1);
+
+		try {
+			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+		} catch (Exception e) {
+			throw new Exception("LRS Internal Server Error: " + e.getMessage());
+		}
+		if (LRSResult.size() == 0)
+			return "";
+		else {
+			JsonObject row = (JsonObject) LRSResult.get(0);
+			String timestamp = row.get("timestamp").getAsString();
+			date = timestamp.substring(0, 10);
+		}
+		return date;
+	}
+
+	public List<Integer> getCompletedTypeIdList(String userId, String today, String dateFrom, String sourceType) throws Exception {
 		Set<Integer> probIdSet;
 		try {
-			probIdSet = getCompletedProbIdSet(userId, today, new ArrayList<String>(Arrays.asList(sourceType)));
+			probIdSet = getCompletedProbIdSet(userId, today, dateFrom, new ArrayList<String>(Arrays.asList(sourceType)));
 		} catch (Exception e) {
 			throw e;
 		}
@@ -76,10 +108,22 @@ public class ScheduleHistoryManagerV1 {
 		return typeIdList;
 	}
 
+	//21.07.01 card generator v2
+	public List<Integer> getCompletedTypeIdListAfterSuppleCard(String userId, String today) throws Exception {
+		String lastSuppleDate;
+		try {
+			lastSuppleDate = getRecentSuppleCardDate(userId, today);
+		} catch (Exception e) {
+			throw e;
+		}
+		logger.info("가장 최근에 푼 보충카드 날짜: " + lastSuppleDate);
+		return getCompletedTypeIdList(userId, today, lastSuppleDate, "type-question");
+	}
+
 	public List<String> getCompletedSectionCardIdList(String userId, String today) throws Exception {
 		Set<Integer> probIdSet;
 		try {
-			probIdSet = getCompletedProbIdSet(userId, today, new ArrayList<String>(Arrays.asList("mid_exam_question")));
+			probIdSet = getCompletedProbIdSet(userId, today, "", new ArrayList<String>(Arrays.asList("mid_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
@@ -92,7 +136,7 @@ public class ScheduleHistoryManagerV1 {
 	public List<Integer> getSolvedUkIdList(String userId, String today) throws Exception {
 		Set<Integer> probIdSet;
 		try {
-			probIdSet = getCompletedProbIdSet(userId, today,
+			probIdSet = getCompletedProbIdSet(userId, today, "",
 				new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
 		} catch (Exception e) {
 			throw e;

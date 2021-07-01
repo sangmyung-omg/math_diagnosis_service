@@ -18,9 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetDTO;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
@@ -43,7 +43,7 @@ import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV0;
  */
 @Service("ScheduleServiceV0")
 @Primary
-public class ScheduleServiceV0 implements ScheduleServiceBase {
+public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
@@ -136,7 +136,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		}
 	}
 
-	public CardDTO addProblemList(CardDTO card, Map<String, List<Problem>> diffProbList, Integer MAX_PROBLEM_NUM) {
+	public CardDTOV1 addProblemList(CardDTOV1 card, Map<String, List<Problem>> diffProbList, Integer MAX_PROBLEM_NUM) {
 		List<ProblemSetDTO> problemSetList = card.getProbIdSetList();
 		Integer estimatedTime = card.getEstimatedTime();
 		List<Problem> highProbList, middleProbList, lowProbList;
@@ -176,8 +176,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		return card;
 	}
 
-	public CardDTO generateMidExamCard(String sectionId) {
-		CardDTO midExamCard = new CardDTO();
+	public CardDTOV1 generateMidExamCard(String sectionId) {
+		CardDTOV1 midExamCard = new CardDTOV1();
 		String cardTitle = curriculumRepo.findSectionName(sectionId);
 
 		midExamCard.setCardType(MID_EXAM_CARD_TYPE);
@@ -198,8 +198,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		return midExamCard;
 	}
 
-	public CardDTO generateSupplementCard(List<UserKnowledge> lowMasteryList) {
-		CardDTO supplementCard = new CardDTO();
+	public CardDTOV1 generateSupplementCard(List<UserKnowledge> lowMasteryList) {
+		CardDTOV1 supplementCard = new CardDTOV1();
 
 		String cardTitle = "취약 유형 3개 복습";
 
@@ -218,8 +218,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		return supplementCard;
 	}
 
-	public CardDTO generateTypeCard(Integer typeId) {
-		CardDTO typeCard = new CardDTO();
+	public CardDTOV1 generateTypeCard(Integer typeId) {
+		CardDTOV1 typeCard = new CardDTOV1();
 
 		String cardTitle = problemTypeRepo.findTypeNameById(typeId);
 		//		String sectionTitle = problemTypeRepo.findSubSectionNameById(typeId);
@@ -236,7 +236,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		else
 			typeProbIdList = problemRepo.findAllProbIdByType(typeId);
 		if (typeProbIdList.size() == 0)
-			return new CardDTO();
+			return new CardDTOV1();
 
 		else {
 			//			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
@@ -298,15 +298,15 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			Map<String, List<Problem>> diffProbList = generateDiffProbListByProb(typeProbList);
 			printDiffProbList(diffProbList);
 			if (!diffProbList.containsKey("중"))
-				return new CardDTO();
+				return new CardDTOV1();
 			typeCard = addProblemList(typeCard, diffProbList, MAX_SMALL_CARD_PROBLEM_NUM);
 			typeCard.setFirstProbLevel("middle");
 			return typeCard;
 		}
 	}
 
-	public CardDTO generateTrialExamCard(List<String> subSectionList) {
-		CardDTO trialExamCard = new CardDTO();
+	public CardDTOV1 generateTrialExamCard(List<String> subSectionList) {
+		CardDTOV1 trialExamCard = new CardDTOV1();
 
 		String cardTitle = "중학교 3학년 1학기 기말고사";
 
@@ -330,7 +330,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 	@Override
 	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
 		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
-		List<CardDTO> cardList = new ArrayList<CardDTO>();
+		List<CardDTOV1> cardList = new ArrayList<CardDTOV1>();
 
 		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -420,7 +420,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		if (totalSectionSet.size() != 0) {
 			String sectionId = totalSectionSet.iterator().next();
 			logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
-			CardDTO midExamCard = generateMidExamCard(sectionId);
+			CardDTOV1 midExamCard = generateMidExamCard(sectionId);
 			cardList.add(midExamCard);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
@@ -456,7 +456,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		// 보충 채울만큼 넉넉하면 보충 카드
 		if (lowMasteryList.size() >= MAX_SMALL_CARD_PROBLEM_NUM) {
 			logger.info("	이해도 낮은게 많아서 보충 카드 진행");
-			CardDTO supplementCard = generateSupplementCard(lowMasteryList);
+			CardDTOV1 supplementCard = generateSupplementCard(lowMasteryList);
 			cardList.add(supplementCard);
 		}
 
@@ -472,7 +472,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		if (remainTypeIdList.size() != 0) {
 			for (Integer typeId : remainTypeIdList) {
 				logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
-				CardDTO typeCard;
+				CardDTOV1 typeCard;
 				typeCard = generateTypeCard(typeId);
 				// 문제가 하나도 없으면 뛰어넘자
 				if (typeCard.getCardType() == null) {
@@ -497,7 +497,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return output;
 		} else {
 			logger.info("	다 풀어서 모의고사 카드 진행. ");
-			CardDTO trialExamCard = generateTrialExamCard(subSectionList);
+			CardDTOV1 trialExamCard = generateTrialExamCard(subSectionList);
 			cardList.add(trialExamCard);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
@@ -507,9 +507,9 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 	@Override
 	// set to dummy --> 4개 카드 종류별로 return
-	public NormalScheduleCardDTO getNormalScheduleCardDummy(String userId) {
-		NormalScheduleCardDTO output = new NormalScheduleCardDTO();
-		List<CardDTO> cardList = new ArrayList<CardDTO>();
+	public NormalScheduleCardDTOV1 getNormalScheduleCardDummy(String userId) {
+		NormalScheduleCardDTOV1 output = new NormalScheduleCardDTOV1();
+		List<CardDTOV1> cardList = new ArrayList<CardDTOV1>();
 
 		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -552,21 +552,21 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 
 		Integer typeId = 1081;
 		logger.info("1. 유형 카드: " + typeId);
-		CardDTO typeCard;
+		CardDTOV1 typeCard;
 		typeCard = generateTypeCard(typeId);
 		cardList.add(typeCard);
 
 		logger.info("2. 보충 카드");
-		CardDTO supplementCard = generateSupplementCard(new ArrayList<UserKnowledge>());
+		CardDTOV1 supplementCard = generateSupplementCard(new ArrayList<UserKnowledge>());
 		cardList.add(supplementCard);
 
 		String sectionId = "중등-중3-1학-03-01";
 		logger.info("3. 중간평가 카드: " + sectionId);
-		CardDTO midExamCard = generateMidExamCard(sectionId);
+		CardDTOV1 midExamCard = generateMidExamCard(sectionId);
 		cardList.add(midExamCard);
 
 		logger.info("4. 모의고사 카드");
-		CardDTO trialExamCard = generateTrialExamCard(subSectionList);
+		CardDTOV1 trialExamCard = generateTrialExamCard(subSectionList);
 		cardList.add(trialExamCard);
 
 		output.setCardList(cardList);
@@ -575,9 +575,9 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 	}
 
 	@Override
-	public NormalScheduleCardDTO getNormalScheduleCard(String userId) {
-		NormalScheduleCardDTO output = new NormalScheduleCardDTO();
-		List<CardDTO> cardList = new ArrayList<CardDTO>();
+	public NormalScheduleCardDTOV1 getNormalScheduleCard(String userId) {
+		NormalScheduleCardDTOV1 output = new NormalScheduleCardDTOV1();
+		List<CardDTOV1> cardList = new ArrayList<CardDTOV1>();
 
 		// Timestamp todayTimestamp = Timestamp.valueOf(LocalDate.now().atStartOfDay());
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -646,7 +646,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		// 보충 채울만큼 넉넉하면 보충 카드
 		if (lowMasteryList.size() >= MAX_SMALL_CARD_PROBLEM_NUM) {
 			logger.info("	이해도 낮은게 많아서 보충 카드 진행");
-			CardDTO supplementCard = generateSupplementCard(lowMasteryList);
+			CardDTOV1 supplementCard = generateSupplementCard(lowMasteryList);
 			cardList.add(supplementCard);
 		}
 
@@ -670,7 +670,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 		if (remainTypeIdList.size() != 0) {
 			for (Integer typeId : remainTypeIdList) {
 				logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
-				CardDTO typeCard;
+				CardDTOV1 typeCard;
 				typeCard = generateTypeCard(typeId);
 				// 문제가 하나도 없으면 뛰어넘자
 				if (typeCard.getCardType() == null) {
@@ -695,7 +695,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBase {
 			return output;
 		} else {
 			logger.info("	다 풀어서 모의고사 카드 진행. ");
-			CardDTO trialExamCard = generateTrialExamCard(subSectionList);
+			CardDTOV1 trialExamCard = generateTrialExamCard(subSectionList);
 			cardList.add(trialExamCard);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");

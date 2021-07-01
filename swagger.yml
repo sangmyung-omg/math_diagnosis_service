@@ -91,16 +91,14 @@ paths:
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic" 
-  /examschedulecard:
+  /recommend/v1/examschedulecard:
     get:
       tags:
         - "Schedule"
-      summary: "오늘의 시험 대비 학습 스케줄 카드 구성 리턴"
+      summary: "시험 대비 학습 스케줄 카드 구성 리턴 v1"
       description: |
         - 사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
         - Full path = http://192.168.153.213:8080/recommend/v1/examschedulecard
-      servers:
-        - url: http://192.168.153.213:8080/recommend/v1/
       parameters:
         - $ref: "#/components/parameters/UserToken"
       responses:
@@ -113,16 +111,14 @@ paths:
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic"
-  /normalschedulecard:
+  /recommend/v1/normalschedulecard:
     get:
       tags:
         - "Schedule"
-      summary: "오늘의 실력 향상 학습 스케줄 카드 구성 리턴"
+      summary: "실력 향상 학습 스케줄 카드 구성 리턴 v1"
       description: |
         - 사용자의 실력 향상 학습 스케줄 오늘 카드 구성 리턴
         - Full path = http://192.168.153.213:8080/recommend/v1/normalschedulecard
-      servers:
-        - url: http://192.168.153.213:8080/recommend/v1/
       parameters:
         - $ref: "#/components/parameters/UserToken"
       responses:
@@ -131,7 +127,28 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/NormalScheduleCard"
+                $ref: "#/components/schemas/NormalScheduleCardV1"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic"
+  /recommend/v2/normalschedulecard:
+    get:
+      tags:
+        - "Schedule"
+      summary: "실력 향상 학습 스케줄 카드 구성 리턴 v2"
+      description: |
+        - 사용자의 실력 향상 학습 스케줄 카드 구성 리턴
+        - 21.06.30 기획 반영
+        - Full path = http://192.168.153.213:8080/recommend/v2/normalschedulecard
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NormalScheduleCardV2"
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic"
@@ -247,8 +264,8 @@ components:
           type: "array"
           description: "오늘 카드 목록"
           items:
-            $ref: "#/components/schemas/CardObject"
-    NormalScheduleCard:
+            $ref: "#/components/schemas/CardObjectV1"
+    NormalScheduleCardV1:
       type: "object"
       description: "오늘의 실력 향상 학습 스케줄 카드 구성 정보"
       required:
@@ -263,8 +280,24 @@ components:
           type: "array"
           description: "오늘 카드 목록"
           items:
-            $ref: "#/components/schemas/CardObject"
-    CardObject:
+            $ref: "#/components/schemas/CardObjectV1"
+    NormalScheduleCardV2:
+      type: "object"
+      description: "오늘의 실력 향상 학습 스케줄 카드 구성 정보"
+      required:
+        - "message"
+        - "cardList"
+      properties:
+        message:
+          type: "string"
+          example: "Successfully returned today exam card."
+          description: "결과 메시지"
+        cardList:
+          type: "array"
+          description: "오늘 카드 목록"
+          items:
+            $ref: "#/components/schemas/CardObjectV2"
+    CardObjectV1:
       type: "object"
       description: "카드 정보. 유형/보충은 4-6문제, 중간평가/모의고사는 20문제"
       required:
@@ -313,7 +346,7 @@ components:
           type: "array"
           description: "상/중/하 난이도를 포함한 문제 ID 세트 목록"
           items:
-            $ref: "#/components/schemas/ProbIdSet"
+            $ref: "#/components/schemas/ProbIdSetV1"
           example:
             - high: 10
               middle: 11
@@ -321,7 +354,78 @@ components:
             - high: 20
               middle: 21
               low: 22
-    ProbIdSet:
+    CardObjectV2:
+      type: "object"
+      description: "카드 정보. 카드 내 유형 단위로 자르고, 유형 안에서 각 난이도 별 최대 5개 문제 제공"
+      required:
+        - "cardType"
+        - "cardTitle"
+        - "firstProbLevel"
+        - "estimatedTime"
+        - "cardScore"
+        - "cardDetail"
+        - "probIdList"
+        - "probIdSetList"
+      properties:
+        cardType:
+          type: "string"
+          example: "type"
+          enum:
+            - "type"
+            - "supple"
+            - "sectionMidExam"
+            - "chapterMidExam"
+            - "trialExam"
+          description: "카드 종류. \nsectionMidExam: 실력향상 중단원 중간평가. \n chapterMidExam: 시험대비 대단원 중간평가."
+        cardTitle:
+          type: "string"
+          example: "유한소수와 무한소수"
+          description: "카드 이름. UI 가이드 참고"
+        firstProbLevel:
+          type: "string"
+          example: "high"
+          description: "학생의 이해도 기반, 첫 번째 문제의 난이도"
+          enum:
+            - "high"
+            - "middle"
+            - "low"
+        estimatedTime:
+          type: number
+          example: 900
+          description: "카드 푸는데 걸리는 예상 소요 시간 (sec)"
+        cardScore:
+          type: "number"
+          example: 71.88207
+          description: "해당 카드의 점수 (보충 카드는 null)"
+        cardDetail:
+          type: "string"
+          example: "{\"subSection\":\"순환소수\",\"section\":\"유리수와 순환소수\",\"chapter\":\"수와 식\"}"
+          description: "카드 상세 정보를 담은 json string. \n1) 유형카드 : 유형이 속한 단원 이름. 'subSection'-'소단원 이름', 'section'-'중단원 이름', 'chapter'-'대단원 이름' \n2) 보충카드 : 보충 카드에 속한 유형 '이름'-'점수' \n3) 중간평가카드 : 중단원 내 소단원 (or 대단원 내 중단원) '이름'-'점수'\n4) 모의고사카드 : 시험범위 내 대단원 '이름'-'점수'\n5) 시험대비카드 : 중단원이 속한 대단원 이름. 'chapter'-'대단원 이름'"
+        probIdSetList:
+          type: "array"
+          description: "상/중/하 난이도를 포함한 문제 ID 리스트 json 리스트. 리스트 크기는 유형 개수만큼 주어짐."
+          items:
+            $ref: "#/components/schemas/ProbIdSetV2"
+          example:
+            - high: [1,2,3]
+              middle: [4,5,6]
+              low: [7,8,9]
+            - high: [10,11]
+              middle: []
+              low: [13]
+        probIdList:
+          type: "array"
+          description: "난이도가 정해진 문제 ID 리스트. 실력향상의 중간 평가는 adaptive 출제가 아니기 때문에, 문제 난이도가 정해짐. probIdSetList 혹은 probIdList 둘 중 하나만 값이 포함됨."
+          items:
+            type: number
+            description: "문제 Id"
+          example:
+            - 11
+            - 12
+            - 13
+            - 14
+            - 15
+    ProbIdSetV1:
       type: "object"
       required:
         - "high"
@@ -340,6 +444,31 @@ components:
           type: number
           example: 13
           description: "하 난이도 문제 Id"
+    ProbIdSetV2:
+      type: "object"
+      required:
+        - "high"
+        - "middle"
+        - "low"
+      properties:
+        high:
+          type: array
+          items:
+            type: number
+          example: [11, 12, 13]
+          description: "상 난이도 문제 Id 리스트"
+        middle:
+          type: array
+          items:
+            type: number
+          example: [21, 22, 23]
+          description: "중 난이도 문제 Id 리스트"
+        low:
+          type: array
+          items:
+            type: number
+          example: [31, 32]
+          description: "하 난이도 문제 Id 리스트"
     ProbIdList:
       type: array
       description: "문제 ID 목록"

@@ -9,34 +9,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV1;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
-import com.tmax.WaplMath.Recommend.util.schedule.CardGeneratorV1;
-import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfiguratorV1;
+import com.tmax.WaplMath.Recommend.util.schedule.CardGeneratorV2;
+import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfiguratorV2;
 import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV1;
 
 /**
- * Generate today normal/exam schedule card v1
+ * Generate today normal/exam schedule card v2
  * @author Sangheon_lee
+ * @since 2021-06-30
  */
-@Service("ScheduleServiceV1")
-public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
+@Service("ScheduleServiceV2")
+public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	@Autowired
-	CardGeneratorV1 cardGenerator = new CardGeneratorV1();
+	CardGeneratorV2 cardGenerator = new CardGeneratorV2();
 	@Autowired
-	ScheduleConfiguratorV1 scheduleConfigurator = new ScheduleConfiguratorV1();
+	ScheduleConfiguratorV2 scheduleConfigurator = new ScheduleConfiguratorV2();
 	@Autowired
 	ScheduleHistoryManagerV1 historyManager;
+	
+	@Override
+	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
+		return null;
+	}
 
 	@Override
-	public NormalScheduleCardDTOV1 getNormalScheduleCard(String userId) {
-		NormalScheduleCardDTOV1 output = new NormalScheduleCardDTOV1();
-		List<CardDTOV1> cardList = new ArrayList<CardDTOV1>();
+	public NormalScheduleCardDTOV2 getNormalScheduleCard(String userId) {
+		NormalScheduleCardDTOV2 output = new NormalScheduleCardDTOV2();
+		List<CardDTOV2> cardList = new ArrayList<CardDTOV2>();
 		ScheduleConfigDTO scheduleConfig;
 		try {
 			scheduleConfig = scheduleConfigurator.getNormalScheduleConfig(userId);
@@ -46,7 +52,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
 		}
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
-		CardDTOV1 card;
+		CardDTOV2 card;
 		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
@@ -62,10 +68,9 @@ public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
 	}
 
 	@Override
-	// set to dummy --> 4개 카드 종류별로 return
-	public NormalScheduleCardDTOV1 getNormalScheduleCardDummy(String userId) {
-		NormalScheduleCardDTOV1 output = new NormalScheduleCardDTOV1();
-		List<CardDTOV1> cardList = new ArrayList<CardDTOV1>();
+	public NormalScheduleCardDTOV2 getNormalScheduleCardDummy(String userId) {
+		NormalScheduleCardDTOV2 output = new NormalScheduleCardDTOV2();
+		List<CardDTOV2> cardList = new ArrayList<CardDTOV2>();
 		ScheduleConfigDTO scheduleConfig;
 		try {
 			scheduleConfig = scheduleConfigurator.getDummyScheduleConfig(userId);
@@ -76,7 +81,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
-		CardDTOV1 card;
+		CardDTOV2 card;
 		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
@@ -86,12 +91,6 @@ public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
 		output.setMessage("Successfully return curriculum card list.");
 		return output;
 
-	}
-
-	@Override
-	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
-		ExamScheduleCardDTO output = new ExamScheduleCardDTO();
-		return output;
 	}
 
 }

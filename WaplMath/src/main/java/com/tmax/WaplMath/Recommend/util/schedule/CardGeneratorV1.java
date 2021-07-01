@@ -16,7 +16,7 @@ import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Recommend.dto.mastery.CurrMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.DiffProbListDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetDTO;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
@@ -29,11 +29,11 @@ import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import lombok.Setter;
 
 /**
- * Generate normal/exam schedule card information
+ * Generate normal/exam schedule card information v1
  * @author Sangheon_lee
  */
 @Component
-public class CardGenerator {
+public class CardGeneratorV1 {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
@@ -129,7 +129,7 @@ public class CardGenerator {
 	}
 
 	// 카드 안에 난이도 별로 문제 담기
-	public CardDTO addProblemList(CardDTO card, DiffProbListDTO diffProbList, Integer PROBLEM_NUM) {
+	public CardDTOV1 addProblemList(CardDTOV1 card, DiffProbListDTO diffProbList, Integer PROBLEM_NUM) {
 		List<ProblemSetDTO> problemSetList = card.getProbIdSetList();
 		Integer estimatedTime = card.getEstimatedTime();
 		DiffProbListDTO paddedProbList = padProbList(diffProbList);
@@ -169,7 +169,7 @@ public class CardGenerator {
 	}
 
 	// 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 난이도 고려하여 문제 추출 모듈
-	public CardDTO addCurrProblemWithMastery(CardDTO card, String superCurrId, String superCurrType, Integer probNum, Integer verbose) {
+	public CardDTOV1 addCurrProblemWithMastery(CardDTOV1 card, String superCurrId, String superCurrType, Integer probNum, Integer verbose) {
 		// superCurr 내의 모든 curr 불러오기
 		List<String> currIdList = new ArrayList<String>();
 		List<CurrMasteryDTO> currMasteryList = new ArrayList<CurrMasteryDTO>();
@@ -255,7 +255,7 @@ public class CardGenerator {
 
 
 	// 소단원 내 문제 출제 모듈. 마스터리가 낮은 유형 순서대로 많이 출제
-	public CardDTO addSubSectionProblem(CardDTO card, String subSectionId, Integer probNum, Integer verbose) {
+	public CardDTOV1 addSubSectionProblem(CardDTOV1 card, String subSectionId, Integer probNum, Integer verbose) {
 		List<Integer> typeIdList = problemTypeRepo.findTypeIdListInSubSection(subSectionId);
 		List<TypeMasteryDTO> typeMasteryList = userKnowledgeRepo.findTypeMasteryList(userId, typeIdList);
 		Map<Integer, Integer> typeProbNumMap = new HashMap<Integer, Integer>();
@@ -296,8 +296,8 @@ public class CardGenerator {
 	}
 
 	// 실력 향상 / 시험 대비 - 중간 평가 카드 (type=section/chapter)
-	public CardDTO generateMidExamCard(String curriculumId, String type) {
-		CardDTO midExamCard = new CardDTO();
+	public CardDTOV1 generateMidExamCard(String curriculumId, String type) {
+		CardDTOV1 midExamCard = new CardDTOV1();
 		CurrMasteryDTO mastery;
 		if (type.equals("section"))
 			mastery = userKnowledgeRepo.findSectionMastery(userId, curriculumId);
@@ -318,8 +318,8 @@ public class CardGenerator {
 	}
 
 	// 실력 향상 - 유형카드
-	public CardDTO generateTypeCard(Integer typeId) {
-		CardDTO typeCard = new CardDTO();
+	public CardDTOV1 generateTypeCard(Integer typeId) {
+		CardDTOV1 typeCard = new CardDTOV1();
 		String cardTitle = problemTypeRepo.findTypeNameById(typeId);
 
 		typeCard.setCardType(TYPE_CARD_TYPE);
@@ -344,7 +344,7 @@ public class CardGenerator {
 
 		List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
 		if (typeProbList.size() == 0)
-			return new CardDTO();
+			return new CardDTOV1();
 		else {
 			DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
@@ -355,8 +355,8 @@ public class CardGenerator {
 	}
 
 	// 실력 향상 - 보충카드
-	public CardDTO generateSupplementCard(List<TypeMasteryDTO> lowMasteryTypeList) {
-		CardDTO supplementCard = new CardDTO();
+	public CardDTOV1 generateSupplementCard(List<TypeMasteryDTO> lowMasteryTypeList) {
+		CardDTOV1 supplementCard = new CardDTOV1();
 		String cardTitle = String.format(SUPPLEMENT_CARD_TITLE_FORMAT, lowMasteryTypeList.size());
 
 		supplementCard.setCardType(SUPPLEMENT_CARD_TYPE);
@@ -386,8 +386,8 @@ public class CardGenerator {
 	}
 
 	// 시험 대비 - 모의고사 카드
-	public CardDTO generateTrialExamCard(String trialExamType) {
-		CardDTO trialExamCard = new CardDTO();
+	public CardDTOV1 generateTrialExamCard(String trialExamType) {
+		CardDTOV1 trialExamCard = new CardDTOV1();
 		String cardTitle = "";
 		String[] trialExamInfo = trialExamType.split("-");
 		if (trialExamInfo[2].equals("mid"))
@@ -409,8 +409,8 @@ public class CardGenerator {
 		return trialExamCard;
 	}
 
-	public CardDTO generateCard(CardConfigDTO cardConfig) {
-		CardDTO card = new CardDTO();
+	public CardDTOV1 generateCard(CardConfigDTO cardConfig) {
+		CardDTOV1 card = new CardDTOV1();
 		switch (cardConfig.getCardType()) {
 		case "type":
 			logger.info("------ {} card (type {})", cardConfig.getCardType(), cardConfig.getTypeId());

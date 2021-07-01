@@ -26,7 +26,7 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	@Query("select cm.curriculumId from Curriculum cm where cm.curriculumSequence >= :startSeq and cm.curriculumSequence <= :endSeq and CHAR_LENGTH(cm.curriculumId)=17")
 	List<String> findSubSectionListBySeq(@Param("startSeq") Integer startSeq, @Param("endSeq") Integer endSeq);
 
-	//신
+	//v1
 	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null")
 	List<String> findSubSectionListBetween(@Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId);
 
@@ -50,6 +50,10 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	
 	@Query("select pt.curriculum from ProblemType pt where pt.typeId = :typeId")
 	Curriculum findByType(@Param("typeId")Integer typeId);
+	
+	//21.07.01 card generator v2
+	@Query("select cm.curriculumId from Curriculum cm where (coalesce(:currIdSet, null) is null or cm.curriculumId in (:currIdSet)) order by cm.curriculumSequence asc")
+	List<String> sortByCurrSeq(@Param("currIdSet") Set<String> currIdSet);
 	
 	// 21.06.22. extra problems
 	@Query("SELECT DISTINCT C.part FROM Curriculum C, Curriculum SC, Curriculum EC WHERE SC.curriculumId = ?1 AND EC.curriculumId = ?2 AND C.curriculumSequence >= SC.curriculumSequence AND C.curriculumSequence <= EC.curriculumSequence AND C.subSection IS NOT NULL")

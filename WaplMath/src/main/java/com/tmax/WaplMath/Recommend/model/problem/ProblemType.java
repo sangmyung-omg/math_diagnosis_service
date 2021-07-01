@@ -23,6 +23,8 @@ public class ProblemType {
 	
 	private String curriculumId;
 	
+	private String frequent;
+	
 	@ManyToOne(cascade=(CascadeType.ALL))
 	@JoinColumn(name="curriculumId", insertable = false, updatable = false)
 	private Curriculum curriculum;

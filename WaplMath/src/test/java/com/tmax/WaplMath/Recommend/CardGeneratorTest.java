@@ -9,14 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-import com.tmax.WaplMath.Recommend.util.schedule.CardGenerator;
+import com.tmax.WaplMath.Recommend.util.schedule.CardGeneratorV1;
 
 @SpringBootTest
 public class CardGeneratorTest {
 	@Autowired
-	CardGenerator cardGenerator;
+	CardGeneratorV1 cardGenerator;
 	@Autowired
 	private UserKnowledgeRepository userKnowledgeRepo;
 
@@ -34,7 +34,7 @@ public class CardGeneratorTest {
 		List<Integer> suppleTypeIdList = new ArrayList<Integer>(Arrays.asList());
 		List<Integer> solvedTypeIdList = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 15, 17, 19));
 		List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, suppleTypeIdList, 0.4f);
-		CardDTO midCard = cardGenerator.generateSupplementCard(lowMasteryTypeList);
+		CardDTOV1 midCard = cardGenerator.generateSupplementCard(lowMasteryTypeList);
 		System.out.println(midCard.getProbIdSetList());
 		System.out.println(midCard.getProbIdSetList().size());
 		System.out.println(midCard.getCardDetail());

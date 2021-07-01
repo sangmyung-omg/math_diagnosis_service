@@ -9,7 +9,7 @@ import lombok.Data;
  * @author Sangheon Lee
  */
 @Data
-public class CardDTO {
+public class CardDTOV1 {
 	private String cardType;
 	private String cardTitle;
 	private String firstProbLevel;

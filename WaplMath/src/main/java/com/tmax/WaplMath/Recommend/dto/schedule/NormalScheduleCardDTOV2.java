@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class ExamScheduleCardDTO {
+public class NormalScheduleCardDTOV2 {
 	public String message;
-	public List<CardDTOV1> cardList;
+	public List<CardDTOV2> cardList;
 }

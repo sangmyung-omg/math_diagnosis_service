@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.config.RecommendConstants;
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTO;
-import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBase;
+import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV1;
+import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBaseV1;
 
 /**
  * Learning schedule recommendation api controller (version 1)
@@ -31,7 +31,7 @@ public class ScheduleControllerV1 {
 	
 	@Autowired
 	@Qualifier("ScheduleServiceV1")
-	private ScheduleServiceBase scheduleMvc;
+	private ScheduleServiceBaseV1 scheduleMvc;
 
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
@@ -46,7 +46,7 @@ public class ScheduleControllerV1 {
 	ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		logger.info("userId: "+userId);
-		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
+		NormalScheduleCardDTOV1 normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
 		System.out.println("version 1");
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
 	}
@@ -55,7 +55,7 @@ public class ScheduleControllerV1 {
 	ResponseEntity<Object> getNormalScheduleCardDummy(@RequestHeader("token") String token) {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		logger.info("userId: "+userId);
-		NormalScheduleCardDTO normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
+		NormalScheduleCardDTOV1 normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
 		System.out.println("version 1");
 		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
 	}
