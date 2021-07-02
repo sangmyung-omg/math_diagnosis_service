@@ -352,7 +352,7 @@ public class ScheduleConfiguratorV2 {
 		// 중간 평가 카드 (중단원)
 		String sectionId = currentCurriculumId.substring(0, 14);
 		logger.info("중간평가 진행(중단원): " + sectionId);
-		cardConfigList.add(CardConfigDTO.builder().cardType("midExam").midExamCurriculumId(sectionId).midExamType("section").build());
+		cardConfigList.add(CardConfigDTO.builder().cardType("sectionMidExam").midExamCurriculumId(sectionId).midExamType("section").build());
 		addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 
 		//		String chapterId = currentCurriculumId.substring(0, 11);
