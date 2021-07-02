@@ -103,6 +103,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				end = "중등-중3-2학-03-02-01";
 			}else {
 				start = targetExamScope.getStartSubSection();
+				//start = "중등-중1-1학-01-01-01";
 				end = "중등-중3-2학-03-02-01";
 			}
 			
@@ -171,7 +172,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 			
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,notEleDiagnosisSubsectionList,5));
 			}
-			//진단고사에서 학습한 소단원이 존재하지 않는 경우
+			//진단고사에서 학습한 소단원이 존재하지 않는 경우 --> 기획적으로 존재하지 않음
 			else {
 				
 				try {
@@ -204,14 +205,16 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				//오늘 소단원
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
 				
+				
 				//오늘 소단원에서 출제할 문제는, 최근 공부 소단원에서 출제할 문제와 중복되면 안됨.
-				int todayProvidedProbId = recommendFreqProbIdList.get(0).getProblemId();
+				int todayProvidedProbId=0;
+				if(todayProbList.size()!=0) {
+					todayProvidedProbId = recommendFreqProbIdList.get(0).getProblemId();
+				}
 				List<Integer> forNotProvided = new ArrayList<Integer>();
 				forNotProvided.addAll(solvedProbIdList);
 				forNotProvided.add(todayProvidedProbId);
-				
-				
-				logger.info("\nforNotProvided : " + forNotProvided);
+
 				//
 				List<UserFrequentProblem> recentProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(forNotProvided,subsectionList);
 				List<FreqProbCurriDTO> recentProbList = entityToDto(recentProbList_m);
@@ -274,8 +277,8 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 	//각 소단원마다 빈출 문제 골고루 뽑는 로직
 	public List<FrequentProblemDTO> SortingAndRecommend(List<FreqProbCurriDTO> freqProbSec, List<String> subsectionList , int num) {
 		
-		logger.info("\n빈출문제 - 소단원 매핑 set : " + freqProbSec);
-		logger.info("\n이해도 낮은 순서로 정렬된 소단원 리스트 : " + subsectionList);
+		//logger.info("\n빈출문제 - 소단원 매핑 set : " + freqProbSec);
+		//logger.info("\n이해도 낮은 순서로 정렬된 소단원 리스트 : " + subsectionList);
 		
 		List<FrequentProblemDTO> recommendFreqProbIdList = new ArrayList<FrequentProblemDTO>();
 
@@ -298,7 +301,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				}
 			}
 		}
-		logger.info("\n소단원 이해도 낮은 순서로 골고루 빈출 문제 뽑힐 수 있게 sorting : " + resultList);
+		//logger.info("\n소단원 이해도 낮은 순서로 골고루 빈출 문제 뽑힐 수 있게 sorting : " + resultList);
 		
 
 		//추천 문제 개수 최대 num개
@@ -389,9 +392,9 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 	
 	
 	@Override
-	public FrequentCardDTO getFrequentCard(String userId, TodaySubsectionListDTO todaySubsectionList) {
+	public FrequentCardDTO getFrequentCard(String userId, boolean isFirstFrequent) {
 		
-		boolean isFirstFreq = todaySubsectionList.getIsFirstFrequent();
+		boolean isFirstFreq = isFirstFrequent;
 		
 		//반환할 빈출 카드
 		FrequentCardDTO FrequentCard = new FrequentCardDTO();
@@ -448,8 +451,9 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 				
 				
 				//다른건 문제리스트가 없을 수 있어도, 오늘의 카드 문제리스트가 없을 수는 없음
-				if(todayCardProbIdList.size()==0) {
+				if(!isFirstFreq&&todayCardProbIdList.size()==0) {
 					FrequentCard.setResultMessage("No today-card problems in LRS.");
+					return FrequentCard;
 				}
 
 				

@@ -340,9 +340,9 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 	
 	
 	@Override
-	public FrequentCardDTO getFrequentCard(String userId, TodaySubsectionListDTO todaySubsectionList) {
+	public FrequentCardDTO getFrequentCard(String userId, boolean isFirstFrequent) {
 		
-		boolean isFirstFreq = todaySubsectionList.getIsFirstFrequent();
+		boolean isFirstFreq = isFirstFrequent;
 		
 		//반환할 빈출 카드
 		FrequentCardDTO FrequentCard = new FrequentCardDTO();
