@@ -20,6 +20,5 @@ public class CardDTOV2 {
 	private Float cardScore;
 	private String cardDetail;
 	private List<ProblemSetListDTO> probIdSetList;
-	private List<Integer> probIdList;
 
 }

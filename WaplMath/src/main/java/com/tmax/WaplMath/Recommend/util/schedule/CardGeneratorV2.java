@@ -40,11 +40,13 @@ public class CardGeneratorV2 {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Hyperparameter
+	private static final Integer MIN_TYPE_CARD_PROB_NUM = 2;
 	private static final Integer MAX_TYPE_CARD_PROB_NUM = 5;
 	private static final Integer SUPPLE_CARD_PROB_NUM_PER_TYPE = 2;
-	private static final Integer MID_EXAM_CARD_PROB_NUM = 15;
-	private static final Integer MID_EXAM_CARD_LOW_HIGH_PROB = 4;
-	private static final Integer MID_EXAM_CARD_MIDDLE_PROB = 7;
+	private static final Integer MID_EXAM_CARD_PROB_NUM = 20;
+	private static final Integer MID_EXAM_CARD_HIGH_PROB = 5;
+	private static final Integer MID_EXAM_CARD_MIDDLE_PROB = 9;
+	private static final Integer MID_EXAM_CARD_LOW_PROB = 6;
 
 	private static final Integer AVERAGE_PROB_ESTIMATED_TIME = 180;
 	private static final float MASTERY_HIGH_THRESHOLD = 0.7f;
@@ -53,15 +55,15 @@ public class CardGeneratorV2 {
 	// Constant
 	private static final String TYPE_CARD_TYPE = "type";
 	private static final String SUPPLEMENT_CARD_TYPE = "supple";
-	private static final String NORMAL_MID_EXAM_CARD_TYPE = "sectionMidExam";
-	private static final String EXAM_MID_EXAM_CARD_TYPE = "chapterMidExam";
+	private static final String SECTION_MID_EXAM_CARD_TYPE = "sectionMidExam";
+	private static final String CHAPTER_MID_EXAM_CARD_TYPE = "chapterMidExam";
 	private static final String TRIAL_EXAM_CARD_TYPE = "trialExam";
 	private static final String SUPPLEMENT_CARD_TITLE_FORMAT = "취약 유형 %d개 복습";
 	private static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s 대비";
 
 	// logging option
 	private final Boolean printProbInfo = true; //level 1
-	private final Boolean printTypeMastery = false; //level 2
+	private final Boolean printMastery = false; //level 2
 	private final Boolean printTypeInfo = true; //level 3
 	private final Boolean printCurrInfo = true; //level 4
 
@@ -133,7 +135,7 @@ public class CardGeneratorV2 {
 	}
 
 	// 카드 안에 난이도 별로 문제 담기
-	public void addProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MAX_PROBLEM_NUM) {
+	public void addAllProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROBLEM_NUM, Integer MAX_PROBLEM_NUM) {
 		List<ProblemSetListDTO> problemSetList = card.getProbIdSetList();
 		Integer estimatedTime = card.getEstimatedTime();
 
@@ -146,8 +148,10 @@ public class CardGeneratorV2 {
 		// Add
 		ProblemSetListDTO probSetListDTO = ProblemSetListDTO.builder()
 															.high(getIdListFromProbList(highProbList))
-															.middle(getIdListFromProbList(highProbList))
+															.middle(getIdListFromProbList(middleProbList))
 															.low(getIdListFromProbList(lowProbList))
+															.min(MIN_PROBLEM_NUM)
+															.max(MAX_PROBLEM_NUM)
 															.build();
 		problemSetList.add(probSetListDTO);
 
@@ -161,21 +165,25 @@ public class CardGeneratorV2 {
 	}
 
 	// 카드 안에 난이도 확정 문제 담기
-	public void addProblemList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MAX_PROBLEM_NUM, List<Integer> probDiffRatio) {
-		List<Integer> probIdList = card.getProbIdList();
+	public void addRatioProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROB_NUM, Integer MAX_PROBLEM_NUM, List<Integer> probDiffRatio) {
+		List<ProblemSetListDTO> problemSetList = card.getProbIdSetList();
 		Integer estimatedTime = card.getEstimatedTime();
-
-		// 긴 순서 난이도 리턴 ["상", "하", "중"]
+		
+		ProblemSetListDTO probSetListDTO = ProblemSetListDTO.builder()
+															.min(MIN_PROB_NUM)
+															.max(MAX_PROBLEM_NUM)
+															.build();
+		// 긴 순서 난이도 리턴. ex) ["상", "하", "중"]
 		List<String> lengthOrderedDiffList = diffProbList.getLenOrderedDiffList();
 		Integer probIdx = 0;
 		for (String diff : lengthOrderedDiffList) {
 			List<Problem> probList = diffProbList.getDiffProbList(diff);
 			Integer diffIdx = 0;
-			Integer DIFF_MAX_PROB = MID_EXAM_CARD_LOW_HIGH_PROB;
+			Integer DIFF_MAX_PROB = MID_EXAM_CARD_HIGH_PROB;
 			switch (diff) {
 				case "상":
 					diffIdx = 0;
-					DIFF_MAX_PROB = MID_EXAM_CARD_LOW_HIGH_PROB;
+					DIFF_MAX_PROB = MID_EXAM_CARD_HIGH_PROB;
 					break;
 				case "중":
 					diffIdx = 1;
@@ -183,7 +191,7 @@ public class CardGeneratorV2 {
 					break;
 				case "하":
 					diffIdx = 2;
-					DIFF_MAX_PROB = MID_EXAM_CARD_LOW_HIGH_PROB;
+					DIFF_MAX_PROB = MID_EXAM_CARD_LOW_PROB;
 					break;
 			}
 			Integer currentProbNum = probDiffRatio.get(diffIdx);
@@ -191,7 +199,7 @@ public class CardGeneratorV2 {
 				Integer addableProbNum = Math.min(DIFF_MAX_PROB - currentProbNum, probList.size());
 				for (int i = 0; i < addableProbNum; i++) {
 					if (printProbInfo)	logger.info("	probId={}({}) 추가", probList.get(i).getProbId(), diff);
-					probIdList.add(probList.get(i).getProbId());
+					probSetListDTO.addDiffProb(probList.get(i).getProbId(), diff);
 					Float probDBTime = probList.get(i).getTimeRecommendation();
 					Integer probTime = (probDBTime == null || probDBTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(probDBTime);
 					estimatedTime += probTime;
@@ -209,9 +217,9 @@ public class CardGeneratorV2 {
 			for (String diff : lengthOrderedDiffList) {
 				List<Problem> probList = diffProbList.getDiffProbList(diff);
 				for (Problem prob : probList) {
-					if (!probIdList.contains(prob.getProbId())) {
+					if (!probSetListDTO.getDiffProbIdList(diff).contains(prob.getProbId())) {
 						if (printProbInfo)	logger.info("	probId={}({}) 추가", prob.getProbId(), diff);
-						probIdList.add(prob.getProbId());
+						probSetListDTO.addDiffProb(prob.getProbId(), diff);
 						Float probDBTime = prob.getTimeRecommendation();
 						Integer probTime = (probDBTime == null || probDBTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(probDBTime);
 						estimatedTime += probTime;
@@ -224,11 +232,12 @@ public class CardGeneratorV2 {
 					break;
 			}
 		}
-		card.setProbIdList(probIdList);
+		problemSetList.add(probSetListDTO);
+		card.setProbIdSetList(problemSetList);
 		card.setEstimatedTime(estimatedTime);
 	}
 
-	public void addCurrProblemWithFrequent(CardDTOV2 card, String superCurrId, String superCurrType, Integer probNum, Boolean isTriplet,
+	public void addCurrProblemWithFrequent(CardDTOV2 card, String superCurrId, String superCurrType, Integer probNum, Boolean isAdaptive,
 		List<Integer> probDiffRatio, Integer verbose) {
 		// superCurr 내의 모든 curr 불러오기
 		List<String> freqOrderedCurrIdList = new ArrayList<String>();
@@ -253,19 +262,7 @@ public class CardGeneratorV2 {
 		int probCnt = 0;
 		while (probCnt != probNum) {
 			for (String currId : freqOrderedCurrIdList) {
-				List<Problem> currProblems = new ArrayList<Problem>();
-				switch (superCurrType) {
-					case "section":
-						currProblems = problemRepo.NfindProbListBySubSection(currId, solvedProbIdSet);
-						break;
-					case "chapter":
-						currProblems = problemRepo.NfindProbListBySection(currId, solvedProbIdSet);
-						break;
-					case "exam":
-						currProblems = problemRepo.NfindProbListByChapter(currId, solvedProbIdSet);
-						break;
-				}
-				if (currProblems.size() != 0) {
+				if (problemRepo.findProbListByCurrId(currId, solvedProbIdSet).size() != 0) {
 					if (currProbNumMap.containsKey(currId))
 						currProbNumMap.put(currId, currProbNumMap.get(currId) + 1);
 					else
@@ -276,7 +273,7 @@ public class CardGeneratorV2 {
 					break;
 			}
 		}
-
+		// 커리큘럼 순서대로 카드 내 단원 문제들 배치
 		List<String> seqOrderedCurrIdList = curriculumRepo.sortByCurrSeq(currProbNumMap.keySet());
 		CurrMasteryDTO currMastery;
 		JsonObject cardDetailJson = new JsonObject();
@@ -287,7 +284,7 @@ public class CardGeneratorV2 {
 					if (printCurrInfo && verbose != 0)
 						logger.info("소단원 {} 내에서 {} 문제 출제", currId, currProbNum);
 					currMastery = userKnowledgeRepo.findMasteryBySubSection(userId, currId);
-					addSubSectionProblemWithFrequent(card, currId, currProbNum, isTriplet, probDiffRatio, verbose);
+					addSubSectionProblemWithFrequent(card, currId, currProbNum, isAdaptive, probDiffRatio, verbose);
 					cardDetailJson.addProperty(currMastery.getCurrName(), currMastery.getMastery() * 100.0f);
 					break;
 				case "chapter":
@@ -296,7 +293,7 @@ public class CardGeneratorV2 {
 						logger.info("중단원 {} 내에서 {} 문제 출제", currId, currProbNum);
 					}
 					currMastery = userKnowledgeRepo.findMasteryBySection(userId, currId);
-					addCurrProblemWithFrequent(card, currId, "section", currProbNum, isTriplet, probDiffRatio, verbose);
+					addCurrProblemWithFrequent(card, currId, "section", currProbNum, isAdaptive, probDiffRatio, verbose);
 					cardDetailJson.addProperty(currMastery.getCurrName(), currMastery.getMastery() * 100.0f);
 					break;
 				case "exam":
@@ -305,7 +302,7 @@ public class CardGeneratorV2 {
 						logger.info("대단원 {} 내에서 {} 문제 출제", currId, currProbNum);
 					}
 					currMastery = userKnowledgeRepo.findMasteryByChapter(userId, currId);
-					addCurrProblemWithFrequent(card, currId, "chapter", currProbNum, isTriplet, probDiffRatio, verbose);
+					addCurrProblemWithFrequent(card, currId, "chapter", currProbNum, isAdaptive, probDiffRatio, verbose);
 					cardDetailJson.addProperty(currMastery.getCurrName(), currMastery.getMastery() * 100.0f);
 					break;
 			}
@@ -331,7 +328,7 @@ public class CardGeneratorV2 {
 				break;
 		}
 
-		if (printCurrInfo && verbose != 0) {
+		if (printMastery && verbose != 0) {
 			logger.info("{} {} 내 단원 들 = ", superCurrType, superCurrId);
 			for (CurrMasteryDTO currMastery : currMasteryList)
 				logger.info("{}\t{}\t(mastery={})", currMastery.getCurrId(), currMastery.getCurrName(), currMastery.getMastery());
@@ -343,19 +340,7 @@ public class CardGeneratorV2 {
 				String currId = currMastery.getCurrId();
 				String currName = currMastery.getCurrName();
 				Float mastery = currMastery.getMastery();
-				List<Problem> currProblems = new ArrayList<Problem>();
-				switch (superCurrType) {
-					case "section":
-						currProblems = problemRepo.NfindProbListBySubSection(currId, solvedProbIdSet);
-						break;
-					case "chapter":
-						currProblems = problemRepo.NfindProbListBySection(currId, solvedProbIdSet);
-						break;
-					case "exam":
-						currProblems = problemRepo.NfindProbListByChapter(currId, solvedProbIdSet);
-						break;
-				}
-				if (currProblems.size() != 0) {
+				if (problemRepo.findProbListByCurrId(currId, solvedProbIdSet).size() != 0) {
 					if (currProbNumMap.containsKey(currId))
 						currProbNumMap.put(currId, currProbNumMap.get(currId) + 1);
 					else {
@@ -368,7 +353,7 @@ public class CardGeneratorV2 {
 					break;
 			}
 		}
-
+		// 커리큘럼 순서대로 카드 내 단원 문제들 배치
 		List<String> seqOrderedCurrIdList = curriculumRepo.sortByCurrSeq(currProbNumMap.keySet());
 		for (String currId : seqOrderedCurrIdList) {
 			Integer currProbNum = currProbNumMap.get(currId);
@@ -397,8 +382,8 @@ public class CardGeneratorV2 {
 		card.setCardDetail(cardDetailJson.toString());
 	}
 
-	// 소단원 내 문제 출제 모듈. 마스터리가 낮은 유형 순서대로 많이 출제
-	public void addSubSectionProblemWithFrequent(CardDTOV2 card, String subSectionId, Integer probNum, Boolean isTriplet,
+	// 소단원 내 문제 출제 모듈. 빈출 유형인 것들 중에 출제
+	public void addSubSectionProblemWithFrequent(CardDTOV2 card, String subSectionId, Integer probNum, Boolean isAdaptive,
 		List<Integer> probDiffRatio, Integer verbose) {
 		List<Integer> freqTypeIdList = problemTypeRepo.findFreqTypeIdListInSubSection(subSectionId);
 		Map<Integer, Integer> typeProbNumMap = new HashMap<Integer, Integer>();
@@ -417,6 +402,7 @@ public class CardGeneratorV2 {
 					break;
 			}
 		}
+		// 커리큘럼 순서대로 카드 내 유형 문제들 구성
 		List<Integer> seqOrderedTypeidList = problemTypeRepo.sortByTypeSeq(typeProbNumMap.keySet());
 		for (Integer typeId : seqOrderedTypeidList) {
 			Integer typeProbNum = typeProbNumMap.get(typeId);
@@ -425,10 +411,10 @@ public class CardGeneratorV2 {
 			List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
 			DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
-			if (isTriplet)
-				addProblemSetList(card, diffProbList, typeProbNum);
+			if (isAdaptive)
+				addAllProblemSetList(card, diffProbList, typeProbNum, typeProbNum);
 			else
-				addProblemList(card, diffProbList, typeProbNum, probDiffRatio);
+				addRatioProblemSetList(card, diffProbList, typeProbNum, typeProbNum, probDiffRatio);
 		}
 		card.setCardDetail(cardDetailJson.toString());
 	}
@@ -438,7 +424,7 @@ public class CardGeneratorV2 {
 		List<Integer> typeIdList = problemTypeRepo.findTypeIdListInSubSection(subSectionId);
 		List<TypeMasteryDTO> typeMasteryList = userKnowledgeRepo.findTypeMasteryList(userId, typeIdList);
 		Map<Integer, Integer> typeProbNumMap = new HashMap<Integer, Integer>();
-		if (printTypeMastery && verbose != 0) {
+		if (printMastery && verbose != 0) {
 			logger.info("소단원 {} 내 유형들 = ", subSectionId);
 			for (TypeMasteryDTO typeMastery : typeMasteryList)
 				logger.info("{} (mastery={})", typeMastery.getTypeId(), typeMastery.getMastery());
@@ -471,7 +457,7 @@ public class CardGeneratorV2 {
 				Float firstProbMastery = userKnowledgeRepo.findTypeMastery(userId, typeId).getMastery();
 				card.setFirstProbLevel(getFirstProbLevel(firstProbMastery));
 			}
-			addProblemSetList(card, diffProbList, typeProbNum);
+			addAllProblemSetList(card, diffProbList, typeProbNum, typeProbNum);
 		}
 		card.setCardDetail(cardDetailJson.toString());
 	}
@@ -487,14 +473,14 @@ public class CardGeneratorV2 {
 		cardDetailJson.addProperty("chapter", typeCurriculum.getChapter());
 		// 유형 점수
 		TypeMasteryDTO typeMastery = userKnowledgeRepo.findTypeMastery(userId, typeId);
-		Float cardScore = typeMastery != null ? typeMastery.getMastery() * 100 : 79.283f;
+		Float mastery = typeMastery != null ? typeMastery.getMastery() : 0.6328f;
 		CardDTOV2 typeCard = CardDTOV2.builder()
 									  .cardType(TYPE_CARD_TYPE)
 									  .cardTitle(cardTitle)
 									  .probIdSetList(new ArrayList<ProblemSetListDTO>())
 									  .estimatedTime(0)
 									  .cardDetail(cardDetailJson.toString())
-									  .cardScore(cardScore)
+									  .cardScore(mastery* 100)
 									  .build();
 
 		List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
@@ -503,13 +489,13 @@ public class CardGeneratorV2 {
 		else {
 			DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
-			addProblemSetList(typeCard, diffProbList, MAX_TYPE_CARD_PROB_NUM);
-			typeCard.setFirstProbLevel(getFirstProbLevel(typeMastery.getMastery()));
+			addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
+			typeCard.setFirstProbLevel(getFirstProbLevel(mastery));
 			return typeCard;
 		}
 	}
 
-	// 실력 향상의 중간 평가 카드 (type=section)
+	// 실력 향상 - 중간 평가 카드 (type="section")
 	public CardDTOV2 generateNormalMidExamCard(String curriculumId, String type) {
 		CurrMasteryDTO mastery;
 		if (type.equals("section"))
@@ -519,9 +505,9 @@ public class CardGeneratorV2 {
 		logger.info("{}, {}, {}", mastery.getCurrId(), mastery.getCurrName(), mastery.getMastery());
 		List<Integer> probDiffRatio = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
 		CardDTOV2 midExamCard = CardDTOV2.builder()
-										 .cardType(NORMAL_MID_EXAM_CARD_TYPE)
+										 .cardType(SECTION_MID_EXAM_CARD_TYPE)
 										 .cardTitle(mastery.getCurrName())
-										 .probIdList(new ArrayList<Integer>())
+										 .probIdSetList(new ArrayList<ProblemSetListDTO>())
 										 .estimatedTime(0)
 										 .cardScore(mastery.getMastery() * 100)
 										 .build();
@@ -550,7 +536,7 @@ public class CardGeneratorV2 {
 			List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, null);
 			DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
-			addProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE);
+			addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
 			cardDetailJson.addProperty(typeName, mastery * 100.0f);
 			if (cnt == 1)
