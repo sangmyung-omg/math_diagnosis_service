@@ -42,10 +42,6 @@ public class ScheduleConfiguratorV2 {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Hyperparameter
-	private static final Integer MAX_CARD_NUM = 5;
-	private static final Integer SUPPLE_CARD_TYPE_NUM = 3;
-	private static final Integer SUPPLE_CARD_TYPE_THRESHOLD = 30;
-	private static final Float LOW_MASTERY_THRESHOLD = 1.0f;
 
 	// Repository
 	@Autowired
@@ -74,6 +70,7 @@ public class ScheduleConfiguratorV2 {
 		// today
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String today = LocalDate.now().format(formatter);
+		this.today = today;
 		// Get solved problem set
 		List<String> sourceTypeList = new ArrayList<String>(
 			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
@@ -102,11 +99,29 @@ public class ScheduleConfiguratorV2 {
 		logger.info("전체 소단원 범위 = {}", subSectionIdList);
 		return subSectionIdList;
 	}
-
+	
+	public String getUserExamKeyword(String userId) throws Exception {
+		User userInfo;
+		try {
+			userInfo = userRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
+		} catch (NoSuchElementException e) {
+			throw new Exception(String.format("userId = %s is not in USER_MASTER TB.", e.getMessage()));
+		}
+		// Check whether user exam information is null
+		String grade = userInfo.getGrade();
+		String semester = userInfo.getSemester();
+		String examType = userInfo.getExamType();
+		if (examType == null || grade == null || semester == null) {
+			throw new Exception("One of user's info is null. Call UserInfo PUT service first.");
+		}
+		return String.format("%s-%s-%s", grade, semester, examType);
+	}
+	
 	public ScheduleConfigDTO getNormalScheduleConfig(String userId) throws Exception {
 		ScheduleConfigDTO output = new ScheduleConfigDTO();
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
 		Set<String> addtlSubSectionIdSet = new HashSet<String>();
+		Integer totalCardProbNum = 0;
 		// 학년 학기 내 소단원 목록들
 		List<String> subSectionIdList = getSubSectionScope(userId);
 		logger.info("전체 소단원 범위 = {}", subSectionIdList);
@@ -153,7 +168,11 @@ public class ScheduleConfiguratorV2 {
 		if (sectionIdSet.size() != 0) {
 			String sectionId = sectionIdSet.iterator().next();
 			logger.info("중간에 다 풀었으니까 중간평가 진행: " + sectionId);
-			cardConfigList.add(CardConfigDTO.builder().cardType("midExam").midExamCurriculumId(sectionId).midExamType("section").build());
+			cardConfigList.add(CardConfigDTO.builder()
+											.cardType(CardConstants.SECTION_MID_EXAM_CARD_TYPE)
+											.midExamCurriculumId(sectionId)
+											.midExamType("section")
+											.build());
 			addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 			output.setCardConfigList(cardConfigList);
 			output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
@@ -161,8 +180,6 @@ public class ScheduleConfiguratorV2 {
 		}
 
 		// 보충 필요한지 판단
-		//		List<Integer> suppleTypeIdList = new ArrayList<Integer>(Arrays.asList());
-		//		List<Integer> solvedTypeIdList = new ArrayList<Integer>(Arrays.asList(1, 2, 3, 15, 17, 19));
 		List<Integer> suppleTypeIdList;
 		try {
 			suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "", "supple_question");
@@ -180,44 +197,56 @@ public class ScheduleConfiguratorV2 {
 		}
 		solvedTypeIdList.removeAll(suppleTypeIdList);
 		if (solvedTypeIdList.size() != 0) {
-			List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList, LOW_MASTERY_THRESHOLD);
+			List<TypeMasteryDTO> lowTypeMasteryList = userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList, CardConstants.LOW_MASTERY_THRESHOLD);
 			logger.info("8. 보충 카드로 풀어본 유형 제외, 낮은 유형 카드들의 이해도 리스트 = ");
-			for (TypeMasteryDTO typeMastery : lowMasteryTypeList)
+			for (TypeMasteryDTO typeMastery : lowTypeMasteryList)
 				logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
 
 			// 보충 채울만큼 넉넉하면 보충 카드
-			if (lowMasteryTypeList.size() >= SUPPLE_CARD_TYPE_NUM) {
+			if (lowTypeMasteryList.size() >= CardConstants.SUPPLE_CARD_TYPE_NUM) {
 				logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+				List<TypeMasteryDTO> typeMasteryList = lowTypeMasteryList.subList(0, CardConstants.SUPPLE_CARD_TYPE_NUM);
 				List<Integer> suppleCardTypeIdList = new ArrayList<Integer>();
-				for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM))
+				for (TypeMasteryDTO e : typeMasteryList)
 					suppleCardTypeIdList.add(e.getTypeId());
-				cardConfigList
-					.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
+				cardConfigList.add(CardConfigDTO.builder()
+									  			.cardType(CardConstants.SUPPLE_CARD_TYPE)
+									  			.typeMasteryList(typeMasteryList)
+									  			.build());
 				addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+				totalCardProbNum += CardConstants.SUPPLE_CARD_TYPE_NUM * CardConstants.SUPPLE_CARD_PROB_NUM_PER_TYPE;
 
-				if (lowMasteryTypeList.size() >= SUPPLE_CARD_TYPE_NUM * 2) {
+				if (lowTypeMasteryList.size() >= CardConstants.SUPPLE_CARD_TYPE_NUM * 2) {
 					logger.info("	보충카드 하나 더 추가");
+					typeMasteryList = lowTypeMasteryList.subList(CardConstants.SUPPLE_CARD_TYPE_NUM, CardConstants.SUPPLE_CARD_TYPE_NUM * 2);
 					suppleCardTypeIdList = new ArrayList<Integer>();
-					for (TypeMasteryDTO e : lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2))
+					for (TypeMasteryDTO e : typeMasteryList)
 						suppleCardTypeIdList.add(e.getTypeId());
-					cardConfigList.add(CardConfigDTO.builder().cardType("supple")
-						.lowMasteryTypeList(lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2)).build());
+					cardConfigList.add(CardConfigDTO.builder()
+													.cardType(CardConstants.SUPPLE_CARD_TYPE)
+													.typeMasteryList(typeMasteryList)
+													.build());
 					addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+					totalCardProbNum += CardConstants.SUPPLE_CARD_TYPE_NUM * CardConstants.SUPPLE_CARD_PROB_NUM_PER_TYPE;
 				}
 			}
 
 			// 많이 풀었는데 보충이 안나타나도 보충 카드
-			else if (solvedTypeIdList.size() >= SUPPLE_CARD_TYPE_THRESHOLD) {
-				logger.info("	{}개 이상 잘하고 있으니 보충 카드 진행", SUPPLE_CARD_TYPE_THRESHOLD);
-				List<TypeMasteryDTO> masteryTypeList = userKnowledgeRepo.findBottomTypeMasteryList(userId, solvedTypeIdList, SUPPLE_CARD_TYPE_NUM);
+			else if (solvedTypeIdList.size() >= CardConstants.SUPPLE_CARD_TYPE_THRESHOLD) {
+				logger.info("	{}개 이상 잘하고 있으니 보충 카드 진행", CardConstants.SUPPLE_CARD_TYPE_THRESHOLD);
+				List<TypeMasteryDTO> typeMasteryList = userKnowledgeRepo.findBottomTypeMasteryList(userId, solvedTypeIdList, CardConstants.SUPPLE_CARD_TYPE_NUM);
 				logger.info("	유형 카드들의 이해도 리스트 = ");
-				for (TypeMasteryDTO typeMastery : masteryTypeList)
+				for (TypeMasteryDTO typeMastery : typeMasteryList)
 					logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
 				List<Integer> suppleCardTypeIdList = new ArrayList<Integer>();
-				for (TypeMasteryDTO e : masteryTypeList)
+				for (TypeMasteryDTO e : typeMasteryList)
 					suppleCardTypeIdList.add(e.getTypeId());
-				cardConfigList.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(masteryTypeList).build());
+				cardConfigList.add(CardConfigDTO.builder()
+												.cardType(CardConstants.SUPPLE_CARD_TYPE)
+												.typeMasteryList(typeMasteryList)
+												.build());
 				addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+				totalCardProbNum += CardConstants.SUPPLE_CARD_TYPE_NUM * CardConstants.SUPPLE_CARD_PROB_NUM_PER_TYPE;
 			}
 		}
 		// 나머지 카드들 유형카드로 채우기
@@ -232,12 +261,33 @@ public class ScheduleConfiguratorV2 {
 					noProbTypeIdList.add(typeId);
 					continue;
 				}
-				cardConfigList.add(CardConfigDTO.builder().cardType("type").typeId(typeId).build());
+				cardConfigList.add(CardConfigDTO.builder()
+												.cardType(CardConstants.TYPE_CARD_TYPE)
+												.typeId(typeId)
+												.build());
 				addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
-				if (cardConfigList.size() == MAX_CARD_NUM)
+				totalCardProbNum += CardConstants.MAX_TYPE_CARD_PROB_NUM;
+				if (totalCardProbNum >= CardConstants.MAX_CARD_PROB_NUM)
 					break;
 			}
 			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeIdList);
+		}
+		// 유형도 다풀었는데 문제가 안채워지면 추가 보충카드
+		if (totalCardProbNum < CardConstants.MAX_CARD_PROB_NUM) {
+			String examKeyword = getUserExamKeyword(userId);
+			String examStartSubSectionId = ExamScope.examScope.get(examKeyword).get(0);
+			String examEndSubSectionId = ExamScope.examScope.get(examKeyword).get(1);
+			Integer addtiTypeNum = (int) Math.ceil((CardConstants.MAX_CARD_PROB_NUM - totalCardProbNum) / 2.0);
+			List<TypeMasteryDTO> addtiTypeMasteryList = userKnowledgeRepo.findTypeMasteryListBetween(userId, examStartSubSectionId, examEndSubSectionId)
+																		 .subList(0, addtiTypeNum);			
+			List<Integer> addtlSuppleCardTypeIdList = new ArrayList<Integer>();
+			for (TypeMasteryDTO e : addtiTypeMasteryList)
+				addtlSuppleCardTypeIdList.add(e.getTypeId());
+			cardConfigList.add(CardConfigDTO.builder()
+											.cardType(CardConstants.ADDTL_SUPPLE_CARD_TYPE)
+											.typeMasteryList(addtiTypeMasteryList)
+											.build());
+			addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(addtlSuppleCardTypeIdList));
 		}
 		output.setCardConfigList(cardConfigList);
 		output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
@@ -287,16 +337,16 @@ public class ScheduleConfiguratorV2 {
 		List<Integer> solvedTypeIdList = new ArrayList<Integer>(
 			Arrays.asList(remainTypeList.get(1).getTypeId(), remainTypeList.get(2).getTypeId(), remainTypeList.get(3).getTypeId()));
 		List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, suppleTypeIdList,
-			LOW_MASTERY_THRESHOLD);
+			CardConstants.LOW_MASTERY_THRESHOLD);
 		logger.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
 		for (TypeMasteryDTO typeMastery : lowMasteryTypeList)
 			logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
 		logger.info("	이해도 낮은게 많아서 보충 카드 진행");
 		List<Integer> suppleCardTypeIdList = new ArrayList<Integer>();
-		for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM))
+		for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, CardConstants.SUPPLE_CARD_TYPE_NUM))
 			suppleCardTypeIdList.add(e.getTypeId());
 		cardConfigList
-			.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
+			.add(CardConfigDTO.builder().cardType("supple").typeMasteryList(lowMasteryTypeList.subList(0, CardConstants.SUPPLE_CARD_TYPE_NUM)).build());
 		addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 
 		// 중간 평가 카드 (중단원)

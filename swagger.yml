@@ -403,28 +403,20 @@ components:
           description: "카드 상세 정보를 담은 json string. \n1) 유형카드 : 유형이 속한 단원 이름. 'subSection'-'소단원 이름', 'section'-'중단원 이름', 'chapter'-'대단원 이름' \n2) 보충카드 : 보충 카드에 속한 유형 '이름'-'점수' \n3) 중간평가카드 : 중단원 내 소단원 (or 대단원 내 중단원) '이름'-'점수'\n4) 모의고사카드 : 시험범위 내 대단원 '이름'-'점수'\n5) 시험대비카드 : 중단원이 속한 대단원 이름. 'chapter'-'대단원 이름'"
         probIdSetList:
           type: "array"
-          description: "상/중/하 난이도를 포함한 문제 ID 리스트 json 리스트. 리스트 크기는 유형 개수만큼 주어짐."
+          description: "상/중/하 난이도를 포함한 문제 ID 리스트 json 리스트. 각 json은 유형 내 모든 문제에 대한 정보임. 리스트 크기는 유형 개수만큼 주어짐."
           items:
             $ref: "#/components/schemas/ProbIdSetV2"
           example:
-            - high: [1,2,3]
+            - min: 2
+              max: 5
+              high: [1,2,3,10,11]
               middle: [4,5,6]
               low: [7,8,9]
-            - high: [10,11]
+            - min: 2
+              max: 2
+              high: [10,11]
               middle: []
               low: [13]
-        probIdList:
-          type: "array"
-          description: "난이도가 정해진 문제 ID 리스트. 실력향상의 중간 평가는 adaptive 출제가 아니기 때문에, 문제 난이도가 정해짐. probIdSetList 혹은 probIdList 둘 중 하나만 값이 포함됨."
-          items:
-            type: number
-            description: "문제 Id"
-          example:
-            - 11
-            - 12
-            - 13
-            - 14
-            - 15
     ProbIdSetV1:
       type: "object"
       required:
@@ -447,10 +439,18 @@ components:
     ProbIdSetV2:
       type: "object"
       required:
+        - "min"
+        - "max"
         - "high"
         - "middle"
         - "low"
       properties:
+        min:
+          type: number
+          description: 해당 유형 내에서 최소 내야하는 문제 수
+        max:
+          type: number
+          description: 해당 유형 내에서 최대 낼 수 있는 문제 수
         high:
           type: array
           items:

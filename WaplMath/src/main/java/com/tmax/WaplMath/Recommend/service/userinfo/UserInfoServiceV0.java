@@ -226,17 +226,6 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		if (output.getMessage() != null) {
 			return output;
 		}
-			
-		
-		// USER_MASTER 테이블에 유저 기본 정보 저장
-		User userObject = userRepository.findById(userId).orElse(new User());
-		userObject.setUserUuid(userId);
-		userObject.setGrade(grade);
-		userObject.setSemester(semester);
-		userObject.setName(name);
-		userObject.setCurrentCurriculumId(currentCurriculumId);
-
-		userRepository.save(userObject);
 
 		/*
 		 * 시험 범위 (mid / final) 판단해서 USER_EXAM_SCOPE 테이블에 시작 소단원, 끝 소단원 넣기
@@ -251,6 +240,18 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 				term = "mid";
 			} else term = "final";
 		}
+		
+		
+		// USER_MASTER 테이블에 유저 기본 정보 저장
+		User userObject = userRepository.findById(userId).orElse(new User());
+		userObject.setUserUuid(userId);
+		userObject.setGrade(grade);
+		userObject.setSemester(semester);
+		userObject.setName(name);
+		userObject.setCurrentCurriculumId(currentCurriculumId);
+		userObject.setExamType(term);
+	
+		userRepository.save(userObject);
 		
 		// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
 		List<String> scope = examScope.get(grade+"-"+semester+"-"+term);

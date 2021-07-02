@@ -418,7 +418,7 @@ public class CardGeneratorV1 {
 			break;
 		case "supple":
 			logger.info("------ {} card", cardConfig.getCardType());
-			card = generateSupplementCard(cardConfig.getLowMasteryTypeList());
+			card = generateSupplementCard(cardConfig.getTypeMasteryList());
 			break;
 		case "midExam":
 			logger.info("------ {} card ({} {})", cardConfig.getCardType(), cardConfig.getMidExamType(), cardConfig.getMidExamCurriculumId());

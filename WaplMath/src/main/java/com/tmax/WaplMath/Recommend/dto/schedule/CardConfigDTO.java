@@ -12,7 +12,7 @@ import lombok.Data;
 public class CardConfigDTO {
 	public String cardType;
 	public Integer typeId;
-	public List<TypeMasteryDTO> lowMasteryTypeList;
+	public List<TypeMasteryDTO> typeMasteryList;
 	public String midExamCurriculumId;
 	public String midExamType;
 	public String trialExamType;

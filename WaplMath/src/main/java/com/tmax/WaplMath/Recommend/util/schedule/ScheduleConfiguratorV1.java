@@ -194,7 +194,7 @@ public class ScheduleConfiguratorV1 {
 				for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM))
 					suppleCardTypeIdList.add(e.getTypeId());
 				cardConfigList
-					.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
+					.add(CardConfigDTO.builder().cardType("supple").typeMasteryList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
 				addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 
 				if (lowMasteryTypeList.size() >= SUPPLE_CARD_TYPE_NUM * 2) {
@@ -203,7 +203,7 @@ public class ScheduleConfiguratorV1 {
 					for (TypeMasteryDTO e : lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2))
 						suppleCardTypeIdList.add(e.getTypeId());
 					cardConfigList.add(CardConfigDTO.builder().cardType("supple")
-						.lowMasteryTypeList(lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2)).build());
+						.typeMasteryList(lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2)).build());
 					addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 				}
 			}
@@ -287,7 +287,7 @@ public class ScheduleConfiguratorV1 {
 		for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM))
 			suppleCardTypeIdList.add(e.getTypeId());
 		cardConfigList
-			.add(CardConfigDTO.builder().cardType("supple").lowMasteryTypeList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
+			.add(CardConfigDTO.builder().cardType("supple").typeMasteryList(lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM)).build());
 		addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 
 		// 중간 평가 카드 (중단원)

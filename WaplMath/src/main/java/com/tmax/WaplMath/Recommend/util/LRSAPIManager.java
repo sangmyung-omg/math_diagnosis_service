@@ -107,7 +107,7 @@ public class LRSAPIManager {
 
 		if (input.getDateTo() != null) {
 			msg.addProperty("dateTo", covertToISO8601Format(input.getDateTo()));
-			// logger.info(convertToJsonArray(userIdList));
+			logger.info("{}", input.getDateTo());
 		}
 
 		if (input.getRecentStatementNum() != null) {
