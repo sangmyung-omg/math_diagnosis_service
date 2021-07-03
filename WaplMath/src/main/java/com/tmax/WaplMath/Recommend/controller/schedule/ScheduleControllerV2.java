@@ -42,7 +42,7 @@ public class ScheduleControllerV2 {
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
 		String userId = JWTUtil.getJWTPayloadField(token, "userID");
 		logger.info("userId: " + userId);
-		ExamScheduleCardDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
+		NormalScheduleCardDTOV2 examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
 		logger.info("version 2");
 		return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
 	}

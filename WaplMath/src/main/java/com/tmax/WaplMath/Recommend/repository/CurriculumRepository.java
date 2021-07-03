@@ -30,6 +30,9 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null")
 	List<String> findSubSectionListBetween(@Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId);
 
+	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null and (coalesce(:exceptSubSectionIdList, null) is null or cm.curriculumId not in (:exceptSubSectionIdList))")
+	List<String> findSubSectionListBetweenExcept(@Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId, @Param("exceptSubSectionIdList") List<String> exceptSubSectionIdList);
+
 	@Query("select distinct cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:sectionId, '%') and cm.subSection is not null")
 	List<String> findSubSectionListInSection(@Param("sectionId") String sectionId);
 	

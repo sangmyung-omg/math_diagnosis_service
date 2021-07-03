@@ -35,8 +35,31 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 	ScheduleHistoryManagerV1 historyManager;
 	
 	@Override
-	public ExamScheduleCardDTO getExamScheduleCard(String userId) {
-		return null;
+	public NormalScheduleCardDTOV2 getExamScheduleCard(String userId) {
+		NormalScheduleCardDTOV2 output = new NormalScheduleCardDTOV2();
+		List<CardDTOV2> cardList = new ArrayList<CardDTOV2>();
+		ScheduleConfigDTO scheduleConfig;
+		try {
+			scheduleConfig = scheduleConfigurator.getExamScheduleConfig(userId);
+		} catch (Exception e) {
+			output.setMessage("schedule configuration failure. " + e.getMessage());
+			return output;
+		}
+		cardGenerator.userId = userId;
+		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
+		CardDTOV2 card;
+		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
+		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
+			card = cardGenerator.generateCard(cardConfig);
+			cardList.add(card);
+		}
+		if (cardList.size() == 0) {
+			output.setMessage("No cards were created. User seems to have solved all the problems.");
+			return output;
+		}
+		output.setCardList(cardList);
+		output.setMessage("Successfully return curriculum card list.");
+		return output;
 	}
 
 	@Override

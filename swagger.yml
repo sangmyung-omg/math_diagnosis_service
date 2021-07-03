@@ -492,32 +492,43 @@ components:
           - "pass"
     UserExamInfo:
       type: "object"
-      description: "사용자 시험 정보"
+      description: "사용자 시험 정보. examStartDate과 examDueDate는 둘다 값이 있거나 null 이어야 함. startSubSectionId과 endSubSectionId는 둘다 값이 있거나 null 이어야 함. exceptSubSectionIdList는 nullable."
       required:
-        - "examType"
         - "examStartDate"
         - "examDueDate"
         - "targetScore"
+        - "startSubSectionId"
+        - "endSubSectionId"
+        - "exceptSubSectionIdList"
       properties:
-        examType:
-          type: "string"
-          example: "mid"
-          description: "시험 종류. mid/final"
-          enum:
-            - "mid"
-            - "final"
         examStartDate:
           type: "string"
-          example: "2021-06-01"
+          example: "2021-07-01"
           description: "시험 준비 시작 날짜. yyyy-mm-dd 형식"
         examDueDate:
           type: "string"
-          example: "2021-06-14"
+          example: "2021-07-14"
           description: "시험 날짜. yyyy-mm-dd 형식"
         targetScore:
           type: number
           example: 85
           description: "목표 시험 점수"
+        startSubSectionId:
+          type: string
+          example: "중등-중3-1학-03-01-01"
+          description: "시험 범위 시작 소단원 id"
+        endSubSectionId:
+          type: string
+          example: "중등-중3-1학-04-01-04"
+          description: "시험 범위 끝 소단원 id"
+        exceptSubSectionIdList:
+          type: array
+          items:
+            type: string
+          example: 
+            - "중등-중3-1학-04-01-01"
+            - "중등-중3-1학-04-01-02"
+          description: "시험 범위에 포함되지 않는 소단원 id 리스트"
     
     UserBasicInfo:
       type: object

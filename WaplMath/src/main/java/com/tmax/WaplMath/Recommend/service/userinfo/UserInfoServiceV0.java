@@ -71,59 +71,77 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 	public ResultMessageDTO updateExamInfo(String userId, UserExamInfoDTO input) {
 		ResultMessageDTO output = new ResultMessageDTO();
 
-		String examType = input.getExamType();
+		// load user_master tb
+		User user = userRepository.findById(userId).orElse(new User());
+		user.setUserUuid(userId);
+		// parse input
 		String examStartDate = input.getExamStartDate();
 		String examDueDate = input.getExamDueDate();
 		Integer targetScore = input.getTargetScore();
-
-		if (!examType.equals("mid") && !examType.equals("final")) {
-			output.setMessage("'examType' should be either 'mid' or 'final'.");
-			return output;
+		if (examStartDate != null && examDueDate != null) {
+			LocalDateTime examStartDateTime, examDueDateTime;
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			try {
+				examStartDateTime = LocalDate.parse(examStartDate, dtf).atStartOfDay();
+				examDueDateTime = LocalDate.parse(examDueDate, dtf).atStartOfDay();
+			} catch (DateTimeParseException e) {
+				output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
+				return output;
+			}
+			user.setExamStartDate(Timestamp.valueOf(examStartDateTime));
+			user.setExamDueDate(Timestamp.valueOf(examDueDateTime));
 		}
-
-		LocalDateTime examStartDateTime, examDueDateTime;
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		try {
-			examStartDateTime = LocalDate.parse(examStartDate, dtf).atStartOfDay();
-			examDueDateTime = LocalDate.parse(examDueDate, dtf).atStartOfDay();
-		} catch (DateTimeParseException e) {
-			output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
-			return output;
-		}
-
+		if (targetScore != null)
+			user.setExamTargetScore(targetScore);
 		// update user_master tb
-		User userObject = userRepository.findById(userId).orElse(new User());
+		userRepository.save(user);
 
-		userObject.setUserUuid(userId);
-		userObject.setExamType(examType);
-		userObject.setExamStartDate(Timestamp.valueOf(examStartDateTime));
-		userObject.setExamDueDate(Timestamp.valueOf(examDueDateTime));
-		userObject.setExamTargetScore(targetScore);
-
-		userRepository.save(userObject);
-
-		// update user_exam_scope tb
-		String grade = userObject.getGrade();
-		String semester = userObject.getSemester();
-
-		if (grade != null && semester != null) {
-			String examRangeKey = grade + "-" + semester + "-" + examType;
-			List<String> examRangeSubSection = examScope.get(examRangeKey);
-
-			String startSubSection = examRangeSubSection.get(0);
-			String endSubSection = examRangeSubSection.get(1);
-
-			UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
-
-			userExamScope.setUserUuid(userId);
-			userExamScope.setStartSubSectionId(startSubSection);
-			userExamScope.setEndSubSectionId(endSubSection);
-
-			userExamScopeRepo.save(userExamScope);
+		// load user_exam_scope tb
+		UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
+		userExamScope.setUserUuid(userId);
+		// parse input
+		String startSubSectionId = input.getStartSubSectionId();
+		String endSubSectionId = input.getEndSubSectionId();
+		List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
+		if (startSubSectionId != null && endSubSectionId != null) {
+			userExamScope.setStartSubSectionId(startSubSectionId);
+			userExamScope.setEndSubSectionId(endSubSectionId);
 		}
+		if (exceptSubSectionIdList != null) {
+			String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
+			userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
+		}
+		// update user_exam_scope tb
+		userExamScopeRepo.save(userExamScope);
+		
+		// if able to set exam type
+//		String examType = input.getExamType();
+//		if (!examType.equals("mid") && !examType.equals("final")) {
+//			output.setMessage("'examType' should be either 'mid' or 'final'.");
+//			return output;
+//		}
+//		userObject.setExamType(examType);
+		
+//		String grade = userObject.getGrade();
+//		String semester = userObject.getSemester();
+//
+//		if (grade != null && semester != null) {
+//			String examRangeKey = grade + "-" + semester + "-" + examType;
+//			List<String> examRangeSubSection = examScope.get(examRangeKey);
+//
+//			String startSubSection = examRangeSubSection.get(0);
+//			String endSubSection = examRangeSubSection.get(1);
+//
+//			UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
+//
+//			userExamScope.setUserUuid(userId);
+//			userExamScope.setStartSubSectionId(startSubSection);
+//			userExamScope.setEndSubSectionId(endSubSection);
+//
+//			userExamScopeRepo.save(userExamScope);
+//		}
 
 		output.setMessage("Successfully update user exam info.");
-
 		return output;
 	}
 

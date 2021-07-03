@@ -43,8 +43,7 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 	List<Integer> findTypeIdListInSection(@Param("section") String section);
 
 	@Query("select pt from ProblemType pt where (coalesce(:subSectionList, null) is null or pt.curriculumId in (:subSectionList)) and (coalesce(:completedTypeIdList, null) is null or pt.typeId not in (:completedTypeIdList)) order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
-	List<ProblemType> NfindRemainTypeIdList(@Param("subSectionList") List<String> subSectionList,
-		@Param("completedTypeIdList") List<Integer> completedTypeIdList);
+	List<ProblemType> NfindRemainTypeIdList(@Param("subSectionList") List<String> subSectionList, @Param("completedTypeIdList") List<Integer> completedTypeIdList);
 
 	@Query("select pt.typeName from ProblemType pt where pt.typeId=:typeId")
 	String NfindTypeNameById(@Param("typeId") Integer typeId);

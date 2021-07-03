@@ -71,7 +71,7 @@ public class LRSAPIManager {
 		SimpleDateFormat ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+09:00");
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date_obj = dateFormat.parse(date);
-		logger.info(ISO8601.format(date_obj));
+		// logger.info(ISO8601.format(date_obj));
 		return ISO8601.format(date_obj);
 	}
 
@@ -107,7 +107,7 @@ public class LRSAPIManager {
 
 		if (input.getDateTo() != null) {
 			msg.addProperty("dateTo", covertToISO8601Format(input.getDateTo()));
-			logger.info("{}", input.getDateTo());
+			//logger.info("{}", input.getDateTo());
 		}
 
 		if (input.getRecentStatementNum() != null) {

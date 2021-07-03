@@ -1,6 +1,8 @@
 package com.tmax.WaplMath.Recommend.util.schedule;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,20 +68,6 @@ public class ScheduleConfiguratorV2 {
 	public @Getter Set<Integer> solvedProbIdSet;
 	public @Getter Set<String> examSubSectionIdSet;
 
-	public void setUserSolvedProbIdSet(String userId) throws Exception {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		String today = LocalDate.now().format(formatter);
-		this.today = today;
-		// Get solved problem set 
-		List<String> sourceTypeList = new ArrayList<String>(
-			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
-		try {
-			this.solvedProbIdSet = historyManager.getCompletedProbIdSet(userId, today, "", sourceTypeList);
-		} catch (Exception e) {
-			throw e;
-		}
-	}
-	
 	public User getValidUserInfo(String userId) throws Exception {
 		User userInfo;
 		try {
@@ -107,13 +95,47 @@ public class ScheduleConfiguratorV2 {
 			throw new Exception(String.format("userId = %s is not in USER_EXAM_SCOPE TB.", e.getMessage()));
 		}
 		// Check whether user exam information is null
+		Timestamp examStartDate = userExamScopeInfo.getUser().getExamStartDate();
+		Timestamp examDueDate = userExamScopeInfo.getUser().getExamDueDate();
 		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
 		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
-		if (startSubSectionId == null || endSubSectionId == null ) {
+		if (startSubSectionId == null || endSubSectionId == null || examStartDate == null || examDueDate == null) {
 			throw new Exception("One of user's exam info is null. Call UserInfo PUT service first.");
 		} else {
 			return userExamScopeInfo;
 		}
+	}
+	
+	public void setUserSolvedProbIdSet(String userId) throws Exception {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String today = LocalDate.now().format(formatter);
+		this.today = today;
+		// Get solved problem set 
+		List<String> sourceTypeList = new ArrayList<String>(
+			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
+		try {
+			this.solvedProbIdSet = historyManager.getCompletedProbIdSet(userId, today, "", sourceTypeList);
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	
+	public void setExamSubSectionIdSet(UserExamScope userExamScopeInfo) {
+		List<String> examSubSectionIdList=null;
+		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
+		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
+		String exceptSubSectionIdStr = userExamScopeInfo.getExceptSubSectionIdList();
+		List<String> exceptSubSectionIdList;
+		if(exceptSubSectionIdStr != null) {
+			exceptSubSectionIdList = Arrays.asList(exceptSubSectionIdStr.split(", "));
+			logger.info("{}", exceptSubSectionIdList);
+			examSubSectionIdList = curriculumRepo.findSubSectionListBetweenExcept(startSubSectionId, endSubSectionId, exceptSubSectionIdList); // 이번 학기 마지막까지
+		}else {
+			examSubSectionIdList = curriculumRepo.findSubSectionListBetween(startSubSectionId, endSubSectionId); // 이번 학기 마지막까지
+		}
+		this.examSubSectionIdSet = new HashSet<String>();
+		this.examSubSectionIdSet.addAll(examSubSectionIdList);
+		logger.info("시험 소단원 범위 = {}", examSubSectionIdSet);
 	}
 	
 	public List<String> getNormalSubSectionList(String userId) throws Exception {
@@ -121,16 +143,6 @@ public class ScheduleConfiguratorV2 {
 		User userInfo = getValidUserInfo(userId);
 		String endCurriculumId = ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
 		subSectionIdList = curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId); // 이번 학기 마지막까지
-		logger.info("전체 소단원 범위 = {}", subSectionIdList);
-		return subSectionIdList;
-	}
-	
-	public List<String> getExamSubSectionList(String userId) throws Exception {
-		List<String> subSectionIdList=null;
-		UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
-		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
-		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
-		//subSectionIdList = curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId); // 이번 학기 마지막까지
 		logger.info("전체 소단원 범위 = {}", subSectionIdList);
 		return subSectionIdList;
 	}
@@ -324,19 +336,13 @@ public class ScheduleConfiguratorV2 {
 		ScheduleConfigDTO output = new ScheduleConfigDTO();
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
 		Set<String> addtlSubSectionIdSet = new HashSet<String>();
+		UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
 		setUserSolvedProbIdSet(userId);
+		setExamSubSectionIdSet(userExamScopeInfo);
 		// get SubSection List
 		User userInfo = getValidUserInfo(userId);
 		String currentCurriculumId = userInfo.getCurrentCurriculumId();
 		List<String> subSectionIdList = getNormalSubSectionList(userId);
-
-		// for trialExam card
-		String userExamKeyword = getUserExamKeyword(userId);
-		String examStartCurriculumId = ExamScope.examScope.get(userExamKeyword).get(0);
-		String examEndCurriculumId = ExamScope.examScope.get(userExamKeyword).get(1);
-		List<String> examSubSectionList = curriculumRepo.findSubSectionListBetween(examStartCurriculumId, examEndCurriculumId); // 그냥 학년 마지막까지
-		this.examSubSectionIdSet = new HashSet<String>();
-		this.examSubSectionIdSet.addAll(examSubSectionList);
 
 		// 유형카드 : 첫 번째 유형
 		List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, null);
@@ -378,25 +384,52 @@ public class ScheduleConfiguratorV2 {
 										.build());
 		addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 
+		// 추가 보충 카드
+		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
+		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
+		Integer addtiTypeNum = (int) Math.ceil((CardConstants.MAX_CARD_PROB_NUM - 4) / 2.0);
+		List<TypeMasteryDTO> addtiTypeMasteryList = userKnowledgeRepo.findTypeMasteryListBetween(userId, startSubSectionId, endSubSectionId)
+																	 .subList(0, addtiTypeNum);			
+		List<Integer> addtlSuppleCardTypeIdList = new ArrayList<Integer>();
+		for (TypeMasteryDTO e : addtiTypeMasteryList)
+			addtlSuppleCardTypeIdList.add(e.getTypeId());
+		cardConfigList.add(CardConfigDTO.builder()
+										.cardType(CardConstants.ADDTL_SUPPLE_CARD_TYPE)
+										.typeMasteryList(addtiTypeMasteryList)
+										.build());
+		addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(addtlSuppleCardTypeIdList));
+				
 		// 모의고사 카드
+		String userExamKeyword = getUserExamKeyword(userId);
 		logger.info("모의고사 진행: " + userExamKeyword);
 		cardConfigList.add(CardConfigDTO.builder()
 										.cardType(CardConstants.TRIAL_EXAM_CARD_TYPE)
 										.trialExamType(userExamKeyword)
 										.build());
-		addtlSubSectionIdSet.addAll(examSubSectionList);
+		addtlSubSectionIdSet.addAll(this.examSubSectionIdSet);
 
 		output.setCardConfigList(cardConfigList);
 		output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
 		return output;
 	}
 
-	public ScheduleConfigDTO getExamScheduleConfig() throws Exception {
+	public ScheduleConfigDTO getExamScheduleConfig(String userId) throws Exception {
 		ScheduleConfigDTO output = new ScheduleConfigDTO();
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
 		Set<String> addtlSubSectionIdSet = new HashSet<String>();
+		UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
 		setUserSolvedProbIdSet(userId);
-		List<String> subSectionIdList = getExamSubSectionList(userId);
+		setExamSubSectionIdSet(userExamScopeInfo);
+		// check days to prepare exam
+		Timestamp examStartDate = userExamScopeInfo.getUser().getExamStartDate();
+		Timestamp examDueDate = userExamScopeInfo.getUser().getExamDueDate();
+		Period totalPeriod = Period.between(examStartDate.toLocalDateTime().toLocalDate(), examDueDate.toLocalDateTime().toLocalDate());
+		Integer totalDays = totalPeriod.getDays();
+		Period remainPeriod = Period.between(LocalDate.now(), examDueDate.toLocalDateTime().toLocalDate());
+		Integer remainDays = remainPeriod.getDays();
+		logger.info("시험 대비 총 일수 = {}, 오늘 기준 남은 일수 = {}", totalDays, remainDays);
+		// check days to prepare exam
+		
 		
 		output.setCardConfigList(cardConfigList);
 		output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
