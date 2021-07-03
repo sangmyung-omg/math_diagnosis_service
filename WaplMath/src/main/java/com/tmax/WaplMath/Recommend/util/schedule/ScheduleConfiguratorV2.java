@@ -20,6 +20,7 @@ import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
 import com.tmax.WaplMath.Recommend.model.user.User;
+import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
@@ -65,13 +66,11 @@ public class ScheduleConfiguratorV2 {
 	public @Getter Set<Integer> solvedProbIdSet;
 	public @Getter Set<String> examSubSectionIdSet;
 
-	public List<String> getSubSectionScope(String userId) throws Exception {
-		List<String> subSectionIdList;
-		// today
+	public void setUserSolvedProbIdSet(String userId) throws Exception {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String today = LocalDate.now().format(formatter);
 		this.today = today;
-		// Get solved problem set
+		// Get solved problem set 
 		List<String> sourceTypeList = new ArrayList<String>(
 			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
@@ -79,28 +78,9 @@ public class ScheduleConfiguratorV2 {
 		} catch (Exception e) {
 			throw e;
 		}
-		// Load user information from USER_MASTER TB
-		User userInfo;
-		try {
-			userInfo = userRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
-		} catch (NoSuchElementException e) {
-			throw new Exception(String.format("userId = %s is not in USER_MASTER TB.", e.getMessage()));
-		}
-		// Check whether user exam information is null
-		String grade = userInfo.getGrade();
-		String semester = userInfo.getSemester();
-		String currentCurriculumId = userInfo.getCurrentCurriculumId();
-		if (currentCurriculumId == null || grade == null || semester == null) {
-			throw new Exception("One of user's info is null. Call UserInfo PUT service first.");
-		}
-		// Get total normal subsectionList
-		String endCurriculumId = ExamScope.examScope.get(grade + "-" + semester + "-" + "final").get(1);
-		subSectionIdList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurriculumId); // 그냥 학년 마지막까지
-		logger.info("전체 소단원 범위 = {}", subSectionIdList);
-		return subSectionIdList;
 	}
 	
-	public String getUserExamKeyword(String userId) throws Exception {
+	public User getValidUserInfo(String userId) throws Exception {
 		User userInfo;
 		try {
 			userInfo = userRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
@@ -111,10 +91,53 @@ public class ScheduleConfiguratorV2 {
 		String grade = userInfo.getGrade();
 		String semester = userInfo.getSemester();
 		String examType = userInfo.getExamType();
-		if (examType == null || grade == null || semester == null) {
+		String currentCurriculumId = userInfo.getCurrentCurriculumId();
+		if (examType == null || currentCurriculumId == null || grade == null || semester == null) {
 			throw new Exception("One of user's info is null. Call UserInfo PUT service first.");
+		} else {
+			return userInfo;
 		}
-		return String.format("%s-%s-%s", grade, semester, examType);
+	}
+	
+	public UserExamScope getValidUserExamInfo(String userId) throws Exception {
+		UserExamScope userExamScopeInfo;
+		try {
+			userExamScopeInfo = userExamScopeRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
+		} catch (NoSuchElementException e) {
+			throw new Exception(String.format("userId = %s is not in USER_EXAM_SCOPE TB.", e.getMessage()));
+		}
+		// Check whether user exam information is null
+		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
+		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
+		if (startSubSectionId == null || endSubSectionId == null ) {
+			throw new Exception("One of user's exam info is null. Call UserInfo PUT service first.");
+		} else {
+			return userExamScopeInfo;
+		}
+	}
+	
+	public List<String> getNormalSubSectionList(String userId) throws Exception {
+		List<String> subSectionIdList;
+		User userInfo = getValidUserInfo(userId);
+		String endCurriculumId = ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
+		subSectionIdList = curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId); // 이번 학기 마지막까지
+		logger.info("전체 소단원 범위 = {}", subSectionIdList);
+		return subSectionIdList;
+	}
+	
+	public List<String> getExamSubSectionList(String userId) throws Exception {
+		List<String> subSectionIdList=null;
+		UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
+		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
+		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
+		//subSectionIdList = curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId); // 이번 학기 마지막까지
+		logger.info("전체 소단원 범위 = {}", subSectionIdList);
+		return subSectionIdList;
+	}
+	
+	public String getUserExamKeyword(String userId) throws Exception {
+		User userInfo = getValidUserInfo(userId);
+		return String.format("%s-%s-%s", userInfo.getGrade(), userInfo.getSemester(), userInfo.getExamType());
 	}
 	
 	public ScheduleConfigDTO getNormalScheduleConfig(String userId) throws Exception {
@@ -122,8 +145,9 @@ public class ScheduleConfiguratorV2 {
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
 		Set<String> addtlSubSectionIdSet = new HashSet<String>();
 		Integer totalCardProbNum = 0;
+		setUserSolvedProbIdSet(userId);
 		// 학년 학기 내 소단원 목록들
-		List<String> subSectionIdList = getSubSectionScope(userId);
+		List<String> subSectionIdList = getNormalSubSectionList(userId);
 		logger.info("전체 소단원 범위 = {}", subSectionIdList);
 		// 중간평가 판단 - 중단원만 일단
 		Set<String> sectionIdSet = new HashSet<String>(); // 토탈 범위 중 단원들
@@ -300,27 +324,16 @@ public class ScheduleConfiguratorV2 {
 		ScheduleConfigDTO output = new ScheduleConfigDTO();
 		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
 		Set<String> addtlSubSectionIdSet = new HashSet<String>();
-
-		List<String> subSectionIdList = getSubSectionScope(userId);
-
-		User userInfo;
-		try {
-			userInfo = userRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
-		} catch (NoSuchElementException e) {
-			throw new Exception(String.format("userId = %s is not in USER_MASTER TB.", e.getMessage()));
-		}
-
-		// Check whether user exam information is null
-		String grade = userInfo.getGrade();
-		String semester = userInfo.getSemester();
+		setUserSolvedProbIdSet(userId);
+		// get SubSection List
+		User userInfo = getValidUserInfo(userId);
 		String currentCurriculumId = userInfo.getCurrentCurriculumId();
-		if (currentCurriculumId == null || grade == null || semester == null) {
-			throw new Exception("One of user's info is null. Call UserInfo PUT service first.");
-		}
+		List<String> subSectionIdList = getNormalSubSectionList(userId);
 
 		// for trialExam card
-		String examStartCurriculumId = ExamScope.examScope.get(String.format("%s-%s-%s", grade, semester, "final")).get(0);
-		String examEndCurriculumId = ExamScope.examScope.get(String.format("%s-%s-%s", grade, semester, "final")).get(1);
+		String userExamKeyword = getUserExamKeyword(userId);
+		String examStartCurriculumId = ExamScope.examScope.get(userExamKeyword).get(0);
+		String examEndCurriculumId = ExamScope.examScope.get(userExamKeyword).get(1);
 		List<String> examSubSectionList = curriculumRepo.findSubSectionListBetween(examStartCurriculumId, examEndCurriculumId); // 그냥 학년 마지막까지
 		this.examSubSectionIdSet = new HashSet<String>();
 		this.examSubSectionIdSet.addAll(examSubSectionList);
@@ -329,7 +342,10 @@ public class ScheduleConfiguratorV2 {
 		List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, null);
 		Integer typeId = remainTypeList.get(0).getTypeId();
 		logger.info("중간평가 아니니까 유형 UK 카드 진행: " + typeId);
-		cardConfigList.add(CardConfigDTO.builder().cardType("type").typeId(typeId).build());
+		cardConfigList.add(CardConfigDTO.builder()
+										.cardType(CardConstants.TYPE_CARD_TYPE)
+										.typeId(typeId)
+										.build());
 		addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
 
 		// 보충 카드 : 둘, 셋, 네번째 유형에 대해
@@ -343,27 +359,31 @@ public class ScheduleConfiguratorV2 {
 			logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
 		logger.info("	이해도 낮은게 많아서 보충 카드 진행");
 		List<Integer> suppleCardTypeIdList = new ArrayList<Integer>();
-		for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, CardConstants.SUPPLE_CARD_TYPE_NUM))
+		List<TypeMasteryDTO> typeMasteryList = lowMasteryTypeList.subList(0, CardConstants.SUPPLE_CARD_TYPE_NUM);
+		for (TypeMasteryDTO e : typeMasteryList)
 			suppleCardTypeIdList.add(e.getTypeId());
-		cardConfigList
-			.add(CardConfigDTO.builder().cardType("supple").typeMasteryList(lowMasteryTypeList.subList(0, CardConstants.SUPPLE_CARD_TYPE_NUM)).build());
+		cardConfigList.add(CardConfigDTO.builder()
+							  			.cardType(CardConstants.SUPPLE_CARD_TYPE)
+							  			.typeMasteryList(typeMasteryList)
+							  			.build());
 		addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 
 		// 중간 평가 카드 (중단원)
 		String sectionId = currentCurriculumId.substring(0, 14);
 		logger.info("중간평가 진행(중단원): " + sectionId);
-		cardConfigList.add(CardConfigDTO.builder().cardType("sectionMidExam").midExamCurriculumId(sectionId).midExamType("section").build());
+		cardConfigList.add(CardConfigDTO.builder()
+										.cardType(CardConstants.SECTION_MID_EXAM_CARD_TYPE)
+										.midExamCurriculumId(sectionId)
+										.midExamType("section")
+										.build());
 		addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 
-		//		String chapterId = currentCurriculumId.substring(0, 11);
-		//		logger.info("\n중간평가 진행(대단원): " + chapterId);
-		//		CardDTO midExamCard2 = cardManager.generateMidExamCard(chapterId, "chapter");
-		//		cardList.add(midExamCard2);
-
 		// 모의고사 카드
-		String trialExamType = String.format("%s-%s-%s", grade, semester, "final");
-		logger.info("모의고사 진행: " + String.format("%s-%s-%s", grade, semester, "final"));
-		cardConfigList.add(CardConfigDTO.builder().cardType("trialExam").trialExamType(trialExamType).build());
+		logger.info("모의고사 진행: " + userExamKeyword);
+		cardConfigList.add(CardConfigDTO.builder()
+										.cardType(CardConstants.TRIAL_EXAM_CARD_TYPE)
+										.trialExamType(userExamKeyword)
+										.build());
 		addtlSubSectionIdSet.addAll(examSubSectionList);
 
 		output.setCardConfigList(cardConfigList);
@@ -371,7 +391,15 @@ public class ScheduleConfiguratorV2 {
 		return output;
 	}
 
-	public void getExamScheduleConfig() {
-
+	public ScheduleConfigDTO getExamScheduleConfig() throws Exception {
+		ScheduleConfigDTO output = new ScheduleConfigDTO();
+		List<CardConfigDTO> cardConfigList = new ArrayList<CardConfigDTO>();
+		Set<String> addtlSubSectionIdSet = new HashSet<String>();
+		setUserSolvedProbIdSet(userId);
+		List<String> subSectionIdList = getExamSubSectionList(userId);
+		
+		output.setCardConfigList(cardConfigList);
+		output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
+		return output;
 	}
 }

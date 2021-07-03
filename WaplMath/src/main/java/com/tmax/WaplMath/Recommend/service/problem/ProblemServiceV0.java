@@ -221,8 +221,8 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		// USER_MASTER 테이블에서 현재까지 배운 단원 정보 조회 & USER_EXAM_SCOPE 테이블에서 다음 시험의 범위 (단원) 조회
 		logger.info("Getting user info......");
 		UserExamScope examScope = userExamScopeRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
-		String start_sub_section = examScope.getStartSubSection();
-		String end_sub_section = examScope.getEndSubSection();
+		String start_sub_section = examScope.getStartSubSectionId();
+		String end_sub_section = examScope.getEndSubSectionId();
 		String current_chapter = examScope.getUser().getCurrentCurriculumId();
 		logger.info(userId + "'s Sub section range for the next exam : " + start_sub_section + " ~ " + end_sub_section);
 		

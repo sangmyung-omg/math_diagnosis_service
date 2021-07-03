@@ -116,8 +116,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
 
 			userExamScope.setUserUuid(userId);
-			userExamScope.setStartSubSection(startSubSection);
-			userExamScope.setEndSubSection(endSubSection);
+			userExamScope.setStartSubSectionId(startSubSection);
+			userExamScope.setEndSubSectionId(endSubSection);
 
 			userExamScopeRepo.save(userExamScope);
 		}
@@ -261,8 +261,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		// USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
 		userExamScope.setUserUuid(userId);
-		userExamScope.setStartSubSection(start_sub_section);
-		userExamScope.setEndSubSection(end_sub_section);
+		userExamScope.setStartSubSectionId(start_sub_section);
+		userExamScope.setEndSubSectionId(end_sub_section);
 		
 		userExamScopeRepo.save(userExamScope);
 		
