@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
-import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
 import com.tmax.WaplMath.Recommend.util.schedule.CardGeneratorV2;
@@ -42,11 +41,14 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		try {
 			scheduleConfig = scheduleConfigurator.getExamScheduleConfig(userId);
 		} catch (Exception e) {
+			e.printStackTrace();
 			output.setMessage("schedule configuration failure. " + e.getMessage());
 			return output;
 		}
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
+		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
+		System.out.println(scheduleConfigurator.getExamSubSectionIdSet());
 		CardDTOV2 card;
 		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {

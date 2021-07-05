@@ -174,24 +174,24 @@ public class ScheduleHistoryManagerV1 {
 		return sectionIdList;
 	}
 	
-	public Map<String, Integer> getSectionCompletedCnt(String userId, String today, String sourceType) throws Exception{
+	public Map<String, Integer> getCompletedSectionNum(String userId, String today, String sourceType) throws Exception{
 		Map<String, Set<Integer>> daySolvedProbIdSet;
 		try {
 			daySolvedProbIdSet = getSolvedProbIdSetByDay(userId, today, "", new ArrayList<String>(Arrays.asList(sourceType)));
 		} catch (Exception e) {
 			throw e;
 		}
-		Map<String, Integer> sectionCompleteCnt = new HashMap<String, Integer>();
+		Map<String, Integer> completedType1CardsNum = new HashMap<String, Integer>();
 		for(String date: daySolvedProbIdSet.keySet()) {
 			Set<Integer> probIdSet = daySolvedProbIdSet.get(date);
 			List<String> daySectionIdList = problemRepo.findSectionIdList(probIdSet);
 			String sectionId = daySectionIdList.get(0);
-			if (!sectionCompleteCnt.containsKey(sectionId))
-				sectionCompleteCnt.put(sectionId, 1);
+			if (!completedType1CardsNum.containsKey(sectionId))
+				completedType1CardsNum.put(sectionId, 1);
 			else
-				sectionCompleteCnt.put(sectionId, sectionCompleteCnt.get(sectionId)+1);
+				completedType1CardsNum.put(sectionId, completedType1CardsNum.get(sectionId)+1);
 		}
-		return sectionCompleteCnt;
+		return completedType1CardsNum;
 	}
 
 	public List<Integer> getSolvedUkIdList(String userId, String today) throws Exception {

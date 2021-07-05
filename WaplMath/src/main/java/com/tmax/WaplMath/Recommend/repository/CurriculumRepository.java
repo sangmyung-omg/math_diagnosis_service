@@ -57,6 +57,10 @@ public interface CurriculumRepository extends CrudRepository<Curriculum, String>
 	//21.07.01 card generator v2
 	@Query("select cm.curriculumId from Curriculum cm where (coalesce(:currIdSet, null) is null or cm.curriculumId in (:currIdSet)) order by cm.curriculumSequence asc")
 	List<String> sortByCurrSeq(@Param("currIdSet") Set<String> currIdSet);
+
+	//21.07.05 exam card configurator v2
+	@Query("select distinct cm.curriculumId from Curriculum cm where (coalesce(:sectionIdSet, null) is null or substr(cm.curriculumId, 1, 14) in(:sectionIdSet)) and cm.subSection is not null")
+	List<String> findSubSectionListInSectionSet(@Param("sectionIdSet") Set<String> sectionIdSet);
 	
 	// 21.06.22. extra problems
 	@Query("SELECT DISTINCT C.part FROM Curriculum C, Curriculum SC, Curriculum EC WHERE SC.curriculumId = ?1 AND EC.curriculumId = ?2 AND C.curriculumSequence >= SC.curriculumSequence AND C.curriculumSequence <= EC.curriculumSequence AND C.subSection IS NOT NULL")

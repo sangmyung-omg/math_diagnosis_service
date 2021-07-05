@@ -64,7 +64,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	//21.07.01 card generator v2
 	@Query("select p from Problem p where p.problemType.curriculumId like concat(:currId, '%') and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
 	public List<Problem> findProbListByCurrId(@Param("currId") String currId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
-	
+
 	//2021-06-17 Added by Jonghyun Seong. gets Problem List from probIDList
 	@Query("select p from Problem p where p.probId in :probIdList")
 	public List<Problem> getProblemsByProbIdList(@Param("probIdList") List<Integer> probIdList);

@@ -7,7 +7,6 @@ public class CardConstants {
 	static final Integer MIN_TYPE_CARD_PROB_NUM = 2;
 	static final Integer MAX_TYPE_CARD_PROB_NUM = 5;
 	static final Integer SUPPLE_CARD_PROB_NUM_PER_TYPE = 2;
-	static final Integer MID_EXAM_CARD_PROB_NUM = 20;
 	static final Integer MID_EXAM_CARD_HIGH_PROB = 5;
 	static final Integer MID_EXAM_CARD_MIDDLE_PROB = 9;
 	static final Integer MID_EXAM_CARD_LOW_PROB = 6;
