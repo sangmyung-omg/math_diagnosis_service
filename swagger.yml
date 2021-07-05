@@ -374,6 +374,9 @@ components:
             - "supple"
             - "sectionMidExam"
             - "chapterMidExam"
+            - "addtlSupple"
+            - "examType1"
+            - "examType2"
             - "trialExam"
           description: "카드 종류. \nsectionMidExam: 실력향상 중단원 중간평가. \n chapterMidExam: 시험대비 대단원 중간평가."
         cardTitle:

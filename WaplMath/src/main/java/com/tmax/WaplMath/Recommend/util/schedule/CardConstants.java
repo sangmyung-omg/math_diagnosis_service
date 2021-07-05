@@ -21,12 +21,14 @@ public class CardConstants {
 	static final float MASTERY_LOW_THRESHOLD = 0.4f;
 
 	// Constant
-	static final String TYPE_CARD_TYPE = "type";
-	static final String SUPPLE_CARD_TYPE = "supple";
-	static final String ADDTL_SUPPLE_CARD_TYPE = "addtlSupple";
-	static final String SECTION_MID_EXAM_CARD_TYPE = "sectionMidExam";
-	static final String CHAPTER_MID_EXAM_CARD_TYPE = "chapterMidExam";
-	static final String TRIAL_EXAM_CARD_TYPE = "trialExam";
+	static final String TYPE_CARD_TYPESTR = "type";
+	static final String SUPPLE_CARD_TYPESTR = "supple";
+	static final String ADDTL_SUPPLE_CARD_TYPESTR = "addtlSupple";
+	static final String SECTION_MID_EXAM_CARD_TYPESTR = "sectionMidExam";
+	static final String CHAPTER_MID_EXAM_CARD_TYPESTR = "chapterMidExam";
+	static final String TRIAL_EXAM_CARD_TYPESTR = "trialExam";
+	static final String EXAM_CARD_TYPE1_TYPESTR = "examType1";
+	static final String EXAM_CARD_TYPE2_TYPESTR = "examType2";
 	static final String SUPPLE_CARD_TITLE_FORMAT = "취약 유형 %d개 복습";
 	static final String ADDTL_SUPPLE_CARD_TITLE_FORMAT = "유형 %d개 복습";
 	static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s 대비";

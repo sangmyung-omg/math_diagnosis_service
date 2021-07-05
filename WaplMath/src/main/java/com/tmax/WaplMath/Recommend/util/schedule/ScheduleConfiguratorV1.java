@@ -76,7 +76,7 @@ public class ScheduleConfiguratorV1 {
 		List<String> sourceTypeList = new ArrayList<String>(
 			Arrays.asList("type_question", "supple_question", "mid_exam_question", "trial_exam_question"));
 		try {
-			this.solvedProbIdSet = historyManager.getCompletedProbIdSet(userId, today, "", sourceTypeList);
+			this.solvedProbIdSet = historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
 		} catch (Exception e) {
 			throw e;
 		}
@@ -141,7 +141,7 @@ public class ScheduleConfiguratorV1 {
 
 		List<String> completedSectionIdList;
 		try {
-			completedSectionIdList = historyManager.getCompletedSectionCardIdList(userId, today);
+			completedSectionIdList = historyManager.getCompletedSectionIdList(userId, today, "mid_exam_question");
 		} catch (Exception e) {
 			throw e;
 		}

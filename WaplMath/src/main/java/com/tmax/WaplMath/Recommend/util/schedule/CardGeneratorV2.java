@@ -453,7 +453,7 @@ public class CardGeneratorV2 {
 		TypeMasteryDTO typeMastery = userKnowledgeRepo.findTypeMastery(userId, typeId);
 		Float mastery = typeMastery != null ? typeMastery.getMastery() : 0.6328f;
 		CardDTOV2 typeCard = CardDTOV2.builder()
-									  .cardType(CardConstants.TYPE_CARD_TYPE)
+									  .cardType(CardConstants.TYPE_CARD_TYPESTR)
 									  .cardTitle(cardTitle)
 									  .probIdSetList(new ArrayList<ProblemSetListDTO>())
 									  .estimatedTime(0)
@@ -483,7 +483,7 @@ public class CardGeneratorV2 {
 		logger.info("{}, {}, {}", mastery.getCurrId(), mastery.getCurrName(), mastery.getMastery());
 		List<Integer> probDiffRatio = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
 		CardDTOV2 midExamCard = CardDTOV2.builder()
-										 .cardType(CardConstants.SECTION_MID_EXAM_CARD_TYPE)
+										 .cardType(CardConstants.SECTION_MID_EXAM_CARD_TYPESTR)
 										 .cardTitle(mastery.getCurrName())
 										 .probIdSetList(new ArrayList<ProblemSetListDTO>())
 										 .estimatedTime(0)
@@ -497,7 +497,7 @@ public class CardGeneratorV2 {
 	public CardDTOV2 generateSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
 		String cardTitle = String.format(CardConstants.SUPPLE_CARD_TITLE_FORMAT, typeMasteryList.size());
 		CardDTOV2 supplementCard = CardDTOV2.builder()
-											.cardType(CardConstants.SUPPLE_CARD_TYPE)
+											.cardType(CardConstants.SUPPLE_CARD_TYPESTR)
 											.cardTitle(cardTitle)
 											.probIdSetList(new ArrayList<ProblemSetListDTO>())
 											.estimatedTime(0)
@@ -529,7 +529,7 @@ public class CardGeneratorV2 {
 	public CardDTOV2 generateAddtlSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
 		String cardTitle = String.format(CardConstants.ADDTL_SUPPLE_CARD_TITLE_FORMAT, typeMasteryList.size());
 		CardDTOV2 supplementCard = CardDTOV2.builder()
-											.cardType(CardConstants.ADDTL_SUPPLE_CARD_TYPE)
+											.cardType(CardConstants.ADDTL_SUPPLE_CARD_TYPESTR)
 											.cardTitle(cardTitle)
 											.probIdSetList(new ArrayList<ProblemSetListDTO>())
 											.estimatedTime(0)
@@ -567,7 +567,7 @@ public class CardGeneratorV2 {
 			cardTitle = String.format(CardConstants.TRIAL_EXAM_CARD_TITLE_FORMAT, trialExamInfo[0], trialExamInfo[1], "기말고사");
 		CurrMasteryDTO mastery = userKnowledgeRepo.findExamMastery(userId, examSubSectionIdSet);
 		CardDTOV2 trialExamCard = CardDTOV2.builder()
-										   .cardType(CardConstants.TRIAL_EXAM_CARD_TYPE)
+										   .cardType(CardConstants.TRIAL_EXAM_CARD_TYPESTR)
 										   .cardTitle(cardTitle)
 										   .probIdSetList(new ArrayList<ProblemSetListDTO>())
 										   .estimatedTime(0)
@@ -583,23 +583,23 @@ public class CardGeneratorV2 {
 	public CardDTOV2 generateCard(CardConfigDTO cardConfig) {
 		CardDTOV2 card = null;
 		switch (cardConfig.getCardType()) {
-			case CardConstants.TYPE_CARD_TYPE:
+			case CardConstants.TYPE_CARD_TYPESTR:
 				logger.info("------ {} card (type {})", cardConfig.getCardType(), cardConfig.getTypeId());
 				card = generateTypeCard(cardConfig.getTypeId());
 				break;
-			case CardConstants.SUPPLE_CARD_TYPE:
+			case CardConstants.SUPPLE_CARD_TYPESTR:
 				logger.info("------ {} card", cardConfig.getCardType());
 				card = generateSupplementCard(cardConfig.getTypeMasteryList());
 				break;
-			case CardConstants.SECTION_MID_EXAM_CARD_TYPE:
+			case CardConstants.SECTION_MID_EXAM_CARD_TYPESTR:
 				logger.info("------ {} card ({} {})", cardConfig.getCardType(), cardConfig.getMidExamType(), cardConfig.getMidExamCurriculumId());
 				card = generateNormalMidExamCard(cardConfig.getMidExamCurriculumId(), cardConfig.getMidExamType());
 				break;
-			case CardConstants.TRIAL_EXAM_CARD_TYPE:
+			case CardConstants.TRIAL_EXAM_CARD_TYPESTR:
 				logger.info("------ {} card ({})", cardConfig.getCardType(), cardConfig.getTrialExamType());
 				card = generateTrialExamCard(cardConfig.getTrialExamType());
 				break;
-			case CardConstants.ADDTL_SUPPLE_CARD_TYPE:
+			case CardConstants.ADDTL_SUPPLE_CARD_TYPESTR:
 				logger.info("------ {} card", cardConfig.getCardType());
 				card = generateAddtlSupplementCard(cardConfig.getTypeMasteryList());
 				break;

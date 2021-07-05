@@ -2,8 +2,10 @@ package com.tmax.WaplMath.Recommend.util.schedule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -29,7 +31,7 @@ public class ScheduleHistoryManagerV1 {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Constant
-	private final Integer MAX_RECENET_STATEMENT_NUM = 100;
+	private final Integer MAX_RECENET_STATEMENT_NUM = 200;
 
 	@Autowired
 	ProblemRepo problemRepo;
@@ -38,7 +40,7 @@ public class ScheduleHistoryManagerV1 {
 	@Autowired
 	LRSAPIManager lrsAPIManager = new LRSAPIManager();
 
-	public Set<Integer> getCompletedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
+	public Set<Integer> getSolvedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
 		Set<Integer> probIdSet = new HashSet<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
 		JsonArray LRSResult;
@@ -69,6 +71,45 @@ public class ScheduleHistoryManagerV1 {
 		return probIdSet;
 	}
 
+	public Map<String, Set<Integer>> getSolvedProbIdSetByDay(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
+		Map<String, Set<Integer>> dayProbIdSet = new HashMap<String, Set<Integer>>();
+		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
+		JsonArray LRSResult;
+		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
+		LRSinput.setDateTo(today);
+		if (dateFrom != "")
+			LRSinput.setDateFrom(dateFrom);
+		LRSinput.setSourceTypeList(sourceTypeList);
+		LRSinput.setActionTypeList(new ArrayList<String>(Arrays.asList("submit")));
+		LRSinput.setRecentStatementNum(MAX_RECENET_STATEMENT_NUM);
+
+		try {
+			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+		} catch (Exception e) {
+			throw new Exception("LRS Internal Server Error: " + e.getMessage());
+		}
+		if (LRSResult.size() != 0) {
+			for (JsonElement rowElement : LRSResult) {
+				JsonObject row = (JsonObject) rowElement;
+				String sourceId = row.get("sourceId").getAsString();
+				String timestamp = row.get("timestamp").getAsString();
+				String date = timestamp.substring(0, 10);
+				Set<Integer> probIdSet;
+				try {
+					if(!dayProbIdSet.containsKey(date)) {
+						probIdSet = new HashSet<Integer>();
+					}else {
+						probIdSet = dayProbIdSet.get(date);
+					}
+					probIdSet.add(Integer.parseInt(sourceId));
+					dayProbIdSet.put(date, probIdSet);
+				} catch (NumberFormatException e) {
+					System.out.println(e.getMessage() + " is not number.");
+				}
+			}
+		}
+		return dayProbIdSet;
+	}
 
 	public String getRecentSuppleCardDate(String userId, String today) throws Exception {
 		String date;
@@ -98,7 +139,7 @@ public class ScheduleHistoryManagerV1 {
 	public List<Integer> getCompletedTypeIdList(String userId, String today, String dateFrom, String sourceType) throws Exception {
 		Set<Integer> probIdSet;
 		try {
-			probIdSet = getCompletedProbIdSet(userId, today, dateFrom, new ArrayList<String>(Arrays.asList(sourceType)));
+			probIdSet = getSolvedProbIdSet(userId, today, dateFrom, new ArrayList<String>(Arrays.asList(sourceType)));
 		} catch (Exception e) {
 			throw e;
 		}
@@ -120,10 +161,10 @@ public class ScheduleHistoryManagerV1 {
 		return getCompletedTypeIdList(userId, today, lastSuppleDate, "type-question");
 	}
 
-	public List<String> getCompletedSectionCardIdList(String userId, String today) throws Exception {
+	public List<String> getCompletedSectionIdList(String userId, String today, String sourceType) throws Exception {
 		Set<Integer> probIdSet;
 		try {
-			probIdSet = getCompletedProbIdSet(userId, today, "", new ArrayList<String>(Arrays.asList("mid_exam_question")));
+			probIdSet = getSolvedProbIdSet(userId, today, "", new ArrayList<String>(Arrays.asList(sourceType)));
 		} catch (Exception e) {
 			throw e;
 		}
@@ -132,11 +173,27 @@ public class ScheduleHistoryManagerV1 {
 			sectionIdList = problemRepo.findSectionIdList(probIdSet);
 		return sectionIdList;
 	}
+	
+	public List<String> getDayCompletedSectionIdList(String userId, String today, String sourceType) throws Exception{
+		Map<String, Set<Integer>> daySolvedProbIdSet;
+		try {
+			daySolvedProbIdSet = getSolvedProbIdSetByDay(userId, today, "", new ArrayList<String>(Arrays.asList(sourceType)));
+		} catch (Exception e) {
+			throw e;
+		}
+		List<String> sectionIdList = new ArrayList<String>();
+		for(String date: daySolvedProbIdSet.keySet()) {
+			Set<Integer> probIdSet = daySolvedProbIdSet.get(date);
+			List<String> daySectionIdList = problemRepo.findSectionIdList(probIdSet);
+			sectionIdList.addAll(daySectionIdList);
+		}
+		return sectionIdList;
+	}
 
 	public List<Integer> getSolvedUkIdList(String userId, String today) throws Exception {
 		Set<Integer> probIdSet;
 		try {
-			probIdSet = getCompletedProbIdSet(userId, today, "",
+			probIdSet = getSolvedProbIdSet(userId, today, "",
 				new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
 		} catch (Exception e) {
 			throw e;
