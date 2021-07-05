@@ -101,8 +101,8 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 				start = "중등-중1-1학-01-01-01";
 				end = "중등-중3-2학-03-02-01";
 			}else {
-				start = targetExamScope.getStartSubSection();
-				end = targetExamScope.getEndSubSection();
+				start = targetExamScope.getStartSubSectionId();
+				end = targetExamScope.getEndSubSectionId();
 			}
 			
 		}
@@ -284,7 +284,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 		if(targetExamScope==null) {
 			start = "중등-중1-1학-01-01-01";
 		}else {
-			start = targetExamScope.getStartSubSection();
+			start = targetExamScope.getStartSubSectionId();
 		}
 		
 		subsectionList.sort(null);

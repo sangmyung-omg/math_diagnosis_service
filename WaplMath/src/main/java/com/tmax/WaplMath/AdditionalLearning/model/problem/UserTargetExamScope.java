@@ -11,6 +11,7 @@ public class UserTargetExamScope {
 	
 	@Id
 	private String userUuid;
-	private String startSubSection;
-	private String endSubSection;
+	private String startSubSectionId;
+	private String endSubSectionId;
+	private String exceptSubSectionIdList;
 }
