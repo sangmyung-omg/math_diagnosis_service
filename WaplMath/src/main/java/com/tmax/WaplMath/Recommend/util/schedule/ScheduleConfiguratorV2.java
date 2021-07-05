@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -81,6 +82,7 @@ public class ScheduleConfiguratorV2 {
 		String examType = userInfo.getExamType();
 		String currentCurriculumId = userInfo.getCurrentCurriculumId();
 		if (examType == null || currentCurriculumId == null || grade == null || semester == null) {
+			logger.info("{}, {}, {}, {}", grade, semester, currentCurriculumId, examType);
 			throw new Exception("One of user's info is null. Call UserInfo PUT service first.");
 		} else {
 			return userInfo;
@@ -95,11 +97,13 @@ public class ScheduleConfiguratorV2 {
 			throw new Exception(String.format("userId = %s is not in USER_EXAM_SCOPE TB.", e.getMessage()));
 		}
 		// Check whether user exam information is null
-		Timestamp examStartDate = userExamScopeInfo.getUser().getExamStartDate();
-		Timestamp examDueDate = userExamScopeInfo.getUser().getExamDueDate();
+//		Timestamp examStartDate = userExamScopeInfo.getUser().getExamStartDate();
+//		Timestamp examDueDate = userExamScopeInfo.getUser().getExamDueDate();
 		String startSubSectionId = userExamScopeInfo.getStartSubSectionId();
 		String endSubSectionId = userExamScopeInfo.getEndSubSectionId();
-		if (startSubSectionId == null || endSubSectionId == null || examStartDate == null || examDueDate == null) {
+//		if (startSubSectionId == null || endSubSectionId == null || examStartDate == null || examDueDate == null) {
+		if (startSubSectionId == null || endSubSectionId == null) {
+			logger.info("{}, {}", startSubSectionId, endSubSectionId);
 			throw new Exception("One of user's exam info is null. Call UserInfo PUT service first.");
 		} else {
 			return userExamScopeInfo;
@@ -449,13 +453,13 @@ public class ScheduleConfiguratorV2 {
 		}
 		// type1 카드 제공되는 개수
 		Integer numExamType1Cards = Math.floorDiv(totalDays - numTrialExamCards, sectionIdSet.size());
-		List<String> completedSectionIdList;
+		Map<String, Integer> sectionCompleteCnt;
 		try {
-			completedSectionIdList = historyManager.getDayCompletedSectionIdList(userId, today, "exam_type1_question");
+			sectionCompleteCnt = historyManager.getSectionCompletedCnt(userId, today, "exam_type1_question");
 		} catch (Exception e) {
 			throw e;
 		}
-		logger.info("2. 이미 시험대비 카드 type1 푼 중단원들 : " + completedSectionIdList.toString());
+		logger.info("2. 이미 시험대비 카드 type1 푼 중단원들 (횟수) : " + sectionCompleteCnt.toString());
 		
 		
 		
