@@ -48,7 +48,6 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
-		System.out.println(scheduleConfigurator.getExamSubSectionIdSet());
 		CardDTOV2 card;
 		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {

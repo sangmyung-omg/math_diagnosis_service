@@ -13,10 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
+import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
@@ -43,7 +41,7 @@ public class ScheduleHistoryManagerV1 {
 	public Set<Integer> getSolvedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
 		Set<Integer> probIdSet = new HashSet<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
-		JsonArray LRSResult;
+		List<StatementDTO> LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
 		LRSinput.setDateTo(today);
 		if (dateFrom != "")
@@ -53,14 +51,13 @@ public class ScheduleHistoryManagerV1 {
 		LRSinput.setRecentStatementNum(MAX_RECENET_STATEMENT_NUM);
 
 		try {
-			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+			LRSResult = lrsAPIManager.getStatementListNew(LRSinput);
 		} catch (Exception e) {
 			throw new Exception("LRS Internal Server Error: " + e.getMessage());
 		}
 		if (LRSResult.size() != 0) {
-			for (JsonElement rowElement : LRSResult) {
-				JsonObject row = (JsonObject) rowElement;
-				String sourceId = row.get("sourceId").getAsString();
+			for (StatementDTO statement : LRSResult) {
+				String sourceId = statement.getSourceId();
 				try {
 					probIdSet.add(Integer.parseInt(sourceId));
 				} catch (NumberFormatException e) {
@@ -74,7 +71,7 @@ public class ScheduleHistoryManagerV1 {
 	public Map<String, Set<Integer>> getSolvedProbIdSetByDay(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
 		Map<String, Set<Integer>> dayProbIdSet = new HashMap<String, Set<Integer>>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
-		JsonArray LRSResult;
+		List<StatementDTO> LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
 		LRSinput.setDateTo(today);
 		if (dateFrom != "")
@@ -84,16 +81,14 @@ public class ScheduleHistoryManagerV1 {
 		LRSinput.setRecentStatementNum(MAX_RECENET_STATEMENT_NUM);
 
 		try {
-			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+			LRSResult = lrsAPIManager.getStatementListNew(LRSinput);
 		} catch (Exception e) {
 			throw new Exception("LRS Internal Server Error: " + e.getMessage());
 		}
 		if (LRSResult.size() != 0) {
-			for (JsonElement rowElement : LRSResult) {
-				JsonObject row = (JsonObject) rowElement;
-				String sourceId = row.get("sourceId").getAsString();
-				String timestamp = row.get("timestamp").getAsString();
-				String date = timestamp.substring(0, 10);
+			for (StatementDTO statement : LRSResult) {
+				String sourceId = statement.getSourceId();
+				String date = statement.getTimestamp().substring(0, 10);;
 				Set<Integer> probIdSet;
 				try {
 					if(!dayProbIdSet.containsKey(date)) {
@@ -114,7 +109,7 @@ public class ScheduleHistoryManagerV1 {
 	public String getRecentSuppleCardDate(String userId, String today) throws Exception {
 		String date;
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
-		JsonArray LRSResult;
+		List<StatementDTO> LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
 		LRSinput.setDateTo(today);
 		LRSinput.setSourceTypeList(new ArrayList<String>(Arrays.asList("supple_question")));
@@ -122,16 +117,15 @@ public class ScheduleHistoryManagerV1 {
 		LRSinput.setRecentStatementNum(1);
 
 		try {
-			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+			LRSResult = lrsAPIManager.getStatementListNew(LRSinput);
 		} catch (Exception e) {
 			throw new Exception("LRS Internal Server Error: " + e.getMessage());
 		}
 		if (LRSResult.size() == 0)
 			return "";
 		else {
-			JsonObject row = (JsonObject) LRSResult.get(0);
-			String timestamp = row.get("timestamp").getAsString();
-			date = timestamp.substring(0, 10);
+			StatementDTO statement = LRSResult.get(0);
+			date = statement.getTimestamp().substring(0, 10);
 		}
 		return date;
 	}

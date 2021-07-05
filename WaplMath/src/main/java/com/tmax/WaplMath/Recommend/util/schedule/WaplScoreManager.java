@@ -30,8 +30,8 @@ public class WaplScoreManager {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	//Hyperparameter
-	private final Integer TYPE_CARD_NUM = 5;
-	private final Integer TYPE_CARD_PROB_NUM = 4;
+	private final Integer TYPE_CARD_NUM = 4;
+	private final Integer TYPE_CARD_PROB_NUM = 5;
 	private final Integer EXAM_CARD_PROB_NUM = 10;
 	private final Integer MID_EXAM_CARD_PROB_NUM = 15;
 
