@@ -4,21 +4,19 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.tmax.WaplMath.AdditionalLearning.dto.FreqProbCurriDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentProblemDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.SectionMasteryDTO;
-import com.tmax.WaplMath.AdditionalLearning.dto.TodaySubsectionListDTO;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSubSectionMastery;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserTargetExamScope;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserFrequentProblem;
@@ -28,50 +26,51 @@ import com.tmax.WaplMath.AdditionalLearning.repository.UserSectionMasteryRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.UserSubSectionMasteryRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.UserTargetExamScopeRepo;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
+import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
 @Service("FrequentCardServiceV2")
-public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
+public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	
 	//조건에 맞는 문제 리스트를 반환하는 LRS 메소드
 	@Autowired
 	LRSAPIManager lrsAPIManager = new LRSAPIManager();
-	private final Integer MAX_RECENET_STATEMENT_NUM = 100;
+	private final Integer MAX_RECENET_STATEMENT_NUM = 300;
 	
 	@Override
-	public List<Integer> getLRSProblemIdList(String userId, String dayFrom, String today, List<String> sourceTypeList) throws Exception{
-		
-		List<Integer> probIdList = new ArrayList<Integer>();
+	public Set<Integer> getLRSProblemIdList(String userId, String today, String dateFrom, List<String> sourceTypeList) throws Exception {
+		Set<Integer> probIdSet = new HashSet<Integer>();
+		//List<Integer> probIdList = new ArrayList<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
-		JsonArray LRSResult;
+		List<StatementDTO> LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
-		LRSinput.setDateFrom(dayFrom);
 		LRSinput.setDateTo(today);
+		if (dateFrom != "")
+			LRSinput.setDateFrom(dateFrom);
 		LRSinput.setSourceTypeList(sourceTypeList);
 		LRSinput.setActionTypeList(new ArrayList<String>(Arrays.asList("submit")));
 		LRSinput.setRecentStatementNum(MAX_RECENET_STATEMENT_NUM);
-
+		
 		try {
-			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+			LRSResult = lrsAPIManager.getStatementListNew(LRSinput);
 		} catch (Exception e) {
 			throw new Exception("LRS Internal Server Error: " + e.getMessage());
 		}
 		if (LRSResult.size() != 0) {
-			for (JsonElement rowElement : LRSResult) {
-				JsonObject row = (JsonObject) rowElement;
-				String sourceId = row.get("sourceId").getAsString();
+			for (StatementDTO statement : LRSResult) {
+				String sourceId = statement.getSourceId();
 				try {
-					probIdList.add(Integer.parseInt(sourceId));
+					probIdSet.add(Integer.parseInt(sourceId));
 				} catch (NumberFormatException e) {
 					System.out.println(e.getMessage() + " is not number.");
 				}
 			}
 		}
-		return probIdList;
+		return probIdSet;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	//문제 리스트를 받아 해당하는 이해도가 낮은 순서로 소단원 리스트 반환
@@ -434,19 +433,19 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV1{
 					Arrays.asList("question","type_question","supple_question","mid_exam_question","trial_exam_question","diagnosis","frequent_question")); // 모든 source type
 
 			try {
-				diagnosisProbIdList = this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis);
+				diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
 				logger.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
 				diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
 				
-				todayCardProbIdList = this.getLRSProblemIdList(userId, today, null, sourceTypeListTodayCards);
+				todayCardProbIdList.addAll(this.getLRSProblemIdList(userId, today, null, sourceTypeListTodayCards));
 				logger.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
 				todayCardSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, todayCardProbIdList);
 				
-				recentSolvedProbIdList = this.getLRSProblemIdList(userId, Fromday, yesterday, sourceTypeListTodayCards);
+				recentSolvedProbIdList.addAll(this.getLRSProblemIdList(userId, Fromday, yesterday, sourceTypeListTodayCards));
 				logger.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
 				recentSectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, recentSolvedProbIdList);
 				
-				solvedProbIdList = this.getLRSProblemIdList(userId, null, yesterday, sourceTypeListAll); 
+				solvedProbIdList.addAll(this.getLRSProblemIdList(userId, null, yesterday, sourceTypeListAll)); 
 				logger.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
 				
 				
