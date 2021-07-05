@@ -120,7 +120,7 @@ public class LRSAPIManager {
 		logger.info("[LRS] Request to " + LRS_ADDR + " with input: " + msg);
 		return gson.toJson(msg);
 	}
-
+	
 	public JsonArray getStatementList(GetStatementInfoDTO input) throws ParseException {
 		JsonArray output = new JsonArray();
 		this.input = input;
@@ -145,6 +145,11 @@ public class LRSAPIManager {
 
 	public List<StatementDTO> getStatementListNew(GetStatementInfoDTO input) throws ParseException {
 		//Create a http timeout handler
+		try {
+			logger.info("LRS Input : {}", new ObjectMapper().writeValueAsString(input));
+		} catch (JsonProcessingException e1) {
+			e1.printStackTrace();
+		}
 		HttpClient httpClient = HttpClient.create()
 										  .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
 										  .responseTimeout(Duration.ofMillis(5000))
@@ -166,7 +171,6 @@ public class LRSAPIManager {
 				 .bodyToMono(String.class);
 		//Convert output to result
 		try {
-			logger.info(info.block());
 			return Arrays.asList(new ObjectMapper().readValue(info.block(), StatementDTO[].class));
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();

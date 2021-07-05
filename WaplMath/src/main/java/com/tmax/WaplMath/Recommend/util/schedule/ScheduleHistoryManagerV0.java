@@ -9,10 +9,10 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
+import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
@@ -37,7 +37,7 @@ public class ScheduleHistoryManagerV0 {
 	public Set<Integer> getCompletedProbIdList(String userId, String today, List<String> sourceTypeList) throws Exception {
 		Set<Integer> probIdList = new HashSet<Integer>();
 		GetStatementInfoDTO LRSinput = new GetStatementInfoDTO();
-		JsonArray LRSResult;
+		List<StatementDTO> LRSResult;
 		LRSinput.setUserIdList(new ArrayList<String>(Arrays.asList(userId)));
 		LRSinput.setDateTo(today);
 		LRSinput.setSourceTypeList(sourceTypeList);
@@ -45,14 +45,13 @@ public class ScheduleHistoryManagerV0 {
 		LRSinput.setRecentStatementNum(MAX_RECENET_STATEMENT_NUM);
 
 		try {
-			LRSResult = lrsAPIManager.getStatementList(LRSinput);
+			LRSResult = lrsAPIManager.getStatementListNew(LRSinput);
 		} catch (Exception e) {
 			throw new Exception("LRS Internal Server Error: " + e.getMessage());
 		}
 		if (LRSResult.size() != 0) {
-			for (JsonElement rowElement : LRSResult) {
-				JsonObject row = (JsonObject) rowElement;
-				String sourceId = row.get("sourceId").getAsString();
+			for (StatementDTO statement : LRSResult) {
+				String sourceId = statement.getSourceId();
 				try {
 					probIdList.add(Integer.parseInt(sourceId));
 				} catch (NumberFormatException e) {
