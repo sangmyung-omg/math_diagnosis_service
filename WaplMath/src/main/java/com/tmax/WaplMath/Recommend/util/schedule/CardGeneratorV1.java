@@ -421,8 +421,8 @@ public class CardGeneratorV1 {
 			card = generateSupplementCard(cardConfig.getTypeMasteryList());
 			break;
 		case "midExam":
-			logger.info("------ {} card ({} {})", cardConfig.getCardType(), cardConfig.getMidExamType(), cardConfig.getCurriculumId());
-			card = generateMidExamCard(cardConfig.getCurriculumId(), cardConfig.getMidExamType());
+			logger.info("------ {} card ({} {})", cardConfig.getCardType(), cardConfig.getTestType(), cardConfig.getCurriculumId());
+			card = generateMidExamCard(cardConfig.getCurriculumId(), cardConfig.getTestType());
 			break;
 		case "trialExam":
 			logger.info("------ {} card ({})", cardConfig.getCardType(), cardConfig.getExamKeyword());

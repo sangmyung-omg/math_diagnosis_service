@@ -187,18 +187,4 @@ public class ScheduleHistoryManagerV1 {
 		}
 		return completedType1CardsNum;
 	}
-
-	public List<Integer> getSolvedUkIdList(String userId, String today) throws Exception {
-		Set<Integer> probIdSet;
-		try {
-			probIdSet = getSolvedProbIdSet(userId, today, "",
-				new ArrayList<String>(Arrays.asList("type_question", "mid_exam_question", "trial_exam_question")));
-		} catch (Exception e) {
-			throw e;
-		}
-		List<Integer> ukIdList = new ArrayList<Integer>();
-		if (probIdSet.size() != 0)
-			ukIdList = probUkRelRepo.findUkIdList(probIdSet);
-		return ukIdList;
-	}
 }

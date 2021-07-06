@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.UserBasicInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
+import com.tmax.WaplMath.Recommend.event.user.UserInfoEventPublisher;
 import com.tmax.WaplMath.Recommend.model.curriculum.AcademicCalendar;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.user.User;
@@ -49,9 +47,10 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
 	@Autowired
 	private AcademicCalendarRepo calendarRepo;
-
+	
 	@Autowired
-	private static Map<String, List<String>> examScope = ExamScope.examScope;
+	UserInfoEventPublisher userInfoEventPublisher;
+	
 
 	@Override
 	public User getUserInfo(String userId) {
@@ -74,10 +73,13 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		// load user_master tb
 		User user = userRepository.findById(userId).orElse(new User());
 		user.setUserUuid(userId);
+		
 		// parse input
 		String examStartDate = input.getExamStartDate();
 		String examDueDate = input.getExamDueDate();
 		Integer targetScore = input.getTargetScore();
+		
+		// parse date format
 		if (examStartDate != null && examDueDate != null) {
 			LocalDateTime examStartDateTime, examDueDateTime;
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -93,26 +95,34 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		}
 		if (targetScore != null)
 			user.setExamTargetScore(targetScore);
+		
 		// update user_master tb
 		userRepository.save(user);
 
 		// load user_exam_scope tb
 		UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
-		userExamScope.setUserUuid(userId);
+		userExamScope.setUserUuid(userId);		
+		Boolean isExamScopeChanged = false;
+		
 		// parse input
 		String startSubSectionId = input.getStartSubSectionId();
 		String endSubSectionId = input.getEndSubSectionId();
 		List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
+		
 		if (startSubSectionId != null && endSubSectionId != null) {
 			userExamScope.setStartSubSectionId(startSubSectionId);
 			userExamScope.setEndSubSectionId(endSubSectionId);
+			isExamScopeChanged = true;
 		}
+		// excepted sub section is not null
 		if (exceptSubSectionIdList != null) {
 			String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
 			userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
+			isExamScopeChanged = true;
 		}
 		// update user_exam_scope tb
 		userExamScopeRepo.save(userExamScope);
+		if (isExamScopeChanged)	userInfoEventPublisher.publishExamScopeChangeEvent(userId);
 		
 		// if able to set exam type
 //		String examType = input.getExamType();
@@ -121,7 +131,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 //			return output;
 //		}
 //		userObject.setExamType(examType);
-		
+//
 //		String grade = userObject.getGrade();
 //		String semester = userObject.getSemester();
 //
@@ -155,7 +165,6 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		Date time = new Date();
-
 
 		ResultMessageDTO output = new ResultMessageDTO();
 
@@ -259,7 +268,6 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			} else term = "final";
 		}
 		
-		
 		// USER_MASTER 테이블에 유저 기본 정보 저장
 		User userObject = userRepository.findById(userId).orElse(new User());
 		userObject.setUserUuid(userId);
@@ -272,7 +280,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		userRepository.save(userObject);
 		
 		// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
-		List<String> scope = examScope.get(grade+"-"+semester+"-"+term);
+		List<String> scope = ExamScope.examScope.get(grade+"-"+semester+"-"+term);
 		String start_sub_section = scope.get(0);
 		String end_sub_section = scope.get(1);
 		UserExamScope userExamScope = new UserExamScope();
@@ -284,6 +292,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		userExamScopeRepo.save(userExamScope);
 		
+		// Publish school info change event
+		userInfoEventPublisher.publishSchoolInfoChangeEvent(userId);
 		
 		output.setMessage("Successfully updated user basic info.");
 

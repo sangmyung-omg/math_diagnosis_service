@@ -12,9 +12,9 @@ import lombok.Data;
 public class CardConfigDTO {
 	public String cardType;
 	public Integer typeId; // for type card
-	public List<TypeMasteryDTO> typeMasteryList; // for supple/addtlSupple card
-	public String curriculumId; // for midExam/exam card
-	public String midExamType; // "section", "chapter"
-	public Integer probNum; // for exam type1/2 card
+	public List<TypeMasteryDTO> typeMasteryList; // for supple/addtl_supple card
+	public String curriculumId; // for test/exam cards
+	public String testType; // "section", "chapter"
+	public Integer probNum; // for exam cards
 	public String examKeyword; // "3-2-final"
 }

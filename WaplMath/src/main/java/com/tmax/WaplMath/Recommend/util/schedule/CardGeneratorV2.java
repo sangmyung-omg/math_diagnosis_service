@@ -27,7 +27,6 @@ import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 
-import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -182,19 +181,19 @@ public class CardGeneratorV2 {
 		for (String diff : lengthOrderedDiffList) {
 			List<Problem> probList = diffProbList.getDiffProbList(diff);
 			Integer diffIdx = 0;
-			Integer DIFF_MAX_PROB = CardConstants.MID_EXAM_CARD_HIGH_PROB;
+			Integer DIFF_MAX_PROB = CardConstants.SECTION_TEST_CARD_HIGH_PROB;
 			switch (diff) {
 				case "상":
 					diffIdx = 0;
-					DIFF_MAX_PROB = CardConstants.MID_EXAM_CARD_HIGH_PROB;
+					DIFF_MAX_PROB = CardConstants.SECTION_TEST_CARD_HIGH_PROB;
 					break;
 				case "중":
 					diffIdx = 1;
-					DIFF_MAX_PROB = CardConstants.MID_EXAM_CARD_MIDDLE_PROB;
+					DIFF_MAX_PROB = CardConstants.SECTION_TEST_MIDDLE_PROB;
 					break;
 				case "하":
 					diffIdx = 2;
-					DIFF_MAX_PROB = CardConstants.MID_EXAM_CARD_LOW_PROB;
+					DIFF_MAX_PROB = CardConstants.SECTION_TEST_LOW_PROB;
 					break;
 			}
 			Integer currentProbNum = probDiffRatio.get(diffIdx);
@@ -556,8 +555,8 @@ public class CardGeneratorV2 {
 		}
 	}
 
-	// 실력 향상 - 중간 평가 카드 (type="section")
-	public CardDTOV2 generateNormalMidExamCard(String curriculumId, String type, String cardType) {
+	// 실력 향상 - 중간 평가 카드 (type="section"/"chapter")
+	public CardDTOV2 generateTestCard(String curriculumId, String type, String cardType) {
 		CurrMasteryDTO mastery;
 		if (type.equals("section"))
 			mastery = userKnowledgeRepo.findSectionMastery(userId, curriculumId);
@@ -565,15 +564,15 @@ public class CardGeneratorV2 {
 			mastery = userKnowledgeRepo.findChapterMastery(userId, curriculumId);
 		logger.info("{}, {}, {}", mastery.getCurrId(), mastery.getCurrName(), mastery.getMastery());
 		List<Integer> probDiffRatio = new ArrayList<Integer>(Arrays.asList(0, 0, 0));
-		CardDTOV2 midExamCard = CardDTOV2.builder()
+		CardDTOV2 testCard = CardDTOV2.builder()
 										 .cardType(cardType)
 										 .cardTitle(mastery.getCurrName())
 										 .probIdSetList(new ArrayList<ProblemSetListDTO>())
 										 .estimatedTime(0)
 										 .cardScore(mastery.getMastery() * 100)
 										 .build();
-		addCurrProblemWithFrequent(midExamCard, curriculumId, type, CardConstants.MAX_CARD_PROB_NUM, false, probDiffRatio, 1);
-		return midExamCard;
+		addCurrProblemWithFrequent(testCard, curriculumId, type, CardConstants.MAX_CARD_PROB_NUM, false, probDiffRatio, 1);
+		return testCard;
 	}
 
 	// 실력 향상 - 보충카드
@@ -640,7 +639,7 @@ public class CardGeneratorV2 {
 		return supplementCard;
 	}
 
-	// 시험 대비 - Type1 (한 중단원 범위 내 20개), Type2 (중단원 내 4-5개) 카드
+	// 시험 대비 - section_exam (한 중단원 범위 내 20개), full_scope_exam (중단원 내 4-5개) 카드
 	public CardDTOV2 generateExamCard(String curriculumId, String cardType, Integer probNum) {
 		CurrMasteryDTO mastery;
 		mastery = userKnowledgeRepo.findSectionMastery(userId, curriculumId);
@@ -693,19 +692,19 @@ public class CardGeneratorV2 {
 				logger.info("------ {} card", cardConfig.getCardType());
 				card = generateSupplementCard(cardConfig.getTypeMasteryList());
 				break;
-			case CardConstants.SECTION_MID_EXAM_CARD_TYPESTR:
+			case CardConstants.SECTION_TEST_CARD_TYPESTR:
 				logger.info("------ {} card ({})", cardConfig.getCardType(), cardConfig.getCurriculumId());
-				card = generateNormalMidExamCard(cardConfig.getCurriculumId(), "section", cardConfig.getCardType());
+				card = generateTestCard(cardConfig.getCurriculumId(), "section", cardConfig.getCardType());
 				break;
 			case CardConstants.ADDTL_SUPPLE_CARD_TYPESTR:
 				logger.info("------ {} card", cardConfig.getCardType());
 				card = generateAddtlSupplementCard(cardConfig.getTypeMasteryList());
 				break;
-			case CardConstants.EXAM_CARD_TYPE1_TYPESTR:
+			case CardConstants.SECTION_EXAM_CARD_TYPESTR:
 				logger.info("------ {} card ({} {} 문제)", cardConfig.getCardType(), cardConfig.getCurriculumId(), cardConfig.getProbNum());
 				card = generateExamCard(cardConfig.getCurriculumId(), cardConfig.getCardType(), cardConfig.getProbNum());
 				break;
-			case CardConstants.EXAM_CARD_TYPE2_TYPESTR:
+			case CardConstants.FULL_SCOPE_EXAM_CARD_TYPESTR:
 				logger.info("------ {} card ({} {} 문제)", cardConfig.getCardType(), cardConfig.getCurriculumId(), cardConfig.getProbNum());
 				card = generateExamCard(cardConfig.getCurriculumId(), cardConfig.getCardType(), cardConfig.getProbNum());
 				break;

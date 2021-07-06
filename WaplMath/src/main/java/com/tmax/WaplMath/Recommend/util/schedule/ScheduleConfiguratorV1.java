@@ -155,7 +155,7 @@ public class ScheduleConfiguratorV1 {
 		if (sectionIdSet.size() != 0) {
 			String sectionId = sectionIdSet.iterator().next();
 			logger.info("중간에 다 풀었으니까 중간평가 진행: " + sectionId);
-			cardConfigList.add(CardConfigDTO.builder().cardType("midExam").curriculumId(sectionId).midExamType("section").build());
+			cardConfigList.add(CardConfigDTO.builder().cardType("midExam").curriculumId(sectionId).testType("section").build());
 			addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 			output.setCardConfigList(cardConfigList);
 			output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
@@ -293,7 +293,7 @@ public class ScheduleConfiguratorV1 {
 		// 중간 평가 카드 (중단원)
 		String sectionId = currentCurriculumId.substring(0, 14);
 		logger.info("중간평가 진행(중단원): " + sectionId);
-		cardConfigList.add(CardConfigDTO.builder().cardType("midExam").curriculumId(sectionId).midExamType("section").build());
+		cardConfigList.add(CardConfigDTO.builder().cardType("midExam").curriculumId(sectionId).testType("section").build());
 		addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 
 		//		String chapterId = currentCurriculumId.substring(0, 11);
