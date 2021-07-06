@@ -110,8 +110,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
 		
 		if (startSubSectionId != null && endSubSectionId != null) {
-			if (!userExamScope.getStartSubSectionId().equals(startSubSectionId) || 
-				!userExamScope.getEndSubSectionId().equals(endSubSectionId))
+			if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId) && 
+				  userExamScope.getEndSubSectionId().equals(endSubSectionId)))
 				isExamScopeChanged = true;
 			userExamScope.setStartSubSectionId(startSubSectionId);
 			userExamScope.setEndSubSectionId(endSubSectionId);
@@ -119,7 +119,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		// excepted sub section is not null
 		if (exceptSubSectionIdList != null) {
 			String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
-			if (userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
+			if (!userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
 				isExamScopeChanged = true;
 			userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
 		}
@@ -277,8 +277,9 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		// USER_MASTER 테이블에 유저 기본 정보 저장
 		User userObject = userRepository.findById(userId).orElse(new User());
-		
-		if (!userObject.getGrade().equals(grade) || !userObject.getSemester().equals(semester) || !userObject.getExamType().equals(term))
+
+		// Check if user info changed
+		if (!(userObject.getGrade().equals(grade) && userObject.getSemester().equals(semester) && userObject.getExamType().equals(term)))
 			isUserInfoChanged = true;
 		
 		userObject.setUserUuid(userId);
