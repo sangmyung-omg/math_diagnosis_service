@@ -27,6 +27,7 @@ import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 
+import lombok.Getter;
 import lombok.Setter;
 
 /**
@@ -58,14 +59,41 @@ public class CardGeneratorV2 {
 	public String userId;
 	public @Setter Set<Integer> solvedProbIdSet;
 	public @Setter Set<String> examSubSectionIdSet;
-
-	public String getFirstProbLevel(Float mastery) {
-		if (mastery >= CardConstants.MASTERY_HIGH_THRESHOLD)
-			return "high";
-		else if (mastery < CardConstants.MASTERY_HIGH_THRESHOLD && mastery >= CardConstants.MASTERY_LOW_THRESHOLD)
-			return "middle";
-		else
-			return "low";
+	
+	public String getFirstProbLevel(Float mastery, List<String> existDiffList) {
+		if (mastery >= CardConstants.MASTERY_HIGH_THRESHOLD) {
+			if (existDiffList.contains("상"))
+				return "high";
+			else if (existDiffList.contains("중"))
+				return "middle";
+			else
+				return "low";
+		} else if (mastery < CardConstants.MASTERY_HIGH_THRESHOLD && mastery >= CardConstants.MASTERY_LOW_THRESHOLD) {
+			if (existDiffList.contains("중"))
+				return "middle";
+			else {
+				Float differenceToLow = mastery - CardConstants.MASTERY_LOW_THRESHOLD;
+				Float differenceToHigh = CardConstants.MASTERY_HIGH_THRESHOLD - mastery;
+				if (differenceToLow < differenceToHigh) {
+					if (existDiffList.contains("하"))
+						return "low";
+					else
+						return "high";
+				} else {
+					if (existDiffList.contains("상"))
+						return "high";
+					else
+						return "low";
+				}
+			}
+		} else {
+			if (existDiffList.contains("하"))
+				return "low";
+			else if (existDiffList.contains("중"))
+				return "middle";
+			else
+				return "high";
+		}
 	}
 
 	// 문제 난이도 별 문제 Id 모아놓는 모듈.
@@ -429,6 +457,10 @@ public class CardGeneratorV2 {
 			List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
 			DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
+			if (card.getProbIdSetList().size() == 0) {
+				Float firstProbMastery = userKnowledgeRepo.findTypeMastery(userId, typeId).getMastery();
+				card.setFirstProbLevel(getFirstProbLevel(firstProbMastery, diffProbList.getExistDiffList()));
+			}
 			if (isAdaptive)
 				addAllProblemSetList(card, diffProbList, typeProbNum, typeProbNum);
 			else
@@ -484,7 +516,7 @@ public class CardGeneratorV2 {
 			printDiffProbList(diffProbList);
 			if (card.getProbIdSetList().size() == 0) {
 				Float firstProbMastery = userKnowledgeRepo.findTypeMastery(userId, typeId).getMastery();
-				card.setFirstProbLevel(getFirstProbLevel(firstProbMastery));
+				card.setFirstProbLevel(getFirstProbLevel(firstProbMastery, diffProbList.getExistDiffList()));
 			}
 			addAllProblemSetList(card, diffProbList, typeProbNum, typeProbNum);
 		}
@@ -519,7 +551,7 @@ public class CardGeneratorV2 {
 			DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 			printDiffProbList(diffProbList);
 			addAllProblemSetList(typeCard, diffProbList, CardConstants.MIN_TYPE_CARD_PROB_NUM, CardConstants.MAX_TYPE_CARD_PROB_NUM);
-			typeCard.setFirstProbLevel(getFirstProbLevel(mastery));
+			typeCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffList()));
 			return typeCard;
 		}
 	}
@@ -569,7 +601,7 @@ public class CardGeneratorV2 {
 
 			cardDetailJson.addProperty(typeName, mastery * 100.0f);
 			if (cnt == 1)
-				supplementCard.setFirstProbLevel(getFirstProbLevel(mastery));
+				supplementCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffList()));
 			cnt += 1;
 		}
 		supplementCard.setCardDetail(cardDetailJson.toString());
@@ -601,7 +633,7 @@ public class CardGeneratorV2 {
 
 			cardDetailJson.addProperty(typeName, mastery * 100.0f);
 			if (cnt == 1)
-				supplementCard.setFirstProbLevel(getFirstProbLevel(mastery));
+				supplementCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffList()));
 			cnt += 1;
 		}
 		supplementCard.setCardDetail(cardDetailJson.toString());

@@ -235,7 +235,7 @@ public class ScheduleConfiguratorV2 {
 		solvedTypeIdList.removeAll(suppleTypeIdList);
 		if (solvedTypeIdList.size() != 0) {
 			List<TypeMasteryDTO> lowTypeMasteryList = userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList,
-				CardConstants.LOW_MASTERY_THRESHOLD);
+				CardConstants.MASTERY_LOW_THRESHOLD);
 			logger.info("8. 보충 카드로 풀어본 유형 제외, 낮은 유형 카드들의 이해도 리스트 = ");
 			for (TypeMasteryDTO typeMastery : lowTypeMasteryList)
 				logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
@@ -345,7 +345,7 @@ public class ScheduleConfiguratorV2 {
 		List<Integer> solvedTypeIdList = new ArrayList<Integer>(
 			Arrays.asList(remainTypeList.get(1).getTypeId(), remainTypeList.get(2).getTypeId(), remainTypeList.get(3).getTypeId()));
 		List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, suppleTypeIdList,
-			CardConstants.LOW_MASTERY_THRESHOLD);
+			1.0f);
 		logger.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
 		for (TypeMasteryDTO typeMastery : lowMasteryTypeList)
 			logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
@@ -462,7 +462,7 @@ public class ScheduleConfiguratorV2 {
 			}
 		}
 		logger.info("4. 시험 대비 카드 type1 중단원 별 앞으로 할 개수 : " + type1CardsNum.toString());
-		if(type1CardsNum.keySet().size() != 0) {
+		if (type1CardsNum.keySet().size() != 0) {
 			// type1 카드 제공
 			String sectionId = curriculumRepo.sortByCurrSeq(type1CardsNum.keySet()).get(0);
 			logger.info("Type1 카드 제공 (중단원 : " + sectionId + ")");

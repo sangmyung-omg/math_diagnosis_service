@@ -22,14 +22,14 @@ public class DiffProbListDTO {
 
 	public List<Problem> getDiffProbList(String difficulty) {
 		switch (difficulty) {
-		case "상":
-			return this.highProbList;
-		case "중":
-			return this.middleProbList;
-		case "하":
-			return this.lowProbList;
-		default:
-			return new ArrayList<Problem>();
+			case "상":
+				return this.highProbList;
+			case "중":
+				return this.middleProbList;
+			case "하":
+				return this.lowProbList;
+			default:
+				return new ArrayList<Problem>();
 		}
 	}
 
@@ -56,19 +56,28 @@ public class DiffProbListDTO {
 
 	public void addDiffProb(Problem prob, String difficulty) {
 		switch (difficulty) {
-		case "상":
-			this.addHighProb(prob);
-			break;
-		case "중":
-			this.addMiddleProb(prob);
-			break;
-		case "하":
-			this.addLowProb(prob);
-			break;
-		default:
-			this.addMiddleProb(prob);
-			break;
+			case "상":
+				this.addHighProb(prob);
+				break;
+			case "중":
+				this.addMiddleProb(prob);
+				break;
+			case "하":
+				this.addLowProb(prob);
+				break;
+			default:
+				this.addMiddleProb(prob);
+				break;
 		}
+	}
+	
+	public List<String> getExistDiffList() {
+		List<String> diffList = new ArrayList<String>();
+		for (String diff : Arrays.asList("상", "중", "하")) {
+			if (getDiffProbList(diff).size() != 0)
+				diffList.add(diff);
+		}
+		return diffList;
 	}
 
 	public List<String> getLenOrderedDiffList() {

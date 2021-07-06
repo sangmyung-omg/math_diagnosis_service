@@ -71,6 +71,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		try {
 			scheduleConfig = scheduleConfigurator.getNormalScheduleConfig(userId);
 		} catch (Exception e) {
+			e.printStackTrace();
 			output.setMessage("schedule configuration failure. " + e.getMessage());
 			return output;
 		}
@@ -99,6 +100,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		try {
 			scheduleConfig = scheduleConfigurator.getDummyScheduleConfig(userId);
 		} catch (Exception e) {
+			e.printStackTrace();
 			output.setMessage("schedule configuration failure. " + e.getMessage());
 			return output;
 		}
