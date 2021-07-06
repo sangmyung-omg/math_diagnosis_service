@@ -110,18 +110,23 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
 		
 		if (startSubSectionId != null && endSubSectionId != null) {
+			if (!userExamScope.getStartSubSectionId().equals(startSubSectionId) || 
+				!userExamScope.getEndSubSectionId().equals(endSubSectionId))
+				isExamScopeChanged = true;
 			userExamScope.setStartSubSectionId(startSubSectionId);
 			userExamScope.setEndSubSectionId(endSubSectionId);
-			isExamScopeChanged = true;
 		}
 		// excepted sub section is not null
 		if (exceptSubSectionIdList != null) {
 			String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
+			if (userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
+				isExamScopeChanged = true;
 			userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
-			isExamScopeChanged = true;
 		}
 		// update user_exam_scope tb
 		userExamScopeRepo.save(userExamScope);
+		
+		// Publish exam scope change event only if exam scope changed
 		if (isExamScopeChanged)	userInfoEventPublisher.publishExamScopeChangeEvent(userId);
 		
 		// if able to set exam type
@@ -163,6 +168,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		final String FALL_MID_TERM = "2021-10-01";
 		final String FALL_VACATION = "2022-01-01";
 
+		Boolean isUserInfoChanged = false;
+		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		Date time = new Date();
 
@@ -270,6 +277,10 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		// USER_MASTER 테이블에 유저 기본 정보 저장
 		User userObject = userRepository.findById(userId).orElse(new User());
+		
+		if (!userObject.getGrade().equals(grade) || !userObject.getSemester().equals(semester) || !userObject.getExamType().equals(term))
+			isUserInfoChanged = true;
+		
 		userObject.setUserUuid(userId);
 		userObject.setGrade(grade);
 		userObject.setSemester(semester);
@@ -292,8 +303,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		userExamScopeRepo.save(userExamScope);
 		
-		// Publish school info change event
-		userInfoEventPublisher.publishSchoolInfoChangeEvent(userId);
+		// Publish school info change event only if user info changed
+		if (isUserInfoChanged) userInfoEventPublisher.publishSchoolInfoChangeEvent(userId);
 		
 		output.setMessage("Successfully updated user basic info.");
 
