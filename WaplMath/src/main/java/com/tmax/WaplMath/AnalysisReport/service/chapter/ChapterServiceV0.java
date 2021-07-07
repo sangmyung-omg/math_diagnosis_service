@@ -210,7 +210,7 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         //Read top10, top50
         Path path = null;
         try {
-            path = ResourceUtils.getFile("classpath:uk_" + i + "_percentile.json").toPath();
+            path = ResourceUtils.getFile("classpath:statistics/uk_" + i + "_percentile.json").toPath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

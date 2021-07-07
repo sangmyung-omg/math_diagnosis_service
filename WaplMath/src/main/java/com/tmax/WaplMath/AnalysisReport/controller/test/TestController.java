@@ -63,7 +63,7 @@ public class TestController {
     @GetMapping("/test")
     // @ResponseBody
     ResponseEntity<Object> getData(@RequestParam("probList") String probList, @RequestParam("userID") String userID) throws FileNotFoundException {
-        Path path = ResourceUtils.getFile("classpath:uk_avg_data.json").toPath();
+        Path path = ResourceUtils.getFile("classpath:statistics/uk_avg_data.json").toPath();
         FileReader reader = new FileReader(path.toString());
         JsonObject result = (JsonObject)JsonParser.parseReader(reader);
 

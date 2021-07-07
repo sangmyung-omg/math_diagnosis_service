@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -32,7 +34,9 @@ import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
+import com.tmax.WaplMath.Recommend.repository.UkRepository;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +64,9 @@ public class ChapterServiceV1 implements ChapterServiceBase{
     @Autowired
     @Qualifier("AR-UserKnowledgeRepo")
     private UserKnowledgeRepo ukInfoRepo;
+
+    @Autowired
+    private UkRepository ukRepo;
 
     @Autowired
     @Qualifier("UserStatisticsServiceV0")
@@ -286,6 +293,17 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         Map<Integer, UserKnowledge> ukMap = new HashMap<>();
         ukList.forEach(uk -> ukMap.put(uk.getUkId(), uk));
 
+
+        //TODO: Find out why UserKnowledge.uk is giving null
+        //Collect all uk to Set
+        Set<Integer> ukIDList = ukList.stream().map(uknow -> uknow.getUkId()).collect(Collectors.toSet());
+
+        //Get the UK infos
+        Iterable<Uk> ukDataList = ukRepo.findAllById(ukIDList);
+
+        //Set UK to outputmap
+        ukDataList.forEach(uk -> ukMap.get(uk.getUkId()).setUk(uk));
+
         return ukMap;
     }
 
@@ -361,13 +379,11 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         List<UKDetailDTO> outList = new ArrayList<>();
 
         for(Map.Entry<Integer, UserKnowledge> entry : ukMap.entrySet()){
-            UKDetailDTO ukdetail = new UKDetailDTO();
-
-            ukdetail.setId(entry.getValue().getUkId().toString());
-            ukdetail.setName(entry.getValue().getUk().getUkName());
-            ukdetail.setSkillScore(entry.getValue().getUkMastery());
-
-            outList.add(ukdetail);
+            outList.add(UKDetailDTO.builder()
+                                   .id(entry.getKey().toString())
+                                   .name(entry.getValue().getUk().getUkName())
+                                   .skillScore(entry.getValue().getUkMastery())
+                                   .build());
         }
 
         return outList;
@@ -379,7 +395,7 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         //Read top10, top50
         Path path = null;
         try {
-            path = ResourceUtils.getFile("classpath:uk_" + i + "_percentile.json").toPath();
+            path = ResourceUtils.getFile("classpath:statistics/uk_" + i + "_percentile.json").toPath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

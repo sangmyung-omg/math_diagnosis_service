@@ -213,7 +213,7 @@ public class IScreamEduDataReader {
         //get Average uk mastery data
         Path path = null;
         try {
-            path = ResourceUtils.getFile("classpath:user_uk_all.json").toPath();
+            path = ResourceUtils.getFile("classpath:statistics/user_uk_all.json").toPath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -269,7 +269,7 @@ public class IScreamEduDataReader {
         //get Average uk mastery data
         Path path = null;
         try {
-            path = ResourceUtils.getFile("classpath:uk_user_data.json").toPath();
+            path = ResourceUtils.getFile("classpath:statistics/uk_user_data.json").toPath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

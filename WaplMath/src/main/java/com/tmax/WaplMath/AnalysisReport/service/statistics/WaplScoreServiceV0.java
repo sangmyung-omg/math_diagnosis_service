@@ -211,9 +211,10 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
         //Get the userEmbedding data
         UserEmbedding embedding = userEmbeddingRepo.getEmbedding(userID);
+        String embeddingData = embedding != null ? embedding.getUserEmbedding() : "";
 
         //Build the ukList 
-        List<Map<Integer, Float>> ukMasteryMapSeq = waplScoreTriton.calculateFromSequenceList(probList.getProbList() , embedding.getUserEmbedding());
+        List<Map<Integer, Float>> ukMasteryMapSeq = waplScoreTriton.calculateFromSequenceList(probList.getProbList() , embeddingData);
 
 
         //Calculate score (uk average)

@@ -51,7 +51,7 @@ public class SummaryServiceV0 implements SummaryServiceBase{
         //get Average uk mastery data
         Path path = null;
         try {
-            path = ResourceUtils.getFile("classpath:uk_min_max.json").toPath();
+            path = ResourceUtils.getFile("classpath:statistics/uk_min_max.json").toPath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

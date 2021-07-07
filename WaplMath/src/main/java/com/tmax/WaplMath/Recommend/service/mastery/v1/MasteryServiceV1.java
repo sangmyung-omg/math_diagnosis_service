@@ -160,8 +160,13 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         TritonMasteryDTO tritonMastery = masteryAPIManager.measureMasteryDTO(userId, ukIDList, ukCorrectList, diffList, embeddingStr);
 
 
-        //Update the new mastery to DB
-        userEmbeddingRepo.updateEmbedding(userId, tritonMastery.getEmbedding());
+        //Update or insert the new mastery to DB 
+        //userEmbeddingRepo.updateEmbedding(userId, tritonMastery.getEmbedding());
+        userEmbeddingRepo.save(UserEmbedding.builder()
+                                            .userUuid(userId)
+                                            .userEmbedding(tritonMastery.getEmbedding())
+                                            .updateDate(Timestamp.valueOf(LocalDateTime.now()))
+                                            .build());
 
         //Save each UK data to UK table
         Set<UserKnowledge> updateUKSet = new HashSet<>();

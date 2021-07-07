@@ -110,7 +110,12 @@ public class SummaryServiceV1 implements SummaryServiceBase {
             List<Float> sortedMasteryList = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList, 
                                                                                 CurrStatisticsServiceV0.STAT_MASTERY_SORTED).getAsFloatList();
             percentile = ukStatSvc.getPercentile(userScore, sortedMasteryList);
-            targetpercentile = ukStatSvc.getPercentile((float)userInfo.getExamTargetScore()/100, sortedMasteryList);
+            
+            //
+            if(userInfo.getExamTargetScore() != null)
+                targetpercentile = ukStatSvc.getPercentile((float)userInfo.getExamTargetScore()/100, sortedMasteryList);
+            else
+                targetpercentile = -1.0f;
 
             //Get std, average
             average = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList, 

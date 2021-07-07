@@ -30,7 +30,7 @@ public class StatisticsEventListener {
      * Handler to call services that run on mastery change
      * @param event
      */
-    @Async
+    // @Async
     @EventListener
     public void handleUserMasteryUpdateEvent(MasteryChangeEvent event) {
         //Get user ID
@@ -39,7 +39,13 @@ public class StatisticsEventListener {
         Map<String, Float> map = currStatSvc.getCurriculumMasteryOfUser(userID);
         String jsonStr = new Gson().toJson(map);
 
+        logger.info("Updating user_mastery_stats for user: " + userID);
+        userStatSvc.updateSpecificUser(userID);
+        
         logger.info("Updating curr_mastery for user: " + userID);
         userStatSvc.updateCustomUserStat(userID, "curr_mastery", Statistics.Type.JSON, jsonStr);
+
+        logger.info("Updated all stats for user: " + userID);
     }
+
 }
