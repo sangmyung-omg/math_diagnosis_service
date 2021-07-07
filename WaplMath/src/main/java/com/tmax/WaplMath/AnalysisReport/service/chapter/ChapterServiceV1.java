@@ -2,6 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.service.chapter;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,14 +11,22 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.SkillStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.UKDetailDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceBaseV0;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
@@ -42,15 +51,31 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
     @Autowired
     @Qualifier("AR-CurriculumInfoRepo")
-    CurriculumInfoRepo currInfoRepo;
+    private CurriculumInfoRepo currInfoRepo;
 
     @Autowired
     @Qualifier("AR-UserInfoRepo")
-    UserInfoRepo userInfoRepo;
+    private UserInfoRepo userInfoRepo;
 
     @Autowired
     @Qualifier("AR-UserKnowledgeRepo")
-    UserKnowledgeRepo ukInfoRepo;
+    private UserKnowledgeRepo ukInfoRepo;
+
+    @Autowired
+    @Qualifier("UserStatisticsServiceV0")
+    private UserStatisticsServiceBase userStatSvc;
+
+    @Autowired
+    @Qualifier("UKStatisticsServiceV0")
+    private UKStatisticsServiceBase ukStatSvc;
+
+    @Autowired
+    @Qualifier("CurrStatisticsServiceV0")
+    private CurrStatisticsServiceBase currStatSvc;
+
+    @Autowired
+    @Qualifier("AR-WaplScoreServiceV0")
+    private WaplScoreServiceBaseV0 waplScoreSvc;
 
 
     @Override
@@ -58,15 +83,18 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         List<Curriculum> list = currInfoRepo.getAllCurriculumOfUser(userID);
 
         List<ChapterDetailDTO> outList = new ArrayList<>();
-        list.forEach(curr->outList.add(getChapterDetailFromCurriculum(userID, curr)));
+
+        //Get curr mastery map first get call
+        Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
+        list.forEach(curr->outList.add(getChapterDetailFromCurriculum(userID, curr,currMasteryMap)));
 
         return outList;
     }
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserChapterOnly(String userID) {
-        // TODO Auto-generated method stub
-        return null;
+        //TODO: search with proper val
+        return getChapterListOfUserInRange(userID, "year","중*chaponly");
     }
 
     @Override
@@ -157,7 +185,9 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         List<ChapterDetailDTO> output = new ArrayList<>();
 
         //Fill the output list from the output
-        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr)));
+        //Get curr mastery map first get call
+        Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
+        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap)));
 
 
         return output;
@@ -202,12 +232,15 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         List<Curriculum> currList = currInfoRepo.getFromCurrIdList(new ArrayList<String>(sortedMap.keySet()).subList(0, Math.min(listSize, sortedMap.keySet().size()) ));
         List<ChapterDetailDTO> output = new ArrayList<>();
 
-        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr)));
+
+        //Get curr mastery map first get call
+        Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
+        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap)));
 
         return output;
     }
 
-    private ChapterDetailDTO getChapterDetailFromCurriculum(String userID, Curriculum curr){
+    private ChapterDetailDTO getChapterDetailFromCurriculum(String userID, Curriculum curr, Map<String, Float> currMasteryMap){
         ChapterDetailDTO chapDetail = new ChapterDetailDTO();
 
         chapDetail.setId(curr.getCurriculumId());
@@ -220,8 +253,7 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         Map<Integer, UserKnowledge> ukMap = getChapterUKData(userID, curr.getCurriculumId());
 
 
-        //
-        chapDetail.setSkillData(getSkillStatFromUKMap(ukMap));
+        chapDetail.setSkillData(getSkillFromCurriculumMap(userID, curr.getCurriculumId(), currMasteryMap));
 
         chapDetail.setUkDetailList(getUKDetailFromUKMap(ukMap));
 
@@ -257,7 +289,8 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         return ukMap;
     }
 
-    private SkillStatDTO getSkillStatFromUKMap(Map<Integer, UserKnowledge> ukMap){
+    @Deprecated
+    SkillStatDTO getSkillStatFromUKMap(Map<Integer, UserKnowledge> ukMap){
         SkillStatDTO output = new SkillStatDTO();
 
         //Calc user average
@@ -276,6 +309,52 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
 
         return output;
+    }
+
+    private SkillStatDTO getSkillFromCurriculumMap(String userID, String currID, Map<String,Float> currMasteryMap){
+        //Get user's current score of curriculum
+        double userscore = currMasteryMap.get(currID);
+
+        //Get user's percentile
+        List<Float> sortedMastery = currStatSvc.getStatistics(currID, CurrStatisticsServiceBase.STAT_MASTERY_SORTED).getAsFloatList();
+        double userpercentile = 100*ukStatSvc.getPercentile((float)userscore, sortedMastery);
+
+
+        //Get wapl score of currID
+        WAPLScoreDTO waplScoreDto = waplScoreSvc.getCurriculumWaplScore(userID, currID);
+
+        //Get mean
+        double average = 100*currStatSvc.getStatistics(currID, CurrStatisticsServiceBase.STAT_MASTERY_MEAN).getAsFloat();
+
+        //Get STD
+        double globalstd = 100*currStatSvc.getStatistics(currID, CurrStatisticsServiceBase.STAT_MASTERY_STD).getAsFloat();
+
+        //Get top 10
+        double top10Tier = 100*sortedMastery.get((int)Math.round(0.9 * sortedMastery.size()));
+
+        return SkillStatDTO.builder()
+                           .user(100*userscore)
+                           .userpercentile(userpercentile)
+                           .waplscore(100*waplScoreDto.getScore())
+                           .waplscorepercentile(100*waplScoreDto.getPercentile())
+                           .average(average)
+                           .top10Tier(top10Tier)
+                           .globalstd(globalstd)
+                           .build();
+    }
+
+    private Map<String, Float> getUserCurriculumMasteryMap(String userID){
+        //Get user curriculum Mastery map. TODO: this is calling the stat curr mastery map repeatedly
+        Statistics stat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_CURRICULUM_MASTERY_MAP);
+
+        //If stat is null, throw error. invoke the generation flow?
+        if(stat == null){
+            throw new GenericInternalException(ARErrorCode.INVALID_MASTERY_DATA, String.format("Curriculum mastery data for user [%s] does not exist.",userID));
+        }
+
+        //Convert to Map from json data
+        Type type = new TypeToken<Map<String, Float>>(){}.getType();
+        return new Gson().fromJson(stat.getData(), type);
     }
 
     private List<UKDetailDTO> getUKDetailFromUKMap(Map<Integer, UserKnowledge> ukMap){

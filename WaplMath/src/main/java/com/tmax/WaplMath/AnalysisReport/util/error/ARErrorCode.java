@@ -24,6 +24,8 @@ public enum ARErrorCode implements ErrorCodeBase {
 
     UNSUPPORTED_API_ERROR("0009", "Unsupported API."),
 
+    INVALID_MASTERY_DATA("0010", "Invalid mastery data."),
+
     //The lower bound error code;
     UNKNOWN_ERROR("ERR-AR-999", "Unknown error");
 

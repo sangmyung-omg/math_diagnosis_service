@@ -44,4 +44,14 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
     //2021-06-29 add parts search
     @Query("select curr from Curriculum curr where curr.curriculumId like concat(:currIdLike,'%') and curr.part is not null order by curr.curriculumSequence")
     List<Curriculum> getPartsNotNullLikeId(@Param("currIdLike") String currIdLike);
+
+
+
+    //2021-07-05 added by Jonghyun Seong. For querying ranged exam scope
+    // Selects all curriculum in range by curr sequence range. then excluding the exclude ID List
+    @Query("Select curr from Curriculum curr " + 
+           "where curr.curriculumSequence >= (Select cs.curriculumSequence from Curriculum cs where cs.curriculumId = :currStart) and " +
+           "curr.curriculumSequence <= (Select ce.curriculumSequence from Curriculum ce where ce.curriculumId = :currEnd) and " + 
+           "curr.curriculumId not in (:excludeIdList)")
+    List<Curriculum> getCurriculumInRange(@Param("currStart") String currIdStart, @Param("currEnd") String currIdEnd, @Param("excludeIdList") List<String> excludeIdList);
 }

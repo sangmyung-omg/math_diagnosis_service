@@ -7,12 +7,14 @@ import java.util.List;
 import com.tmax.WaplMath.AnalysisReport.dto.UserIDListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultV1DTO;
+import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +26,14 @@ import org.springframework.stereotype.Service;
 @Primary
 public class ResultServiceV1 implements ResultServiceBaseV1 {
     @Autowired
+    @Qualifier("SummaryServiceV1")
     private SummaryServiceBase summarySvc;
 
     @Autowired
     private RecordServiceBase recordSvc;
 
     @Autowired
+    @Qualifier("ChapterServiceV1")
     private ChapterServiceBase chapterSvc;
 
     @Autowired
@@ -59,7 +63,7 @@ public class ResultServiceV1 implements ResultServiceBaseV1 {
         resultData.setSummary(summarySvc.getSummaryOfUser(userID));
         resultData.setLevelDiagnosisRecord(recordSvc.getRecordOfUser(userID));
         resultData.setChapterDetailList(chapterSvc.getAllChapterListOfUserChapterOnly(userID));
-        resultData.setWaplScore(waplScoreSvc.getWaplScore(userID));
+        resultData.setWaplScore(WAPLScoreDTO.getScaledScore(waplScoreSvc.getWaplScore(userID)));
 
         return resultData;
     }

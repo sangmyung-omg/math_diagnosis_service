@@ -18,10 +18,10 @@ import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurricu
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.problem.ProblemCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.CurrStatisticsServiceBase;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.UKStatisticsServiceBase;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceV0;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
@@ -137,10 +137,11 @@ public class TestController {
     private UserStatisticsServiceBase userStatSvc;
 
     @GetMapping("/teststatistic2")
-    ResponseEntity<Object> updateStat2() {
-        userStatSvc.updateAllUsers();
+    ResponseEntity<Object> updateStat2(@RequestParam("user") String userID) {
+        userStatSvc.updateSpecificUser(userID);
         return null;
     }
+    
 
     @Autowired
     private CurrStatisticsServiceBase currStatSvc;

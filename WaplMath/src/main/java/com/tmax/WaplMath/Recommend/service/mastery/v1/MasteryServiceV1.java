@@ -154,7 +154,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
         //Get the current embedding
         UserEmbedding userEmbedding = userEmbeddingRepo.getEmbedding(userId);
-        String embeddingStr = userEmbedding != null ? userEmbedding.getUserEmbedding() : null;
+        String embeddingStr = userEmbedding != null ? userEmbedding.getUserEmbedding() : "";
 
         //Measure the current mastery
         TritonMasteryDTO tritonMastery = masteryAPIManager.measureMasteryDTO(userId, ukIDList, ukCorrectList, diffList, embeddingStr);

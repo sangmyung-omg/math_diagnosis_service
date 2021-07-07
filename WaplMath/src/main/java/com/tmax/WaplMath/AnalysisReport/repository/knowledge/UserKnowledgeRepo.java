@@ -38,6 +38,10 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
     @Query("select know from UserKnowledge know join Uk uk on uk.ukId = know.ukId where uk.curriculumId like concat(:currId,'%') order by know.userUuid")
     public List<UserKnowledge> getAllByLikelyCurrID(@Param("currId") String currId);
 
+    //2021-06-30 jonghyun_seong. To get lower bound curriculums too + by user id
+    @Query("select know from UserKnowledge know join Uk uk on uk.ukId = know.ukId where uk.curriculumId like concat(:currId,'%') and know.userUuid = :userId order by know.userUuid")
+    public List<UserKnowledge> getByUserIDLikelyCurrID(@Param("userId") String userId, @Param("currId") String currId);
+
 
     //2021-06-25 by Jonghyun Seong. Query to get specific UK_ID's user masterys
     @Query("Select know from UserKnowledge know where know.ukId = :ukId")
@@ -46,4 +50,8 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
     //2021-06-28 New name for same service. 
     @Query("select know from UserKnowledge know where know.userUuid = :userID")
     public List<UserKnowledge> getByUserUuid(@Param("userID") String userID);
+
+    //2021-07-05 added by Jonghyun Seong. Query to get user's userknowledge for given currid scope
+    @Query("select know from UserKnowledge know where know.userUuid = :userID and know.uk.curriculumId in (:currIdList)")
+    public List<UserKnowledge> getByUserUuidScoped(@Param("userID") String userID, @Param("currIdList") List<String> currIdList);
 }
