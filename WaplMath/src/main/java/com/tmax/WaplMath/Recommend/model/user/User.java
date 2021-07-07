@@ -1,16 +1,23 @@
 package com.tmax.WaplMath.Recommend.model.user;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
+import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 
 import lombok.Data;
 
@@ -37,8 +44,17 @@ public class User {
 
 	@Column(name = "EXAM_TARGET_SCORE")
 	private Integer examTargetScore;
-
-	@ManyToOne(cascade = (CascadeType.ALL))
+	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy="user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<UserKnowledge> userKnowledgeList;
+	
+	@OneToOne(fetch = FetchType.LAZY, mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
+	private UserEmbedding userEmbedding;
+	
+	@OneToOne(fetch = FetchType.LAZY, mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
+	private UserExamScope userExamScope;
+	
+	@ManyToOne
 	@JoinColumn(name = "currentCurriculumId", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum currentCurriculum;
 }

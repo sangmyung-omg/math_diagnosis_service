@@ -1,11 +1,11 @@
 package com.tmax.WaplMath.Recommend.model.user;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
@@ -23,15 +23,15 @@ public class UserExamScope {
 	private String endSubSectionId;
 	private String exceptSubSectionIdList;
 
-	@OneToOne(cascade = (CascadeType.ALL))
-	@JoinColumn(name="userUuid", referencedColumnName="userUuid", insertable=false, updatable=false)
+	@OneToOne
+	@PrimaryKeyJoinColumn(name="userUuid", referencedColumnName="userUuid")
 	private User user;
 	
-	@ManyToOne(cascade = (CascadeType.ALL))
+	@ManyToOne
 	@JoinColumn(name = "startSubSectionId", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum startCurriculum;
 
-	@ManyToOne(cascade = (CascadeType.ALL))
+	@ManyToOne
 	@JoinColumn(name = "endSubSectionId", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum endCurriculum;
 }

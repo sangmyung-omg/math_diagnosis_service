@@ -28,7 +28,7 @@ public class UserEmbedding {
 
 	private Timestamp updateDate;
 
-	@OneToOne(cascade = (CascadeType.ALL))
+	@OneToOne
 	@JoinColumn(name = "userUuid", insertable = false, updatable = false)
 	private User user;
 }

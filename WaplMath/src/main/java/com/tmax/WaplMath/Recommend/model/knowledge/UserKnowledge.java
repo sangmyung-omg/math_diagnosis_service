@@ -33,12 +33,12 @@ public class UserKnowledge {
 
 	private Float ukMastery;
 	private Timestamp updateDate;
-
-	@ManyToOne(cascade = (CascadeType.ALL))
+	
+	@ManyToOne
 	@JoinColumn(name = "userUuid", insertable = false, updatable = false)
 	private User user;
 
-	@ManyToOne(cascade = (CascadeType.ALL))
+	@ManyToOne
 	@JoinColumn(name = "ukId", insertable = false, updatable = false)
 	private Uk uk;
 }

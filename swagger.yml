@@ -194,7 +194,25 @@ paths:
         "500":
           description: "실패"
           $ref: "#/components/responses/500-Generic"
-
+  /user:
+    delete:
+      tags:
+        - 'User'
+      summary: "학생 초기화"
+      description: 
+        학생의 모든 기록 초기화(삭제)
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteUserResult"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic" 
   /frequent:
     get:
       tags:
@@ -580,6 +598,15 @@ components:
         message:
           type: string
           example: Successfully update user basic info.
+          description: "성공 여부 메시지"
+    DeleteUserResult:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Successfully delete user info.
           description: "성공 여부 메시지"
           
     FrequentCardResult:

@@ -37,7 +37,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	@Autowired
-	private UserRepository userRepository;
+	private UserRepository userRepo;
 
 	@Autowired
 	private UserExamScopeRepo userExamScopeRepo;
@@ -58,7 +58,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		List<String> input = new ArrayList<String>();
 		input.add(userId);
 		logger.info("Getting user basic info...");
-		List<User> queryList = (List<User>) userRepository.findAllById(input);
+		List<User> queryList = (List<User>) userRepo.findAllById(input);
 		logger.info("user : " + input + ", Query Result Size: " + Integer.toString(queryList.size()));
 		if (queryList.size() != 0 && queryList != null) {
 			result = queryList.get(0);
@@ -71,7 +71,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		ResultMessageDTO output = new ResultMessageDTO();
 
 		// load user_master tb
-		User user = userRepository.findById(userId).orElse(new User());
+		User user = userRepo.findById(userId).orElse(new User());
 		user.setUserUuid(userId);
 		
 		// parse input
@@ -95,7 +95,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		}
 		
 		// update user_master tb
-		userRepository.save(user);
+		userRepo.save(user);
 
 		// load user_exam_scope tb
 		UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
@@ -260,24 +260,11 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			// if exception occured
 			if (output.getMessage() != null) {
 				return output;
-			}
-			
-			// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
-			List<String> scope = ExamScope.examScope.get(grade+"-"+semester+"-"+term);
-			String start_sub_section = scope.get(0);
-			String end_sub_section = scope.get(1);
-			UserExamScope userExamScope = new UserExamScope();
-			
-			// USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
-			userExamScope.setUserUuid(userId);
-			userExamScope.setStartSubSectionId(start_sub_section);
-			userExamScope.setEndSubSectionId(end_sub_section);
-			
-			userExamScopeRepo.save(userExamScope);			
+			}	
 		}
 		
 		// USER_MASTER 테이블에 유저 기본 정보 저장
-		User userObject = userRepository.findById(userId).orElse(new User());
+		User userObject = userRepo.findById(userId).orElse(new User());
 
 		// Check if user info changed
 		if (userObject.getGrade() == null && grade != null)
@@ -293,7 +280,20 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		if (currentCurriculumId != null)	userObject.setExamType(term);
 		if (targetScore != null)	userObject.setExamTargetScore(targetScore);
 		
-		userRepository.save(userObject);
+		userRepo.save(userObject);
+
+		// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
+		List<String> scope = ExamScope.examScope.get(grade+"-"+semester+"-"+term);
+		String start_sub_section = scope.get(0);
+		String end_sub_section = scope.get(1);
+		UserExamScope userExamScope = new UserExamScope();
+		
+		// USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
+		userExamScope.setUserUuid(userId);
+		userExamScope.setStartSubSectionId(start_sub_section);
+		userExamScope.setEndSubSectionId(end_sub_section);
+		
+		userExamScopeRepo.save(userExamScope);
 		
 		// Publish school info change event only if user info changed
 		if (isUserInfoChanged) userInfoEventPublisher.publishSchoolInfoChangeEvent(userId);
@@ -301,5 +301,11 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		output.setMessage("Successfully updated user basic info.");
 
 		return output;
+	}
+
+	@Override
+	public ResultMessageDTO deleteUserInfo(String userId) {
+		userRepo.deleteById(userId);
+		return new ResultMessageDTO("Successfully delete user info");
 	}
 }
