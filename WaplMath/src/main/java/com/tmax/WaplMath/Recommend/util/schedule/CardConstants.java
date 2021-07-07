@@ -35,7 +35,7 @@ public class CardConstants {
 	static final String FULL_SCOPE_EXAM_CARD_TYPESTR = "full_scope_exam";
 	static final String TRIAL_EXAM_CARD_TYPESTR = "trial_exam";
 	
-	static final String SUPPLE_CARD_TITLE_FORMAT = "취약 유형 %d개 복습";
+	static final String SUPPLE_CARD_TITLE_FORMAT = "보충 유형 %d개 복습";
 	static final String ADDTL_SUPPLE_CARD_TITLE_FORMAT = "유형 %d개 복습";
 	static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s 대비";
 	

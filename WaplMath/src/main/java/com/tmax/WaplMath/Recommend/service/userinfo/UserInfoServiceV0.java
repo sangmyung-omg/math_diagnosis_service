@@ -77,10 +77,10 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		// parse input
 		String examStartDate = input.getExamStartDate();
 		String examDueDate = input.getExamDueDate();
-		Integer targetScore = input.getTargetScore();
 		
 		// parse date format
 		if (examStartDate != null && examDueDate != null) {
+			logger.info("examStartDate:" + examStartDate + ", examDueDate:" + examDueDate);
 			LocalDateTime examStartDateTime, examDueDateTime;
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			try {
@@ -93,8 +93,6 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			user.setExamStartDate(Timestamp.valueOf(examStartDateTime));
 			user.setExamDueDate(Timestamp.valueOf(examDueDateTime));
 		}
-		if (targetScore != null)
-			user.setExamTargetScore(targetScore);
 		
 		// update user_master tb
 		userRepository.save(user);
@@ -110,6 +108,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
 		
 		if (startSubSectionId != null && endSubSectionId != null) {
+			logger.info("startSubSectionId:" + startSubSectionId + ", endSubSectionId:" + endSubSectionId);
 			if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId) && 
 				  userExamScope.getEndSubSectionId().equals(endSubSectionId)))
 				isExamScopeChanged = true;
@@ -118,8 +117,11 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		}
 		// excepted sub section is not null
 		if (exceptSubSectionIdList != null) {
+			logger.info("exceptSubSectionIdList:" + exceptSubSectionIdList);
 			String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
-			if (!userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
+			if (userExamScope.getExceptSubSectionIdList() == null && !exceptSubSectionIdStr.equals(""))
+				isExamScopeChanged = true;
+			else if (userExamScope.getExceptSubSectionIdList() != null && !userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
 				isExamScopeChanged = true;
 			userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
 		}
@@ -176,94 +178,12 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		ResultMessageDTO output = new ResultMessageDTO();
 
 		String grade = input.getGrade();
-		String semester = "";
-		if (format.format(time).toString().compareToIgnoreCase(SPRING_VACATION) < 0) {
-			semester = "1";
-		} else
-			semester = "2";
 		String name = input.getName();
-		String currentCurriculumId = input.getCurrentCurriculumId();
-
-		logger.info("userId:" + userId + ", grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId);
-
-		// 에러 처리
-		if (!grade.equalsIgnoreCase("1") && !grade.equalsIgnoreCase("2") && !grade.equalsIgnoreCase("3")) {
-			output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
-		}
-
-		if (!semester.equalsIgnoreCase("1") && !semester.equalsIgnoreCase("2")) {
-			if (output.getMessage() == null) {
-				output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
-			} else {
-				output.setMessage(output.getMessage() + "\nValue of semester should be one of '1' or '2'. Given : " + semester);
-			}
-		}
-
-		if (name == null) {
-			if (output.getMessage() == null) {
-				output.setMessage("No value given for name");
-			} else {
-				output.setMessage(output.getMessage() + "\nNo value given for name");
-			}
-		}
-
-		if (currentCurriculumId == null) {
-			// 진입 시점을 고려해 currentCurriculumId 생성.
-			String[] dates = format.format(time).toString().split("-");
-			int month = Integer.parseInt(dates[1]);
-			int week = 0;
-
-			// 현재 시점이 이번 달의 몇주차인지 파악.
-			Calendar c = Calendar.getInstance();
-			//		c.set(Integer.parseInt(dates[0]), Integer.parseInt(dates[1])-1, Integer.parseInt(dates[2]));
-			c.setTime(time);
-			//		c.add(Calendar.DATE, 13);		// 테스트
-			//		c.add(Calendar.MONTH, -11);
-			c.setFirstDayOfWeek(Calendar.MONDAY); // 월요일 기준.
-
-			// 이번 달 마지막 주의 평일이 이틀까지면 (월, 화 로 이번 달 끝), 그 주는 다음 달의 1주차. 그보다 많으면 (수요일까지 있다) 이번 달의 마지막 주차 로 인정.
-			c.setMinimalDaysInFirstWeek(5);
-
-			week = c.get(Calendar.WEEK_OF_MONTH);
-
-			if (week == 0) {
-				c.add(Calendar.MONTH, -1);
-				int y = c.get(Calendar.YEAR);
-				int m = c.get(Calendar.MONTH);
-				int d = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-				Calendar cal = Calendar.getInstance();
-				cal.set(y, m, d);
-				month = month - 1;
-				week = cal.get(Calendar.WEEK_OF_MONTH);
-			}
-		
-			// 월, 주차 정보로 해당하는 커리큘럼 정보 중 가장 나중 거 curriculum_id 가져옴.
-			List<AcademicCalendar> curr_schedule = calendarRepo.findByMonthAndWeek(grade, month, week);
-			if (curr_schedule != null && curr_schedule.size() != 0) {
-				currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
-			} else {
-				currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03-01-01";
-				logger.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);			
-			}
-		}
-	
-		try {
-			Curriculum curriculum = curriculumRepo.findById(currentCurriculumId).orElseThrow(() -> new Exception());
-		} catch (Exception e) {
-			if (output.getMessage() == null) {
-				output.setMessage("Current curriculum id is not valid. Given : " + currentCurriculumId);
-			} else {
-				output.setMessage(output.getMessage() + "Current curriculum id is not valid. Given : " + currentCurriculumId);
-			}
-		}
-
-		if (output.getMessage() != null) {
-			return output;
-		}
-
-		/*
-		 * 시험 범위 (mid / final) 판단해서 USER_EXAM_SCOPE 테이블에 시작 소단원, 끝 소단원 넣기
-		*/
+		String currentCurriculumId = input.getCurrentCurriculumId();		
+		Integer targetScore = input.getTargetScore();
+		// 학기 결정
+		String semester = format.format(time).toString().compareToIgnoreCase(SPRING_VACATION) < 0 ? "1" : "2";
+		// 시험 범위 (mid / final) 판단해서 USER_EXAM_SCOPE 테이블에 시작 소단원, 끝 소단원 넣기
 		String term = "";
 		if (semester.equalsIgnoreCase("1")) {
 			if (format.format(time).toString().compareToIgnoreCase(SPRING_MID_TERM) < 0) {
@@ -275,34 +195,105 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			} else term = "final";
 		}
 		
+		logger.info("userId:" + userId + ", grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId+ ", targetScore:" + targetScore);
+
+		if (grade != null) {
+			// 에러 처리
+			if (!grade.equalsIgnoreCase("1") && !grade.equalsIgnoreCase("2") && !grade.equalsIgnoreCase("3")) {
+				output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
+			}
+
+			if (!semester.equalsIgnoreCase("1") && !semester.equalsIgnoreCase("2")) {
+				if (output.getMessage() == null) {
+					output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
+				} else {
+					output.setMessage(output.getMessage() + "\nValue of semester should be one of '1' or '2'. Given : " + semester);
+				}
+			}
+
+			if (currentCurriculumId == null) {
+				// 진입 시점을 고려해 currentCurriculumId 생성.
+				String[] dates = format.format(time).toString().split("-");
+				int month = Integer.parseInt(dates[1]);
+				int week = 0;
+	
+				// 현재 시점이 이번 달의 몇주차인지 파악.
+				Calendar c = Calendar.getInstance();
+				c.setTime(time);
+				c.setFirstDayOfWeek(Calendar.MONDAY); // 월요일 기준.
+	
+				// 이번 달 마지막 주의 평일이 이틀까지면 (월, 화 로 이번 달 끝), 그 주는 다음 달의 1주차. 그보다 많으면 (수요일까지 있다) 이번 달의 마지막 주차 로 인정.
+				c.setMinimalDaysInFirstWeek(5);
+	
+				week = c.get(Calendar.WEEK_OF_MONTH);
+	
+				if (week == 0) {
+					c.add(Calendar.MONTH, -1);
+					int y = c.get(Calendar.YEAR);
+					int m = c.get(Calendar.MONTH);
+					int d = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+					Calendar cal = Calendar.getInstance();
+					cal.set(y, m, d);
+					month = month - 1;
+					week = cal.get(Calendar.WEEK_OF_MONTH);
+				}
+			
+				// 월, 주차 정보로 해당하는 커리큘럼 정보 중 가장 나중 거 curriculum_id 가져옴.
+				List<AcademicCalendar> curr_schedule = calendarRepo.findByMonthAndWeek(grade, month, week);
+				if (curr_schedule != null && curr_schedule.size() != 0) {
+					currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
+				} else {
+					currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03-01-01";
+					logger.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);			
+				}
+			}
+			// check currentCurriculumId validation
+			try {
+				Curriculum curriculum = curriculumRepo.findById(currentCurriculumId).orElseThrow(() -> new Exception());
+			} catch (Exception e) {
+				if (output.getMessage() == null) {
+					output.setMessage("Current curriculum id is not valid. Given : " + currentCurriculumId);
+				} else {
+					output.setMessage(output.getMessage() + "Current curriculum id is not valid. Given : " + currentCurriculumId);
+				}
+			}
+			// if exception occured
+			if (output.getMessage() != null) {
+				return output;
+			}
+			
+			// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
+			List<String> scope = ExamScope.examScope.get(grade+"-"+semester+"-"+term);
+			String start_sub_section = scope.get(0);
+			String end_sub_section = scope.get(1);
+			UserExamScope userExamScope = new UserExamScope();
+			
+			// USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
+			userExamScope.setUserUuid(userId);
+			userExamScope.setStartSubSectionId(start_sub_section);
+			userExamScope.setEndSubSectionId(end_sub_section);
+			
+			userExamScopeRepo.save(userExamScope);			
+		}
+		
 		// USER_MASTER 테이블에 유저 기본 정보 저장
 		User userObject = userRepository.findById(userId).orElse(new User());
 
 		// Check if user info changed
-		if (!(userObject.getGrade().equals(grade) && userObject.getSemester().equals(semester) && userObject.getExamType().equals(term)))
+		if (userObject.getGrade() == null && grade != null)
+			isUserInfoChanged = true;
+		if (grade != null && userObject.getGrade() != null && !(userObject.getGrade().equals(grade) && userObject.getSemester().equals(semester) && term.equals(userObject.getExamType())))
 			isUserInfoChanged = true;
 		
 		userObject.setUserUuid(userId);
-		userObject.setGrade(grade);
-		userObject.setSemester(semester);
-		userObject.setName(name);
-		userObject.setCurrentCurriculumId(currentCurriculumId);
-		userObject.setExamType(term);
-	
+		if (grade != null)	userObject.setGrade(grade);
+		if (grade != null)	userObject.setSemester(semester);
+		if (name != null)	userObject.setName(name);
+		if (currentCurriculumId != null)	userObject.setCurrentCurriculumId(currentCurriculumId);
+		if (currentCurriculumId != null)	userObject.setExamType(term);
+		if (targetScore != null)	userObject.setExamTargetScore(targetScore);
+		
 		userRepository.save(userObject);
-		
-		// (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
-		List<String> scope = ExamScope.examScope.get(grade+"-"+semester+"-"+term);
-		String start_sub_section = scope.get(0);
-		String end_sub_section = scope.get(1);
-		UserExamScope userExamScope = new UserExamScope();
-		
-		// USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
-		userExamScope.setUserUuid(userId);
-		userExamScope.setStartSubSectionId(start_sub_section);
-		userExamScope.setEndSubSectionId(end_sub_section);
-		
-		userExamScopeRepo.save(userExamScope);
 		
 		// Publish school info change event only if user info changed
 		if (isUserInfoChanged) userInfoEventPublisher.publishSchoolInfoChangeEvent(userId);

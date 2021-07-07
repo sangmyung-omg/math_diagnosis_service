@@ -500,7 +500,6 @@ components:
       required:
         - "examStartDate"
         - "examDueDate"
-        - "targetScore"
         - "startSubSectionId"
         - "endSubSectionId"
         - "exceptSubSectionIdList"
@@ -513,10 +512,6 @@ components:
           type: "string"
           example: "2021-07-14"
           description: "시험 날짜. yyyy-mm-dd 형식"
-        targetScore:
-          type: number
-          example: 85
-          description: "목표 시험 점수"
         startSubSectionId:
           type: string
           example: "중등-중3-1학-03-01-01"
@@ -540,6 +535,7 @@ components:
       required:
         - grade
         - name
+        - targetScore
       properties:
         grade:
           type: string
@@ -553,6 +549,10 @@ components:
           type: string
           example: "박평우"
           description: 학생 이름
+        targetScore:
+          type: number
+          example: 85
+          description: "목표 시험 점수"
 
     MasteryUpdateResult:
       type: "object"

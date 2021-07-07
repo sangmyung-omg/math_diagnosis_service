@@ -8,4 +8,5 @@ public class UserBasicInfoDTO {
 	private String semester;
 	private String name;
 	private String currentCurriculumId;
+	private Integer targetScore;
 }
