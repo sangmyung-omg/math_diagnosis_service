@@ -26,6 +26,8 @@ public enum ARErrorCode implements ErrorCodeBase {
 
     INVALID_MASTERY_DATA("0010", "Invalid mastery data."),
 
+    INVALID_PARAMETER("0011", "Invalid parameter."),
+
     //The lower bound error code;
     UNKNOWN_ERROR("ERR-AR-999", "Unknown error");
 
