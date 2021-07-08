@@ -21,6 +21,7 @@ import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSubSectionMastery;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserTargetExamScope;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserFrequentProblem;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSectionMastery;
+import com.tmax.WaplMath.AdditionalLearning.repository.EstimatedTimeRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.UserFrequentProbRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.UserSectionMasteryRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.UserSubSectionMasteryRepo;
@@ -386,6 +387,35 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		return sectionMasteryList;
 	};
 	
+	
+	//추천된 빈출문제 리스트를 받아 문제들의 총 예상 풀이시간 반환
+	
+	@Autowired
+	EstimatedTimeRepo EstimatedTimeRepo;
+	
+	public int getestimatedTime(List<FrequentProblemDTO> probIdList){
+		
+		int estimatedTime = 0;
+		
+		List<Integer> probList = new ArrayList<Integer>();
+		for(int i =0; i<probIdList.size();i++) {
+			probList.add(probIdList.get(i).getProblemId());
+		}
+		
+		List<Integer> estimatedTimeList = EstimatedTimeRepo.getEstimatedTime(probList);
+		
+		for(int i = 0 ; i<estimatedTimeList.size() ; i++) {
+			
+			if(estimatedTimeList.get(i)!=0 && estimatedTimeList!=null)
+				estimatedTime += estimatedTimeList.get(i);
+			else
+				estimatedTime += 180;
+			
+		}
+		
+		
+		return estimatedTime;
+	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -428,9 +458,9 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 			List<String> sourceTypeListDiagnosis = new ArrayList<String>(
 					Arrays.asList("diagnosis")); // 진단고사 문제
 			List<String> sourceTypeListTodayCards = new ArrayList<String>(
-					Arrays.asList("question","type_question","supple_question","mid_exam_question","trial_exam_question")); // 진단고사, 추가학습(빈출문제카드)에서 푼 문제를 제외 - 오늘의 학습 카드 source type
+					Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question")); // 진단고사, 추가학습(빈출문제카드)에서 푼 문제를 제외 - 오늘의 학습 카드 source type
 			List<String> sourceTypeListAll = new ArrayList<String>(
-					Arrays.asList("question","type_question","supple_question","mid_exam_question","trial_exam_question","diagnosis","frequent_question")); // 모든 source type
+					Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question","diagnosis","frequent_question")); // 모든 source type
 
 			try {
 				diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
@@ -480,13 +510,17 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		
 		
 		
-		//빈출 문제들에 해당하는 중단원들과 이해도
+		//빈출카드 내 문제들에 해당하는 중단원들과 이해도
 		List<SectionMasteryDTO> sectionMasteryList = new ArrayList<SectionMasteryDTO>();
 		sectionMasteryList = getSectionMasteryOfUser(userId, recommendFreqProbList);
+		
+		//빈출카드 내 문제들의 총 예상 풀이시간
+		
 		
 		
 		//최종 빈출 카드 구성
 		FrequentCard.setCardType("빈출카드");
+		FrequentCard.setEstimatedTime(getestimatedTime(recommendFreqProbList));
 		FrequentCard.setProbSetList(recommendFreqProbList);
 		FrequentCard.setSectionSetList(sectionMasteryList);
 		return FrequentCard;

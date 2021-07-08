@@ -617,6 +617,10 @@ components:
         cardType :
           type: string
           example: "빈출카드"
+        estimatedTime :
+          type: number
+          example: 900
+          description: "카드 푸는데 걸리는 예상 소요 시간 (sec)"
         probSetList:
           type: array
           description: "카드를 구성하는 빈출문제 리스트"

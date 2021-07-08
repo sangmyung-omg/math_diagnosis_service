@@ -10,6 +10,7 @@ public class FrequentCardDTO {
 	private String resultMessage;
 	
 	private String cardType;
+	private int estimatedTime;
 	private List<FrequentProblemDTO> probSetList;
 	private List<SectionMasteryDTO> sectionSetList;
 	
