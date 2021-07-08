@@ -57,7 +57,7 @@ public class ExamScopeUtil {
             Optional<User> userInfo = userRepo.findById(userID);
 
             if(!userInfo.isPresent()){
-                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, String.format("User id [%s] is not invalid. Check if user is properly submited to server", userID));
+                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, String.format("User id [%s] is not valid. Check if user is properly submited to server", userID));
             }
 
             //Get current curriculum ID

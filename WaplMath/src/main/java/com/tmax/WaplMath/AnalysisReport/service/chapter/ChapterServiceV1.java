@@ -362,7 +362,7 @@ public class ChapterServiceV1 implements ChapterServiceBase{
     }
 
     private Map<String, Float> getUserCurriculumMasteryMap(String userID){
-        //Get user curriculum Mastery map. TODO: this is calling the stat curr mastery map repeatedly
+        //Get user curriculum Mastery map.
         Statistics stat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_CURRICULUM_MASTERY_MAP);
 
         //If stat is null, throw error. invoke the generation flow?

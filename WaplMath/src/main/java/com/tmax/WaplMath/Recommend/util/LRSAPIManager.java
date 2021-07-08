@@ -34,6 +34,8 @@ import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
+import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementRequestDTO;
+import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -212,4 +214,41 @@ public class LRSAPIManager {
 
 		return result;
 	}
+
+	/**
+	 * 
+	 * @param userID
+	 * @return
+	 */
+	public List<LRSStatementResultDTO> getUserStatement(String userID) {
+		//Create a http timeout handler
+		HttpClient httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000).responseTimeout(Duration.ofMillis(5000))
+			.doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
+				.addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
+
+		//Create header
+		WebClient webClient = WebClient.builder().baseUrl(HOST).defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+			.clientConnector(new ReactorClientHttpConnector(httpClient)).build();
+
+
+		//Build the body
+		LRSStatementRequestDTO body = LRSStatementRequestDTO.builder()
+															.actionTypeList(Arrays.asList("submit", "start"))
+															.sourceTypeList(Arrays.asList("diagnosis"))
+															.userIdList(Arrays.asList(userID))
+															.build();
+
+		//Call post to "/InfoForMastery" LRS server --> get as String
+		Mono<LRSStatementResultDTO[]> info = webClient.post().uri("/StatementList").bodyValue(body).retrieve()
+														.onStatus(HttpStatus::is4xxClientError, __ -> Mono.error(new GenericInternalException("ERR-LRS-400", "LRS 400 error")))
+														.onStatus(HttpStatus::is5xxServerError, __ -> Mono.error(new GenericInternalException("ERR-LRS-500", "LRS 500 error")))
+														.bodyToMono(LRSStatementResultDTO[].class);
+
+		//Convert output to result
+		List<LRSStatementResultDTO> result = Arrays.asList(info.block());
+
+
+		return result;
+	}
+
 }

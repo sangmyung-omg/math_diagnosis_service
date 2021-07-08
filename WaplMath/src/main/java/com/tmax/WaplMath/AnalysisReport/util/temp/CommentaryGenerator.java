@@ -1,6 +1,5 @@
 package com.tmax.WaplMath.AnalysisReport.util.temp;
 
-import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;

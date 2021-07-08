@@ -3,6 +3,7 @@ package com.tmax.WaplMath.AnalysisReport.service.summary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tmax.WaplMath.AnalysisReport.dto.ChapterDetailDTO;
@@ -174,12 +175,23 @@ public class SummaryServiceV1 implements SummaryServiceBase {
             highList.add(resultList.get(resultList.size() - 1).getName());
         }
 
-        return CommentaryGenerator.createFromData(userInfo.getName(), (double)userScore, (double)percentile, (double)speed, (double)correctRate, lowList, highList);
+
+        //Get speed + correct rate from Stat table
+        Optional<Statistics> correctStat = Optional.ofNullable(userStatSvc.getUserStatistics(userInfo.getUserUuid(), UserStatisticsServiceBase.STAT_CORRECT_RATE));
+        Optional<Statistics> speedRateStat = Optional.ofNullable(userStatSvc.getUserStatistics(userInfo.getUserUuid(), UserStatisticsServiceBase.STAT_SOLVING_SPEED_SATISFY_RATE));
+
+        return CommentaryGenerator.createFromData(userInfo.getName(), 
+                                                 (double)userScore, 
+                                                 (double)percentile, 
+                                                 speedRateStat.isPresent() ? (double)speedRateStat.get().getAsFloat() : null, 
+                                                 correctStat.isPresent() ? (double)correctStat.get().getAsFloat() : null, 
+                                                 lowList, 
+                                                 highList);
     }
 
-    private Float calculatePercentile(Map<Integer, Float> masteryMap){
-        return 0.0f;
-    }
+    // private Float calculatePercentile(Map<Integer, Float> masteryMap){
+    //     return 0.0f;
+    // }
 
     // private void legacyCode() {
     // //Get the User knowledge info and create a ukID-mastery map

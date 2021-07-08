@@ -25,6 +25,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsSe
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,6 +150,22 @@ public class TestController {
     @GetMapping("/teststatistic3")
     ResponseEntity<Object> updateStat3() {
         currStatSvc.updateStatistics();
+        return null;
+    }
+
+    @GetMapping("/teststatistic4")
+    ResponseEntity<Object> updateStat4() {
+        userStatSvc.updateAllUsers();
+        return null;
+    }
+
+
+    @Autowired
+    private LRSAPIManager lrsApiManager;
+
+    @GetMapping("/getLRS")
+    ResponseEntity<Object> getLRS(@RequestParam("userID") String userID) {
+        lrsApiManager.getUserStatement(userID);
         return null;
     }
 }

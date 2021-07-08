@@ -23,4 +23,7 @@ public interface UserStatisticsServiceBase {
     public static final String STAT_CURRICULUM_MASTERY_MAP = "curr_mastery";
 
     public static final String STAT_EXAMSCOPE_SCORE = "examscope_score";
+
+    public static final String STAT_CORRECT_RATE = "correct_rate";
+    public static final String STAT_SOLVING_SPEED_SATISFY_RATE = "solve_speed_satisfy_rate";
 }
