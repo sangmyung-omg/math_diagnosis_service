@@ -84,7 +84,7 @@ class UserData {
  * Class to help read i-scream edu statistical data
  */
 @Component
-@PropertySource("classpath:statistics_module.properties")
+@PropertySource("classpath:config/statistics_module.properties")
 public class IScreamEduDataReader {
     private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 

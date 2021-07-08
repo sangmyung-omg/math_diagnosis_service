@@ -367,7 +367,7 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
         //If stat is null, throw error. invoke the generation flow?
         if(stat == null){
-            throw new GenericInternalException(ARErrorCode.INVALID_MASTERY_DATA, String.format("Curriculum mastery data for user [%s] does not exist.",userID));
+            throw new GenericInternalException(ARErrorCode.INVALID_MASTERY_DATA, String.format("Curriculum mastery data for user [%s] does not exist. If this error persists, try calling mastery update first.",userID));
         }
 
         //Convert to Map from json data
