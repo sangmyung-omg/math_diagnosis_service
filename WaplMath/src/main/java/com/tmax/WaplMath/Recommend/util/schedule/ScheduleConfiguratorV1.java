@@ -139,13 +139,12 @@ public class ScheduleConfiguratorV1 {
 		sectionIdSet.removeAll(notDoneSectionIdSet); // sectionSet에 완벽히 푼 단원들 저장됨
 		logger.info("4. 완벽히 유형카드를 푼 중 단원들 : " + sectionIdSet.toString());
 
-		List<String> completedSectionIdList;
+		Set<String> completedSectionIdSet;
 		try {
-			completedSectionIdList = historyManager.getCompletedSectionIdList(userId, today, "mid_exam_question");
+			completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, today, "mid_exam_question");
 		} catch (Exception e) {
 			throw e;
 		}
-		Set<String> completedSectionIdSet = new HashSet<String>(completedSectionIdList);
 		logger.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionIdSet.toString());
 
 		sectionIdSet.removeAll(completedSectionIdSet); // sectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨

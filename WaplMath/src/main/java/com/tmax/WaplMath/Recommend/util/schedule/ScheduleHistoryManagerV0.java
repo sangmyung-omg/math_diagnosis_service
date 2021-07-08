@@ -75,17 +75,17 @@ public class ScheduleHistoryManagerV0 {
 		return typeIdList;
 	}
 
-	public List<String> getCompletedSectionIdList(String userId, String today) throws Exception {
+	public Set<String> getCompletedSectionIdList(String userId, String today) throws Exception {
 		Set<Integer> probIdList;
 		try {
 			probIdList = getCompletedProbIdList(userId, today, new ArrayList<String>(Arrays.asList("mid_exam_question")));
 		} catch (Exception e) {
 			throw e;
 		}
-		List<String> sectionIdList = new ArrayList<String>();
+		Set<String> sectionIdSet = new HashSet<String>();
 		if (probIdList.size() != 0)
-			sectionIdList = problemRepo.findSectionIdList(probIdList);
-		return sectionIdList;
+			sectionIdSet = problemRepo.findSectionIdSet(probIdList);
+		return sectionIdSet;
 	}
 
 	public List<Integer> getCompletedSuppleUkIdList(String userId, String today) throws Exception {

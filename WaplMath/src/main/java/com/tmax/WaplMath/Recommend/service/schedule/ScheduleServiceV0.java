@@ -403,14 +403,13 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		totalSectionSet.removeAll(notCompletedSectionSet); // totalSectionSet에 완벽히 푼 단원들 저장됨
 		logger.info("4. 완벽히 유형카드를 중 푼 단원들 : " + totalSectionSet.toString());
 
-		List<String> completedSectionIdList;
+		Set<String> completedSectionSet;
 		try {
-			completedSectionIdList = historyManager.getCompletedSectionIdList(userId, today);
+			completedSectionSet = historyManager.getCompletedSectionIdList(userId, today);
 		} catch (Exception e) {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		Set<String> completedSectionSet = new HashSet<String>(completedSectionIdList);
 		logger.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionSet.toString());
 
 		totalSectionSet.removeAll(completedSectionSet); // totalSectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨

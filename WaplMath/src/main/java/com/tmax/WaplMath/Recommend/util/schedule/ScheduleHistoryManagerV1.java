@@ -155,17 +155,17 @@ public class ScheduleHistoryManagerV1 {
 		return getCompletedTypeIdList(userId, today, lastSuppleDate, "type-question");
 	}
 
-	public List<String> getCompletedSectionIdList(String userId, String today, String sourceType) throws Exception {
+	public Set<String> getCompletedSectionIdList(String userId, String today, String sourceType) throws Exception {
 		Set<Integer> probIdSet;
 		try {
 			probIdSet = getSolvedProbIdSet(userId, today, "", new ArrayList<String>(Arrays.asList(sourceType)));
 		} catch (Exception e) {
 			throw e;
 		}
-		List<String> sectionIdList = new ArrayList<String>();
+		Set<String> sectionIdSet = new HashSet<String>();
 		if (probIdSet.size() != 0)
-			sectionIdList = problemRepo.findSectionIdList(probIdSet);
-		return sectionIdList;
+			sectionIdSet = problemRepo.findSectionIdSet(probIdSet);
+		return sectionIdSet;
 	}
 	
 	public Map<String, Integer> getCompletedSectionNum(String userId, String today, String sourceType) throws Exception{
@@ -178,8 +178,8 @@ public class ScheduleHistoryManagerV1 {
 		Map<String, Integer> completedType1CardsNum = new HashMap<String, Integer>();
 		for(String date: daySolvedProbIdSet.keySet()) {
 			Set<Integer> probIdSet = daySolvedProbIdSet.get(date);
-			List<String> daySectionIdList = problemRepo.findSectionIdList(probIdSet);
-			String sectionId = daySectionIdList.get(0);
+			Set<String> daySectionIdSet = problemRepo.findSectionIdSet(probIdSet);
+			String sectionId = daySectionIdSet.iterator().next();
 			if (!completedType1CardsNum.containsKey(sectionId))
 				completedType1CardsNum.put(sectionId, 1);
 			else

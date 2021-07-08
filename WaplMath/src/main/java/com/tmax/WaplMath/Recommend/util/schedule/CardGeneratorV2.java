@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +99,7 @@ public class CardGeneratorV2 {
 	// 문제 난이도 별 문제 Id 모아놓는 모듈.
 	public DiffProbListDTO generateDiffProbList(List<Problem> probList) {
 		DiffProbListDTO diffProbList = new DiffProbListDTO();
-		for (Problem prob : probList) {
-			String difficulty = prob.getDifficulty();
-			diffProbList.addDiffProb(prob, difficulty);
-		}
+		for (Problem prob : probList) {	diffProbList.addDiffProb(prob, prob.getDifficulty()); }
 		return diffProbList;
 	}
 
@@ -109,9 +107,7 @@ public class CardGeneratorV2 {
 		if (printProbInfo) {
 			for (String difficulty : Arrays.asList("상", "중", "하")) {
 				List<Problem> probList = diffProbList.getDiffProbList(difficulty);
-				List<Integer> probIdList = new ArrayList<Integer>();
-				probList.forEach(prob -> probIdList.add(prob.getProbId()));
-				logger.info(String.format("	%s 난이도 문제들 = " + probIdList.toString(), difficulty));
+				logger.info(String.format("	{} 난이도 문제들 = {}", difficulty, getIdListFromProbList(probList)));
 			}
 			logger.info("");
 		}
@@ -124,9 +120,7 @@ public class CardGeneratorV2 {
 
 	// Problem 객체 리스트에서 Integer 리스트 추출
 	public List<Integer> getIdListFromProbList(List<Problem> probList) {
-		List<Integer> probIdList = new ArrayList<Integer>();
-		probList.forEach(e -> probIdList.add(e.getProbId()));
-		return probIdList;
+		return probList.stream().map(prob -> prob.getProbId()).collect(Collectors.toList());
 	}
 
 	// 문제 풀이 예상 시간 측정

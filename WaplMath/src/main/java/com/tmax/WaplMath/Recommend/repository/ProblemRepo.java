@@ -14,7 +14,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	public List<Integer> findTypeIdList(@Param("probIdSet") Set<Integer> probIdSet);
 
 	@Query("select distinct substr(p.problemType.curriculumId, 0, 14) from Problem p where p.probId in (:probIdSet)")
-	public List<String> findSectionIdList(@Param("probIdSet") Set<Integer> probIdSet);
+	public Set<String> findSectionIdSet(@Param("probIdSet") Set<Integer> probIdSet);
 
 	@Query("select p from Problem p where substr(p.problemType.curriculumId, 0, 14)=:sectionId")
 	public List<Problem> findAllProbBySection(@Param("sectionId") String sectionId);
