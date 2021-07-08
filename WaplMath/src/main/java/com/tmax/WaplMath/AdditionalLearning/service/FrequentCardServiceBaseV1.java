@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentProblemDTO;
-import com.tmax.WaplMath.AdditionalLearning.dto.SectionMasteryDTO;
+import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionMasteryDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.TodaySubsectionListDTO;
 
 public interface FrequentCardServiceBaseV1 {
@@ -24,7 +24,7 @@ public interface FrequentCardServiceBaseV1 {
 	
 	//소단원 리스트를 받아 해당하는 중단원과 이해도를 반환
 	//굳이 추천된 빈출문제와 매핑 시키진 않을 것
-	List<SectionMasteryDTO> getSectionMasteryOfUser(String userId, List<FrequentProblemDTO> probIdList);
+	List<SubsectionMasteryDTO> getSectionMasteryOfUser(String userId, List<FrequentProblemDTO> probIdList);
 	
 	//빈출카드 반환
 	FrequentCardDTO getFrequentCard(String userId, boolean isFirstFrequent);

@@ -627,43 +627,43 @@ components:
           items: 
             $ref: "#/components/schemas/FreqProblems"
           example:
-            - probId: 1
-            - probId: 2
-            - probId: 3
-        sectionSetList:
+            - problemId: 1
+            - problemId: 2
+            - problemId: 3
+        subsectionSetList:
           type: array
-          description: "추천된 빈출문제가 속해있는 중단원들과 이해도"
+          description: "추천된 빈출문제가 속해있는 소단원들과 이해도"
           items: 
-            $ref: "#/components/schemas/FreqSectionMastery"    
+            $ref: "#/components/schemas/FreqSubsectionMastery"    
           example:
-            - section: "소인수분해"
-              sectionMastery: 0.6
-            - section: "정수와 유리수"
-              sectionMastery: 0.5
+            - subsection: "소인수분해"
+              mastery: 0.6
+            - subsection: "정수와 유리수"
+              mastery: 0.5
           
     FreqProblems:
       type: object
       required:
-          - "probId"
+          - "problemId"
       properties:
-        probId:
+        problemId:
           type: number
           example: 1
           description: "카드를 구성하는 빈출문제 ID"
-    FreqSectionMastery:
+    FreqSubsectionMastery:
       type: object
       required:
-          - "section"
-          - "sectionMastery"
+          - "subsection"
+          - "subsectionMastery"
       properties:
-        section:
+        subsection:
           type: string
           example: "소인수분해"
-          description: "중단원 이름"
-        sectionMastery:
+          description: "소단원 이름"
+        mastery:
           type: number
           example: 0.6
-          description: "중단원 이해도"
+          description: "소단원 이해도"
  
 
  

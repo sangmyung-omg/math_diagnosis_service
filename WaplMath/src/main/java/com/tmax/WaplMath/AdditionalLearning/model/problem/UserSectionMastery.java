@@ -11,8 +11,7 @@ import lombok.Data;
 public class UserSectionMastery {
 	
 	@Id
-	@Column(name="sub_section")
-	private String section;
+	private String subSection;
 	private float ukMastery;
 	
 }

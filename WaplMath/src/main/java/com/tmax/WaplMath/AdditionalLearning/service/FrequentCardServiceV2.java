@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import com.tmax.WaplMath.AdditionalLearning.dto.FreqProbCurriDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentProblemDTO;
-import com.tmax.WaplMath.AdditionalLearning.dto.SectionMasteryDTO;
+import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionMasteryDTO;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSubSectionMastery;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserTargetExamScope;
 import com.tmax.WaplMath.AdditionalLearning.model.problem.UserFrequentProblem;
@@ -365,9 +365,9 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 	UserSectionMasteryRepo UserSectionMasteryRepo;
 	
 	@Override
-	public List<SectionMasteryDTO> getSectionMasteryOfUser(String userId, List<FrequentProblemDTO> probIdList){
+	public List<SubsectionMasteryDTO> getSectionMasteryOfUser(String userId, List<FrequentProblemDTO> probIdList){
 		
-		List<SectionMasteryDTO> sectionMasteryList = new ArrayList<SectionMasteryDTO>();
+		List<SubsectionMasteryDTO> sectionMasteryList = new ArrayList<SubsectionMasteryDTO>();
 		
 		List<Integer> probList = new ArrayList<Integer>();
 		for(int i =0; i<probIdList.size();i++) {
@@ -376,8 +376,8 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		
 		List<UserSectionMastery> userSectionMasteryList = UserSectionMasteryRepo.getSubSectionAndMastery(userId, probList);
 		for(int i = 0 ; i<userSectionMasteryList.size() ; i++) {
-			SectionMasteryDTO sectionMastery = new SectionMasteryDTO();
-			sectionMastery.setSection(userSectionMasteryList.get(i).getSection());
+			SubsectionMasteryDTO sectionMastery = new SubsectionMasteryDTO();
+			sectionMastery.setSubsection(userSectionMasteryList.get(i).getSubSection());
 			sectionMastery.setMastery(userSectionMasteryList.get(i).getUkMastery());
 			
 			sectionMasteryList.add(sectionMastery);
@@ -511,7 +511,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		
 		
 		//빈출카드 내 문제들에 해당하는 중단원들과 이해도
-		List<SectionMasteryDTO> sectionMasteryList = new ArrayList<SectionMasteryDTO>();
+		List<SubsectionMasteryDTO> sectionMasteryList = new ArrayList<SubsectionMasteryDTO>();
 		sectionMasteryList = getSectionMasteryOfUser(userId, recommendFreqProbList);
 		
 		//빈출카드 내 문제들의 총 예상 풀이시간
@@ -522,7 +522,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		FrequentCard.setCardType("빈출카드");
 		FrequentCard.setEstimatedTime(getestimatedTime(recommendFreqProbList));
 		FrequentCard.setProbSetList(recommendFreqProbList);
-		FrequentCard.setSectionSetList(sectionMasteryList);
+		FrequentCard.setSubsectionSetList(sectionMasteryList);
 		return FrequentCard;
 	}
 
