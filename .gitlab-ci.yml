@@ -5,13 +5,10 @@ services:
 variables:
   SPRING_PROFILES_ACTIVE: gitlab-ci
   DOCKER_DRIVER: overlay2
-  IMAGE_NAME: waplmath-sap-backend
-  CONTAINER_NAME: waplmath
-  HCDC_URL: wapl-math.220.90.208.8.nip.io:443
-  HCDC_ID: admin
-  HCDC_PASSWD: admin
+  SCRIPTS_DIR: ./config
 
 stages:
+  - version
   - build
   - package
   - deploy
@@ -67,13 +64,39 @@ docker-run:
   tags:
     - lsh-local
 
+version:
+  image: python:3
+  stage: version
+  only:
+    - ae1-3/dev
+  before_script:    
+    # add ssh key
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - ssh-keyscan -p $CI_SERVER_PORT $CI_SERVER_HOST >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
+  script:    
+    # version generation script
+    - pip3 install semver
+    - chmod -R 755 $SCRIPTS_DIR
+    - $SCRIPTS_DIR/gen-semver > version
+  artifacts:
+    paths:
+      - version
+  tags:
+    - lsh-local
+    
 docker-push:
   stage: push
   only:
     - master
+  before_script:
+    - "[ -f ./version ] && export VERSION=$(cat ./version)"
+    - echo $VERSION
   script:
     - docker login $HCDC_URL -u $HCDC_ID -p $HCDC_PASSWD
-    - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$(date +%Y%m%d_%H%M)
+    - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$VERSION
     - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep $HCDC_URL/$IMAGE_NAME | awk '{print $2":"$3}')
   tags:
     - lsh-local
