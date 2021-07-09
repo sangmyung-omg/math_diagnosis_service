@@ -68,7 +68,7 @@ tags-push:
   image: python:3
   stage: version
   only:
-    - ae1-3/dev
+    - master
   before_script:    
     # add ssh key with gitlab
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
