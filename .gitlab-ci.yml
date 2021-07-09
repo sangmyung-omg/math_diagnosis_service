@@ -64,7 +64,7 @@ docker-run:
   tags:
     - lsh-local
 
-tag-push:
+tags-push:
   image: python:3
   stage: version
   only:
