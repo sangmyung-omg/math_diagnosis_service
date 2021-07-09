@@ -9,11 +9,13 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @IdClass(StatsAnalyticsUserKey.class)
@@ -31,4 +33,5 @@ public class StatsAnalyticsUser {
     private String data;
 
     private Timestamp lastUpdate;
+    private Timestamp validUntil;
 }

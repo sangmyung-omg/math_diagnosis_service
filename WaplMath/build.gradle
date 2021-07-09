@@ -39,6 +39,8 @@ dependencies {
 
 	compile 'net.javacrumbs.shedlock:shedlock-spring:4.24.0'
 	compile 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:2.1.0'
+
+	compile('org.springframework.boot:spring-boot-starter-data-redis:2.3.12.RELEASE')
 }
 
 test {

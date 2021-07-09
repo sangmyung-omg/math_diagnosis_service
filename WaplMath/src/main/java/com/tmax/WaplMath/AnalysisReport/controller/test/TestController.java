@@ -6,6 +6,7 @@ import java.nio.file.Path;
 // import java.util.Arrays;
 // import java.util.List;
 import java.util.List;
+import java.util.Optional;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -23,6 +24,8 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
+import com.tmax.WaplMath.Common.model.redis.RedisStringData;
+import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
@@ -167,5 +170,17 @@ public class TestController {
     ResponseEntity<Object> getLRS(@RequestParam("userID") String userID) {
         lrsApiManager.getUserStatement(userID);
         return null;
+    }
+    
+    @Autowired
+    private RedisStringRepository redisRepo;
+
+    @GetMapping("/testredis")
+    ResponseEntity<Object> testredis(@RequestParam("id") String id,@RequestParam("data") String data) {
+        redisRepo.save(RedisStringData.builder().id(id).data(data).build());
+
+        Optional<RedisStringData> output = redisRepo.findById(id);
+
+        return new ResponseEntity<>(output.get(), HttpStatus.OK);
     }
 }

@@ -12,8 +12,12 @@ import java.util.stream.IntStream;
  */
 public class StatisticsUtil {
     public static List<Float> createPercentileLUT(List<Float> sortedList, int steps){
+        //Exclude if step is smaller than size
+        if(steps >= sortedList.size())
+            return sortedList;
+
         //Declare output list
-        List<Float> output = new ArrayList<>(steps);
+        List<Float> output = new ArrayList<>();
 
         //sortedList size
         double inOutStepRatio = (double)sortedList.size()/steps;
@@ -21,7 +25,7 @@ public class StatisticsUtil {
         //Create a 0 ~ steps LUT
         IntStream.range(0, steps).forEachOrdered(idx -> {
             int scaledIdx = (int)Math.floor(idx * inOutStepRatio);
-            output.set(idx, sortedList.get(scaledIdx));
+            output.add(sortedList.get(scaledIdx));
         });
 
         return output;

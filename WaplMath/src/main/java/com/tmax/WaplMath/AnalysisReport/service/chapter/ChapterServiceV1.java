@@ -38,20 +38,20 @@ import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.UkRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Chapter service v2 interface
  * @author Jonghyun Seong
  */
+@Slf4j
 @Service("ChapterServiceV1")
 public class ChapterServiceV1 implements ChapterServiceBase{
-    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Autowired
     @Qualifier("AR-CurriculumInfoRepo")
@@ -87,20 +87,23 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUser(String userID) {
+        return getAllChapterListOfUser(userID, false);
+    }
+
+    public List<ChapterDetailDTO> getAllChapterListOfUser(String userID, boolean isLightMode) {
         List<Curriculum> list = currInfoRepo.getAllCurriculumOfUser(userID);
 
         List<ChapterDetailDTO> outList = new ArrayList<>();
 
         //Get curr mastery map first get call
         Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
-        list.forEach(curr->outList.add(getChapterDetailFromCurriculum(userID, curr,currMasteryMap)));
+        list.forEach(curr->outList.add(getChapterDetailFromCurriculum(userID, curr,currMasteryMap, isLightMode)));
 
         return outList;
     }
 
     @Override
     public List<ChapterDetailDTO> getAllChapterListOfUserChapterOnly(String userID) {
-        //TODO: search with proper val
         return getChapterListOfUserInRange(userID, "year","중*chaponly");
     }
 
@@ -118,6 +121,43 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
     @Override
     public List<ChapterDetailDTO> getChapterListOfUserInRange(String userID, String range, String subrange) {
+        // //Exception handling for input parameters
+        // if(userID == null){
+        //     throw new InvalidArgumentException();
+        // }
+
+        // //Get user info from Repo
+        // User userInfo = userInfoRepo.getUserInfoByUUID(userID);
+
+        // if(userInfo == null) {
+        //     log.error("Invalid User data." + userID);
+        //     throw new GenericInternalException("ERR-0005", "Can not find valid user Info." + userID);
+        // }
+    
+
+        // //Case 1: range = year : fetch year specific chapters
+        // if(range != null && range.equals("year")){
+        //     return getChaptersGradeRange(userID, subrange, false);
+        // }
+        
+        // //Case 2: range = recent : fetch recent chapters
+        // if(range != null && range.equals("recent")){
+        //     return getChaptersRecent(userID, subrange, false);
+        // }
+
+
+        // //Case default: get all chapters
+        // if(range != null && !range.equals("all")){
+        //     throw new InvalidArgumentException("Unsupported range value");
+        // }
+        
+        
+        // return getAllChapterListOfUser(userID);
+        return getChapterListOfUserInRange(userID, range, subrange, false);
+    }
+
+    //TODO -- refactor this method
+    public List<ChapterDetailDTO> getChapterListOfUserInRange(String userID, String range, String subrange, boolean isLightMode) {
         //Exception handling for input parameters
         if(userID == null){
             throw new InvalidArgumentException();
@@ -127,18 +167,19 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         User userInfo = userInfoRepo.getUserInfoByUUID(userID);
 
         if(userInfo == null) {
-            throw new GenericInternalException("ERR-0005", "Can not find valid user Info");
+            log.error("Invalid User data." + userID);
+            throw new GenericInternalException("ERR-0005", "Can not find valid user Info." + userID);
         }
     
 
         //Case 1: range = year : fetch year specific chapters
         if(range != null && range.equals("year")){
-            return getChaptersGradeRange(userID, subrange);
+            return getChaptersGradeRange(userID, subrange, isLightMode);
         }
         
         //Case 2: range = recent : fetch recent chapters
         if(range != null && range.equals("recent")){
-            return getChaptersRecent(userID, subrange);
+            return getChaptersRecent(userID, subrange, isLightMode);
         }
 
 
@@ -148,10 +189,10 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         }
         
         
-        return getAllChapterListOfUser(userID);
+        return getAllChapterListOfUser(userID, isLightMode);
     }
 
-    private List<ChapterDetailDTO> getChaptersGradeRange(String userID, String subrange){
+    private List<ChapterDetailDTO> getChaptersGradeRange(String userID, String subrange, boolean isLightMode){
         //range argument exception
         if(subrange == null){
             throw new InvalidArgumentException("subrange is missing");
@@ -194,14 +235,14 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         //Fill the output list from the output
         //Get curr mastery map first get call
         Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
-        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap)));
+        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap, isLightMode)));
 
 
         return output;
     }
 
 
-    private List<ChapterDetailDTO> getChaptersRecent(String userID, String subrange){
+    private List<ChapterDetailDTO> getChaptersRecent(String userID, String subrange, boolean isLightMode){
         //INFO: temp --> recent info needs LRS. thus now, it will return the last semesters results
 
         int listSize = 5;
@@ -242,27 +283,26 @@ public class ChapterServiceV1 implements ChapterServiceBase{
 
         //Get curr mastery map first get call
         Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
-        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap)));
+        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap, isLightMode)));
 
         return output;
     }
 
-    private ChapterDetailDTO getChapterDetailFromCurriculum(String userID, Curriculum curr, Map<String, Float> currMasteryMap){
+    private ChapterDetailDTO getChapterDetailFromCurriculum(String userID, Curriculum curr, Map<String, Float> currMasteryMap, boolean isLightMode){
         ChapterDetailDTO chapDetail = new ChapterDetailDTO();
 
         chapDetail.setId(curr.getCurriculumId());
-        chapDetail.setImagePath("/dummy.png");
         chapDetail.setName(curr.getChapter());
         chapDetail.setSequence(curr.getCurriculumSequence());
 
         chapDetail.setType(getTypeFromChapter(curr));
 
-        Map<Integer, UserKnowledge> ukMap = getChapterUKData(userID, curr.getCurriculumId());
-
-
-        chapDetail.setSkillData(getSkillFromCurriculumMap(userID, curr.getCurriculumId(), currMasteryMap));
-
-        chapDetail.setUkDetailList(getUKDetailFromUKMap(ukMap));
+        if(!isLightMode){
+            Map<Integer, UserKnowledge> ukMap = getChapterUKData(userID, curr.getCurriculumId());
+            chapDetail.setImagePath("/dummy.png");
+            chapDetail.setUkDetailList(getUKDetailFromUKMap(ukMap));
+            chapDetail.setSkillData(getSkillFromCurriculumMap(userID, curr.getCurriculumId(), currMasteryMap));
+        }            
 
         return chapDetail;
     }

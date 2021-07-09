@@ -9,9 +9,15 @@ import javax.persistence.Table;
 
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "UK_MASTER")
 public class Uk {

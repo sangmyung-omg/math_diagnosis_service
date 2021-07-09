@@ -236,8 +236,14 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         return statsToAnalyticsUser(userID, "", stats, now);
     }
 
-    private StatsAnalyticsUser statsToAnalyticsUser(String userID, String prefix, Statistics stats, Timestamp now){
-        return new StatsAnalyticsUser(userID, prefix + stats.getName(), stats.getType().getValue(),stats.getData(), now);
+    private StatsAnalyticsUser statsToAnalyticsUser(String userID, String prefix, Statistics stats, Timestamp ts){
+        return StatsAnalyticsUser.builder()
+                                .userId(userID)
+                                .name(prefix + stats.getName())
+                                .type(stats.getType().getValue())
+                                .data(stats.getData())
+                                .lastUpdate(ts)
+                                .build();
     }
 
     @Override
@@ -306,7 +312,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             Integer probID = Integer.valueOf(statement.getSourceId());
 
             //Get correct tally
-            if(statement.getIsCorrect() > 0){
+            if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){
                 correctTally++;
             }
 

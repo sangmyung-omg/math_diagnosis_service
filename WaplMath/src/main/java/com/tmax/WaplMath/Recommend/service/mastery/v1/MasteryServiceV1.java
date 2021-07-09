@@ -32,10 +32,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service("MasteryServiceV1")
-public class MasteryServiceV1 implements MasteryServiceBaseV1{
-    private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-    
+public class MasteryServiceV1 implements MasteryServiceBaseV1{   
     //LRS API Manager
     @Autowired
     LRSAPIManager lrsapiManager;
@@ -74,6 +75,8 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     @Override
     public ResultMessageDTO updateMastery(String userId, List<String> probIdList, List<String> correctList) {
+        log.info("Updating mastery for user " + userId);
+
         //Throw condition. Major error
         if (correctList.size() != probIdList.size()){
             throw new RecommendException(RecommendErrorCode.DATA_MISMATCH_ERROR,  "List size does not match");
@@ -89,7 +92,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         for(String probId : probIdList){probIdIntList.add(Integer.parseInt(probId));}
 
         //Build List difficulty and UK id from probIDList
-        logger.info("ProbList data: " + probIdList.toString());
+        // log.info("ProbList data: " + probIdList.toString());
         List<ProblemUkRel> probUKList = probUkRelRepo.getByProblemIDList(probIdIntList);
 
         //order list by probIDList order (Map<Prob ID, List<UK ID> >) 
@@ -137,7 +140,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
             List<Integer> ukList = probIDUKMap.get(Integer.parseInt(probId));
 
             //Log
-            logger.info("correct: " +  correct + ", diff: " + diffLevel + ", probId: " + probId);
+            log.info("correct: " +  correct + ", diff: " + diffLevel + ", probId: " + probId);
 
             if(ukList == null){
                 continue;
@@ -153,8 +156,9 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
 
         //Get the current embedding
-        UserEmbedding userEmbedding = userEmbeddingRepo.getEmbedding(userId);
-        String embeddingStr = userEmbedding != null ? userEmbedding.getUserEmbedding() : "";
+        // UserEmbedding userEmbedding = userEmbeddingRepo.getEmbedding(userId);
+        // String embeddingStr = userEmbedding != null ? userEmbedding.getUserEmbedding() : "";
+        String embeddingStr = "";
 
         //Measure the current mastery
         TritonMasteryDTO tritonMastery = masteryAPIManager.measureMasteryDTO(userId, ukIDList, ukCorrectList, diffList, embeddingStr);

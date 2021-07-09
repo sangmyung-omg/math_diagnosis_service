@@ -19,9 +19,15 @@ import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "USER_MASTER")
 public class User {

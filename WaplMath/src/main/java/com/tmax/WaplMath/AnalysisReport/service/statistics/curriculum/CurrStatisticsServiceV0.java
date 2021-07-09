@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -21,9 +22,13 @@ import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticCurrRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
+
+import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,8 +108,9 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
             if(uknowList == null || uknowList.size() == 0)
                 continue;
 
-            //Create map <userid, masterystat>
+            //Create map <userid, masterystat> and userGradeMap
             Map<String, MasteryStat> masteryMap = new HashMap<>();
+            Map<String, Integer> userGradeMap = new HashMap<>();
             for(UserKnowledge uknow: uknowList){
                 String userID = uknow.getUserUuid();
 
@@ -115,33 +121,124 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
 
                 //Add all mastery to stat per user
                 masteryMap.get(userID).addScore(uknow.getUkMastery());
+
+                //Build grade map
+                if(userGradeMap.containsKey(userID)){
+                    continue;
+                }
+                userGradeMap.put(userID, Integer.valueOf( uknow.getUser().getGrade()) );
             }
 
-            //Create a List with mastery average then sort it --> create sorted list
-            List<Float> sortedMasteryList = new ArrayList<>();
-            for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
-                sortedMasteryList.add((float)entry.getValue().getAverage());
-            }
-            Collections.sort(sortedMasteryList); //sort
+            //Get total updateSet            
+            updateSet.addAll(getAllUserUpdateSet(curr.getCurriculumId(), masteryMap, now));
 
-
-
-            //Add statistics to update set
-            updateSet.add(statToAnalyticsCurr(curr.getCurriculumId(),
-                                              new Statistics(STAT_MASTERY_SORTED, Statistics.Type.FLOAT_LIST, sortedMasteryList.toString()),
-                                              now));
-            updateSet.add(statToAnalyticsCurr(curr.getCurriculumId(),
-                                              new Statistics(STAT_MASTERY_MEAN, Statistics.Type.FLOAT, ukStatSvc.getMean(sortedMasteryList).toString()),
-                                              now));
-            updateSet.add(statToAnalyticsCurr(curr.getCurriculumId(),
-                                              new Statistics(STAT_MASTERY_STD, Statistics.Type.FLOAT, ukStatSvc.getSTD(sortedMasteryList).toString()),
-                                              now));
+            //Get from grade 1~3
+            IntStream.range(1, 4)
+                     .forEach(grade -> updateSet.addAll( getSpecificGradeUpdateSet(curr.getCurriculumId(), 
+                                                                                   masteryMap, 
+                                                                                   userGradeMap, 
+                                                                                   grade, 
+                                                                                   now)));
         }
 
         //save hash set to stat db
         logger.info("Saving: " + updateSet.size());
         statisticCurrRepo.saveAll(updateSet);
         logger.info("Saved: " + updateSet.size());
+    }
+
+    private Set<StatsAnalyticsCurr> getAllUserUpdateSet(String currID, Map<String, MasteryStat> masteryMap, Timestamp now){
+        //Create hashset
+        Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
+
+        //Create a List with mastery average then sort it --> create sorted list
+        List<Float> sortedMasteryList = new ArrayList<>();
+        for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
+            sortedMasteryList.add((float)entry.getValue().getAverage());
+        }
+        Collections.sort(sortedMasteryList); //sort
+
+
+        //Add statistics to update set (All user)
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_SORTED)
+                                                    .type(Statistics.Type.FLOAT_LIST)
+                                                    .data(sortedMasteryList.toString())
+                                                    .build(),
+                                          now));
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_MEAN)
+                                                    .type(Statistics.Type.FLOAT)
+                                                    .data(ukStatSvc.getMean(sortedMasteryList).toString())
+                                                    .build(),
+                                          now));
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_STD)
+                                                    .type(Statistics.Type.FLOAT)
+                                                    .data(ukStatSvc.getSTD(sortedMasteryList).toString())
+                                                    .build(),
+                                          now));
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_PERCENTILE_LUT)
+                                                    .type(Statistics.Type.FLOAT_LIST)
+                                                    .data(StatisticsUtil.createPercentileLUT(sortedMasteryList, 1000).toString())
+                                                    .build(),
+                                          now));
+        return updateSet;
+    }
+
+    private Set<StatsAnalyticsCurr> getSpecificGradeUpdateSet(String currID, 
+                                                              Map<String, MasteryStat> masteryMap, 
+                                                              Map<String, Integer> userGradeMap, 
+                                                              Integer grade, 
+                                                              Timestamp now){
+        //Create hashset
+        Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
+
+        //Create a List with mastery average then sort it --> create sorted list
+        List<Float> sortedMasteryList = new ArrayList<>();
+        for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
+            //If the grade of user matches
+            if(userGradeMap.get(entry.getKey()) == grade)
+                sortedMasteryList.add((float)entry.getValue().getAverage());
+        }
+        Collections.sort(sortedMasteryList); //sort
+
+
+        //Add statistics to update set (All user)
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_SORTED + "_grade_" + grade)
+                                                    .type(Statistics.Type.FLOAT_LIST)
+                                                    .data(sortedMasteryList.toString())
+                                                    .build(),
+                                          now));
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_MEAN + "_grade_" + grade)
+                                                    .type(Statistics.Type.FLOAT)
+                                                    .data(ukStatSvc.getMean(sortedMasteryList).toString())
+                                                    .build(),
+                                          now));
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_STD + "_grade_" + grade)
+                                                    .type(Statistics.Type.FLOAT)
+                                                    .data(ukStatSvc.getSTD(sortedMasteryList).toString())
+                                                    .build(),
+                                          now));
+        updateSet.add(statToAnalyticsCurr(currID,
+                                          Statistics.builder()
+                                                    .name(STAT_MASTERY_PERCENTILE_LUT + "_grade_" + grade)
+                                                    .type(Statistics.Type.FLOAT_LIST)
+                                                    .data(StatisticsUtil.createPercentileLUT(sortedMasteryList, 1000).toString())
+                                                    .build(),
+                                          now));
+        return updateSet;
     }
 
     @Override
@@ -186,7 +283,14 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
             if(type == Statistics.Type.FLOAT_LIST){
                 //Convert data to List<Float>
                 Type flistType = new TypeToken<List<Float>>(){}.getType();
-                List<Float> sortedList = new Gson().fromJson(result.getData(), flistType);
+                List<Float> sortedList = null;
+                try{
+                    sortedList = new Gson().fromJson(result.getData(), flistType);
+                }
+                catch(Throwable e){
+                    throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, 
+                                                       String.format("Statistics data of %s does not match type %s. Check statistics of the DB.", result.getName(), result.getType()));
+                }
 
                 //For sorted List, add the averaged data to the averagedList
                 float max = 0.0f;
@@ -213,7 +317,14 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
                 // logger.info(String.format("Stat log of [%s]. min:%f, max:%f", result.getCurrId(), min, max));
             }
             else if(type == Statistics.Type.FLOAT){
-                Float value = Float.valueOf(result.getData());
+                Float value = null;
+                try{
+                    value = Float.valueOf(result.getData());
+                }
+                catch(Throwable e){
+                    throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, 
+                                                       String.format("Statistics data of %s does not match type %s. Check statistics of the DB.", result.getName(), result.getType()));
+                }
 
                 if(averagedList.size() == 0)
                     averagedList.add(0, 0.0f);
@@ -235,8 +346,14 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
                              .build();
     }
 
-    private StatsAnalyticsCurr statToAnalyticsCurr(String currId, Statistics stat, Timestamp now){
-        return new StatsAnalyticsCurr(currId, stat.getName(), stat.getType().getValue(), stat.getData(), now);
+    private StatsAnalyticsCurr statToAnalyticsCurr(String currId, Statistics stat, Timestamp ts){
+        return StatsAnalyticsCurr.builder()
+                                 .currId(currId)
+                                 .name(stat.getName())
+                                 .type(stat.getType().getValue())
+                                 .data(stat.getData())
+                                 .lastUpdate(ts)
+                                 .build();
     }
 
 

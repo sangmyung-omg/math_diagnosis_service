@@ -56,7 +56,7 @@ public class StudyGuideServiceV1 implements StudyGuideServiceBase{
         User userInfo = userInfoRepo.getUserInfoByUUID(userID);
 
         if(userInfo == null) {
-            throw new GenericInternalException("ERR-0005", "Can not find valid user Info");
+            throw new GenericInternalException("ERR-0005", "Can not find valid user Info. " + userID);
         }
         
         //Get the current target curriculum of user (semester)

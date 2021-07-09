@@ -126,8 +126,14 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
      * @param input
      * @return
      */
-    private StatsAnalyticsUk statToAnalyticsUk(Integer integer, Statistics input, Timestamp timestamp){
-        return new StatsAnalyticsUk(integer, input.getName(), input.getType().getValue(), input.getData(), timestamp);
+    private StatsAnalyticsUk statToAnalyticsUk(Integer ukID, Statistics stats, Timestamp ts){
+        return StatsAnalyticsUk.builder()
+                               .ukId(ukID)
+                               .name(stats.getName())
+                               .type(stats.getType().getValue())
+                               .data(stats.getData())
+                               .lastUpdate(ts)
+                               .build();
     }
 
     /**

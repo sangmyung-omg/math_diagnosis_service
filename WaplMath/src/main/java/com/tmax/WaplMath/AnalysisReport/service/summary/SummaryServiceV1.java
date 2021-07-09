@@ -2,7 +2,6 @@ package com.tmax.WaplMath.AnalysisReport.service.summary;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,7 +14,6 @@ import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceV1;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
@@ -24,20 +22,19 @@ import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Recommend.model.user.User;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Summary service v1 implementation
  * @author Jonghyun Seong
  */
+@Slf4j
 @Service("SummaryServiceV1")
 public class SummaryServiceV1 implements SummaryServiceBase {
-    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
     @Autowired
     @Qualifier("AR-UserInfoRepo")
     private UserInfoRepo userInfoRepo;
@@ -102,15 +99,17 @@ public class SummaryServiceV1 implements SummaryServiceBase {
             userScore = Float.valueOf(userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_EXAMSCOPE_SCORE).getData());
         }
         catch(Throwable e){
-            logger.warn("No EXAMSCOPE SCORE found for user " + userID);
+            log.error("No EXAMSCOPE SCORE found for user " + userID);
         }
 
         //Get curriculum data
         if(userScore >= 0){
             List<String> examScopeCurrIDList = examScopeUtil.getCurrIdListOfScope(userID);
             List<Float> sortedMasteryList = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList, 
-                                                                                CurrStatisticsServiceV0.STAT_MASTERY_SORTED).getAsFloatList();
+                                                                                   CurrStatisticsServiceBase.STAT_MASTERY_PERCENTILE_LUT + "_grade_" + userInfo.getGrade()).getAsFloatList();
+            
             percentile = ukStatSvc.getPercentile(userScore, sortedMasteryList);
+            
             
             //
             if(userInfo.getExamTargetScore() != null)
@@ -120,9 +119,9 @@ public class SummaryServiceV1 implements SummaryServiceBase {
 
             //Get std, average
             average = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList, 
-                                                                CurrStatisticsServiceV0.STAT_MASTERY_MEAN).getAsFloat();
+                                                             CurrStatisticsServiceBase.STAT_MASTERY_MEAN + "_grade_" + userInfo.getGrade()).getAsFloat();
             std = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList, 
-                                                            CurrStatisticsServiceV0.STAT_MASTERY_STD).getAsFloat();
+                                                         CurrStatisticsServiceBase.STAT_MASTERY_STD + "_grade_" + userInfo.getGrade()).getAsFloat();
 
             // System.out.println(targetExam + resultList.toString());
             commentary = getCommentary(userInfo, 100*userScore, 100*percentile, 60.0f, 80.0f);
@@ -149,7 +148,7 @@ public class SummaryServiceV1 implements SummaryServiceBase {
     private String getCommentary(User userInfo, Float userScore, Float percentile, Float speed, Float correctRate){
         //Get commentary
         String currentCurriculum = String.format("중등-중%s-%s학", userInfo.getGrade(), userInfo.getSemester());
-        List<ChapterDetailDTO> resultList = chapterSvcv1.getChapterListOfUserInRange(userInfo.getUserUuid(), "year", currentCurriculum + "*partinc");
+        List<ChapterDetailDTO> resultList = chapterSvcv1.getChapterListOfUserInRange(userInfo.getUserUuid(), "year", currentCurriculum + "*partinc", true);
 
         //sort list
         resultList.sort((a,b) -> new Double(a.getSkillData().getUser()).compareTo(b.getSkillData().getUser()) );

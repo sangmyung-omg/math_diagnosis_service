@@ -16,6 +16,7 @@ import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.UkRepository;
 
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import org.springframework.util.ResourceUtils;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
 @NoArgsConstructor
@@ -83,10 +85,10 @@ class UserData {
 /**
  * Class to help read i-scream edu statistical data
  */
+@Slf4j
 @Component
 @PropertySource("classpath:config/statistics_module.properties")
 public class IScreamEduDataReader {
-    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Autowired
     private UkRepository ukRepository;
@@ -98,6 +100,15 @@ public class IScreamEduDataReader {
 
     private Map<String, Mastery> wholeData = null;
     private Map<Integer, UserData> ukData = null;
+
+    //Public static map for year translation
+    public static Map<Integer, Integer> yearTransLUT;
+    static {
+        yearTransLUT = new HashMap<>();
+        yearTransLUT.put(7,1);
+        yearTransLUT.put(8,2);
+        yearTransLUT.put(9,3);
+    }
 
 
     @Value("${statistics.config.use_iscream_data}")
@@ -118,13 +129,24 @@ public class IScreamEduDataReader {
         return this.useIScreamData;
     }
 
+    /**
+     * Return user year of iscream user from the iscream userID
+     * @param userID
+     * @return
+     */
+    public Integer getYearOfIScreamUser(String userID){
+        int rawYear = Integer.valueOf(userID.substring(2, 3));
+
+        return yearTransLUT.get(rawYear);
+    }
+
 
     /**
      * Reads iscream data and makes it into UserKnowledge list with random userID
      * @return
      */
     public List<UserKnowledge> getByCurriculumID(String currID, Mode mode){
-        logger.info(String.format("Creating Iscream-stat for [%s] in mode Curri-(%s)",currID, mode.getValue()));
+        log.info(String.format("Creating Iscream-stat for [%s] in mode Curri-(%s)",currID, mode.getValue()));
         
         //Get uk List of requested curriculum id
         Set<Integer> ukSet = new HashSet<>();
@@ -158,6 +180,10 @@ public class IScreamEduDataReader {
                                         .userUuid(userID)
                                         .ukId(ukentry.getKey())
                                         .ukMastery(ukentry.getValue())
+                                        .user(User.builder()
+                                                  .userUuid(userID)
+                                                  .grade(getYearOfIScreamUser(userID).toString())
+                                                  .build() )
                                         .build());
             }
         }
@@ -175,7 +201,7 @@ public class IScreamEduDataReader {
     }
 
     public List<UserKnowledge> getByUkID(Integer ukID){
-        logger.info(String.format("Creating Iscream-stat for [%d] in uk search mode", ukID));
+        log.info(String.format("Creating Iscream-stat for [%d] in uk search mode", ukID));
 
         //Get the whole data and make it into UserKnowlegdeList
         Map<Integer, UserData> ukData = getAllUKData();
@@ -198,7 +224,7 @@ public class IScreamEduDataReader {
             }
         }
         else {
-            logger.warn(String.format("UKID[%s] not found in i-scream data", ukID));
+            log.warn(String.format("UKID[%s] not found in i-scream data", ukID));
         }
         
 
