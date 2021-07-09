@@ -450,40 +450,40 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		List<String> diagnosisSubsectionList = new ArrayList<String>();
 		
 
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			String today = LocalDate.now().format(formatter);
-			String yesterday = LocalDate.now().minusDays(1).format(formatter);
-			String Fromday = LocalDate.now().minusDays(14).format(formatter);
-			
-			List<String> sourceTypeListDiagnosis = new ArrayList<String>(
-					Arrays.asList("diagnosis")); // 진단고사 문제
-			List<String> sourceTypeListTodayCards = new ArrayList<String>(
-					Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question")); // 진단고사, 추가학습(빈출문제카드)에서 푼 문제를 제외 - 오늘의 학습 카드 source type
-			List<String> sourceTypeListAll = new ArrayList<String>(
-					Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question","diagnosis","frequent_question")); // 모든 source type
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String today = LocalDate.now().format(formatter);
+		String tomorrow = LocalDate.now().plusDays(1).format(formatter);
+		String Fromday = LocalDate.now().minusDays(14).format(formatter);
+		
+		List<String> sourceTypeListDiagnosis = new ArrayList<String>(
+				Arrays.asList("diagnosis")); // 진단고사 문제
+		List<String> sourceTypeListTodayCards = new ArrayList<String>(
+				Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question")); // 진단고사, 추가학습(빈출문제카드)에서 푼 문제를 제외 - 오늘의 학습 카드 source type
+		List<String> sourceTypeListAll = new ArrayList<String>(
+				Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question","diagnosis","frequent_question")); // 모든 source type
 
-			try {
-				diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
-				logger.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
-				diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
-				
-				todayCardProbIdList.addAll(this.getLRSProblemIdList(userId, today, null, sourceTypeListTodayCards));
-				logger.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
-				todayCardSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, todayCardProbIdList);
-				
-				recentSolvedProbIdList.addAll(this.getLRSProblemIdList(userId, Fromday, yesterday, sourceTypeListTodayCards));
-				logger.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
-				recentSectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, recentSolvedProbIdList);
-				
-				solvedProbIdList.addAll(this.getLRSProblemIdList(userId, null, yesterday, sourceTypeListAll)); 
-				logger.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
-				
-				
-				//다른건 문제리스트가 없을 수 있어도, 오늘의 카드 문제리스트가 없을 수는 없음
-				if(!isFirstFreq&&todayCardProbIdList.size()==0) {
-					FrequentCard.setResultMessage("No today-card problems in LRS.");
-					return FrequentCard;
-				}
+		try {
+			diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
+			logger.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
+			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
+			
+			todayCardProbIdList.addAll(this.getLRSProblemIdList(userId, tomorrow, today, sourceTypeListTodayCards));
+			logger.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
+			todayCardSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, todayCardProbIdList);
+			
+			recentSolvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, Fromday, sourceTypeListTodayCards));
+			logger.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
+			recentSectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, recentSolvedProbIdList);
+			
+			solvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, null, sourceTypeListAll)); 
+			logger.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
+			
+			
+			//다른건 문제리스트가 없을 수 있어도, 오늘의 카드 문제리스트가 없을 수는 없음
+			if(!isFirstFreq&&todayCardProbIdList.size()==0) {
+				FrequentCard.setResultMessage("No today-card problems in LRS.");
+				return FrequentCard;
+			}
 
 				
 			} catch (Exception e) {
