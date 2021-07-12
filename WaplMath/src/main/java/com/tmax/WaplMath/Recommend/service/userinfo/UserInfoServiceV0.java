@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -22,11 +21,9 @@ import com.tmax.WaplMath.Recommend.dto.UserBasicInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
 import com.tmax.WaplMath.Recommend.event.user.UserInfoEventPublisher;
 import com.tmax.WaplMath.Recommend.model.curriculum.AcademicCalendar;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 import com.tmax.WaplMath.Recommend.repository.AcademicCalendarRepo;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
@@ -41,9 +38,6 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
 	@Autowired
 	private UserExamScopeRepo userExamScopeRepo;
-
-	@Autowired
-	private CurriculumRepository curriculumRepo;
 
 	@Autowired
 	private AcademicCalendarRepo calendarRepo;
@@ -165,10 +159,10 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 	@Override
 	public ResultMessageDTO updateBasicInfo(String userId, UserBasicInfoDTO input) {
 		// 중간-기말 , 기말-다음학기 구분하는 임시 날짜
-		final String SPRING_MID_TERM = "2021-05-01";
-		final String SPRING_VACATION = "2021-07-19";
-		final String FALL_MID_TERM = "2021-10-01";
-		final String FALL_VACATION = "2022-01-01";
+		final String SPRING_MID_TERM = "2021-05-00";
+		final String SPRING_END = "2021-08-15";
+		final String FALL_MID_TERM = "2021-10-00";
+		final String FALL_END = "2022-03-00";
 
 		Boolean isUserInfoChanged = false;
 		
@@ -178,11 +172,12 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		ResultMessageDTO output = new ResultMessageDTO();
 
 		String grade = input.getGrade();
+
 		String name = input.getName();
 		String currentCurriculumId = input.getCurrentCurriculumId();		
 		Integer targetScore = input.getTargetScore();
 		// 학기 결정
-		String semester = format.format(time).toString().compareToIgnoreCase(SPRING_VACATION) < 0 ? "1" : "2";
+		String semester = format.format(time).toString().compareToIgnoreCase(SPRING_END) < 0 ? "1" : "2";
 		// 시험 범위 (mid / final) 판단해서 USER_EXAM_SCOPE 테이블에 시작 소단원, 끝 소단원 넣기
 		String term = "";
 		if (semester.equalsIgnoreCase("1")) {
@@ -197,70 +192,63 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		
 		logger.info("userId:" + userId + ", grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId+ ", targetScore:" + targetScore);
 
-		if (grade != null) {
-			// 에러 처리
-			if (!grade.equalsIgnoreCase("1") && !grade.equalsIgnoreCase("2") && !grade.equalsIgnoreCase("3")) {
-				output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
+		if (name == null) {
+			if (output.getMessage() == null) {
+				output.setMessage("No value given for name");
+			} else {
+				output.setMessage(output.getMessage() + "\nNo value given for name");
 			}
-
-			if (!semester.equalsIgnoreCase("1") && !semester.equalsIgnoreCase("2")) {
-				if (output.getMessage() == null) {
-					output.setMessage("Value of grade should be one of '1' or '2' or '3'. Given : " + grade);
-				} else {
-					output.setMessage(output.getMessage() + "\nValue of semester should be one of '1' or '2'. Given : " + semester);
-				}
-			}
-
-			if (currentCurriculumId == null) {
-				// 진입 시점을 고려해 currentCurriculumId 생성.
-				String[] dates = format.format(time).toString().split("-");
-				int month = Integer.parseInt(dates[1]);
-				int week = 0;
-	
-				// 현재 시점이 이번 달의 몇주차인지 파악.
-				Calendar c = Calendar.getInstance();
-				c.setTime(time);
-				c.setFirstDayOfWeek(Calendar.MONDAY); // 월요일 기준.
-	
-				// 이번 달 마지막 주의 평일이 이틀까지면 (월, 화 로 이번 달 끝), 그 주는 다음 달의 1주차. 그보다 많으면 (수요일까지 있다) 이번 달의 마지막 주차 로 인정.
-				c.setMinimalDaysInFirstWeek(5);
-	
-				week = c.get(Calendar.WEEK_OF_MONTH);
-	
-				if (week == 0) {
-					c.add(Calendar.MONTH, -1);
-					int y = c.get(Calendar.YEAR);
-					int m = c.get(Calendar.MONTH);
-					int d = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-					Calendar cal = Calendar.getInstance();
-					cal.set(y, m, d);
-					month = month - 1;
-					week = cal.get(Calendar.WEEK_OF_MONTH);
-				}
+		}
+		
+		// 내부 테스트 시에만 currentCurriculumId 값 받기로 함. 외부 콜 시 값 없음.
+		if (currentCurriculumId == null) {
+			// 진입 시점을 고려해 currentCurriculumId 생성.
+			String[] dates = format.format(time).toString().split("-");
+			int month = Integer.parseInt(dates[1]);
+			int week = 0;
 			
-				// 월, 주차 정보로 해당하는 커리큘럼 정보 중 가장 나중 거 curriculum_id 가져옴.
-				List<AcademicCalendar> curr_schedule = calendarRepo.findByMonthAndWeek(grade, month, week);
-				if (curr_schedule != null && curr_schedule.size() != 0) {
-					currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
-				} else {
-					currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03-01-01";
-					logger.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);			
-				}
+			/*
+			// 현재 시점이 이번 달의 몇주차인지 파악.
+			Calendar c = Calendar.getInstance();
+			//		c.set(Integer.parseInt(dates[0]), Integer.parseInt(dates[1])-1, Integer.parseInt(dates[2]));
+			c.setTime(time);
+			//		c.add(Calendar.DATE, 13);		// 테스트
+			//		c.add(Calendar.MONTH, -11);
+			c.setFirstDayOfWeek(Calendar.MONDAY); // 월요일 기준.
+
+			// 이번 달 마지막 주의 평일이 이틀까지면 (월, 화 로 이번 달 끝), 그 주는 다음 달의 1주차. 그보다 많으면 (수요일까지 있다) 이번 달의 마지막 주차 로 인정.
+			c.setMinimalDaysInFirstWeek(5);
+
+			week = c.get(Calendar.WEEK_OF_MONTH);
+
+			if (week == 0) {
+				c.add(Calendar.MONTH, -1);
+				int y = c.get(Calendar.YEAR);
+				int m = c.get(Calendar.MONTH);
+				int d = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+				Calendar cal = Calendar.getInstance();
+				cal.set(y, m, d);
+				month = month - 1;
+				week = cal.get(Calendar.WEEK_OF_MONTH);
 			}
-			// check currentCurriculumId validation
-			try {
-				Curriculum curriculum = curriculumRepo.findById(currentCurriculumId).orElseThrow(() -> new Exception());
-			} catch (Exception e) {
-				if (output.getMessage() == null) {
-					output.setMessage("Current curriculum id is not valid. Given : " + currentCurriculumId);
-				} else {
-					output.setMessage(output.getMessage() + "Current curriculum id is not valid. Given : " + currentCurriculumId);
-				}
+			*/
+			
+			// 간단하게 1~7일 : 1주차, 8~14일 : 2주차, ......, 29~31일 : 5주차
+			week = (Integer.parseInt(dates[2])-1) / 7 + 1;
+		
+			// 월, 주차 정보로 해당하는 커리큘럼 정보 중 가장 나중 거 curriculum_id 가져옴.
+			// 1,2월은 2학기로 쳐야해서 서치에 걸리도록 month 조정
+			if (month < 3) {
+				month = 12 + month;
 			}
-			// if exception occured
-			if (output.getMessage() != null) {
-				return output;
-			}	
+			List<AcademicCalendar> curr_schedule = calendarRepo.findByMonthAndWeek(grade, semester, month, week);
+			if (curr_schedule != null && curr_schedule.size() != 0) {
+				currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
+			} else {
+				currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03-01-01";
+				logger.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);
+				logger.info(grade + ", " + semester + ", " + Integer.toString(month) + ", " + Integer.toString(week));
+			}
 		}
 		
 		// USER_MASTER 테이블에 유저 기본 정보 저장

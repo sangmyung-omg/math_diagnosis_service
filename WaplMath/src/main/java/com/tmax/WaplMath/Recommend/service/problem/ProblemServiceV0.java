@@ -143,7 +143,9 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				// 문제 set의 각 문제에 대한 정보 불러오기
 				prob_list.add(result.getLowerProbId());
 				prob_list.add(result.getBasicProbId());
-				prob_list.add(result.getUpperProbId());
+				if (result.getUpperProbId() != null) {
+					prob_list.add(result.getUpperProbId());					
+				}
 				
 			} else {
 				String order = Integer.toString(partList.indexOf(partName)+1);
@@ -244,47 +246,45 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 						partChapterList.get(chapter.getPart()).add(chapter.getCurriculumId());
 					} else {
 						partChapterList.put(chapter.getPart(), new ArrayList<String>(Arrays.asList(chapter.getCurriculumId())));
-					}					
+					}
 				}
 			}
 		}
-		logger.info(partChapterList.toString());
+		logger.info("partChapterList : " + partChapterList.toString());
 		
 		
-		// 문제 찾을 대단원 5개 선정 
+		// 문제 찾을 대단원 선정 : (우선순위 1) 현재 학년의 대단원들 -> (우선순위 2) 없으면, 이전 학년 대단원들
 		String grade = examScope.getUser().getGrade();
+		int grade_num = 0;
 		Map<String, List<String>> available_chapters = new HashMap<String, List<String>>();
 		for (int i=0; i<partList.size(); i++) {
 			List<String> candidate_chapters = new ArrayList<String>();
 			
-			for (String chapter : partChapterList.get(partList.get(i))) {
-				if (chapter.substring(4, 5).equalsIgnoreCase(grade)) {
-					logger.info(chapter);
-					candidate_chapters.add(chapter);
+			grade_num = Integer.parseInt(grade);
+			while ((candidate_chapters.size() == 0 || candidate_chapters == null) && grade_num > 0) {
+				for (String chapter : partChapterList.get(partList.get(i))) {
+					if (Integer.parseInt(chapter.substring(4, 5)) == grade_num) {
+						logger.info(chapter);
+						candidate_chapters.add(chapter);
+					}
 				}
+				grade_num--;
 			}
-			if (candidate_chapters != null && candidate_chapters.size() != 0) {
+			
+			if (candidate_chapters != null && candidate_chapters.size() != 0) {				// 이번 학년에 해당하는 단원 없으면, 파트 제외
 				available_chapters.put(partList.get(i), candidate_chapters);				
 			}
 		}
-		logger.info(available_chapters.toString());
+		logger.info("available_chapters : " + available_chapters.toString());
 		
 		if (available_chapters.size() == 0 || available_chapters == null) {
 			// 에러 처리
+			
 		}
+		
 		// 파트별 문제 개수 결정 (임의로 : 시험 범위에 파트 2~3개 고정, 범위에 맞는 파트 최대 3개)
-		List<Integer> num_list = new ArrayList<Integer>();
-		if (available_chapters.keySet().size() == 1) {
-			num_list.add(5);
-		} else if (available_chapters.keySet().size() == 2) {
-			num_list.add(3);
-			num_list.add(2);
-		} else if (available_chapters.keySet().size() == 3) {
-			num_list.add(2);
-			num_list.add(2);
-			num_list.add(1);
-		}
-		Collections.shuffle(num_list);
+		List<Integer> num_list = determine_combination(available_chapters.keySet().size());
+		logger.info("num_list : " + num_list.toString());
 		
 		Map<String, List<Integer>> partProblemMap = new HashMap<String, List<Integer>>();
 		for (String key : available_chapters.keySet()) {
@@ -298,9 +298,11 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			// 문제들 서치해올 대단원들 SQL 조건 생성  
 			String chapter_condition = "";
 			int i = 0;
+			
+			// (한 파트에 대해) 가장 최근 대단원부터 하나씩 loop 돌며, num_list의 해당 개수만큼 쌓이면 break;
 			for (String cid : list) {
 				if (i==0) {
-					chapter_condition += "'" + cid + "'";
+					chapter_condition += cid;
 					i++;
 				} else {
 					chapter_condition += " OR SUBSTR(dp.basicProblem.problemType.curriculumId, 0, 11) = '" + cid + "'";
@@ -308,39 +310,69 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			}
 			
 			logger.info(chapter_condition);
+			
 			// 해당 단원의 문제 조회
 			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, "꼼꼼");
-			if (diagList.size() != 0 && diagList != null) {
-				int queryIdx = 0;
-				while (partProblemMap.get(part).size() < num_list.get(idx)) {
-					int basic = diagList.get(queryIdx).getBasicProbId();
-					int upper = diagList.get(queryIdx).getUpperProbId();
-					int lower = diagList.get(queryIdx).getLowerProbId();
-					
-					if (!probIdList.contains(basic) && !partProblemMap.get(part).contains(basic)) {
-						partProblemMap.get(part).add(basic);
-					}
-					if (!probIdList.contains(upper) && !partProblemMap.get(part).contains(upper)) {
-						partProblemMap.get(part).add(upper);
-					}
-					if (!probIdList.contains(lower) && !partProblemMap.get(part).contains(lower)) {
-						partProblemMap.get(part).add(lower);
-					}
-					queryIdx++;
-					if (queryIdx >= partProblemMap.get(part).size()) {
-						break;
-					}
-				}
-				
-				
+			
+			if (diagList.size() == 0 || diagList == null) {
+				// 예외 처리
+				logger.info("diagList is empty : " + diagList.toString());
 			}
+			
+			
+			int queryIdx = 0;
+			while (partProblemMap.get(part).size() < num_list.get(idx)) {
+				int basic = diagList.get(queryIdx).getBasicProbId();
+				int upper = diagList.get(queryIdx).getUpperProbId();
+				int lower = diagList.get(queryIdx).getLowerProbId();
+				
+				if (!probIdList.contains(basic) && !partProblemMap.get(part).contains(basic)) {
+					partProblemMap.get(part).add(basic);
+				}
+				if (!probIdList.contains(upper) && !partProblemMap.get(part).contains(upper)) {
+					partProblemMap.get(part).add(upper);
+				}
+				if (!probIdList.contains(lower) && !partProblemMap.get(part).contains(lower)) {
+					partProblemMap.get(part).add(lower);
+				}
+				queryIdx++;
+				if (queryIdx >= diagList.size()) {
+					break;
+				}
+			}
+
 			logger.info(diagList.toString());
 			idx++;
 		}
 		logger.info(partProblemMap.toString());
 		
+		int ii = 0;
+		for (String part : partProblemMap.keySet()) {
+			List<Integer> partProblems = partProblemMap.get(part);
+			Collections.shuffle(partProblems);
+			for (int j=0; j<num_list.get(ii); j++) {
+				extraProblems.add(partProblems.get(j));
+			}
+			ii++;
+		}
 		
-//		resultMap.put("extraProblems", result.getUpperProbId());
+		resultMap.put("extraProblems", extraProblems);
 		return resultMap;
+	}
+	
+	private List<Integer> determine_combination(int part_num){
+		List<Integer> num_list = new ArrayList<Integer>();
+		if (part_num == 1) {
+			num_list.add(5);
+		} else if (part_num == 2) {
+			num_list.add(3);
+			num_list.add(2);
+		} else if (part_num == 3) {
+			num_list.add(2);
+			num_list.add(2);
+			num_list.add(1);
+		}
+		Collections.shuffle(num_list);
+		return num_list;
 	}
 }
