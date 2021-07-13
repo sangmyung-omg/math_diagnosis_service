@@ -3,11 +3,9 @@ package com.tmax.WaplMath.Recommend.service.schedule;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
@@ -21,10 +19,9 @@ import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV1;
  * Generate today normal/exam schedule card v1
  * @author Sangheon_lee
  */
+@Slf4j
 @Service("ScheduleServiceV1")
 public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	@Autowired
 	CardGeneratorV1 cardGenerator = new CardGeneratorV1();
@@ -47,7 +44,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		CardDTOV1 card;
-		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
+		log.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);
@@ -77,7 +74,7 @@ public class ScheduleServiceV1 implements ScheduleServiceBaseV1 {
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
 		CardDTOV1 card;
-		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
+		log.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);

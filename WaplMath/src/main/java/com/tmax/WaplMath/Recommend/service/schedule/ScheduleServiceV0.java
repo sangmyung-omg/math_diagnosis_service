@@ -12,12 +12,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV1;
@@ -43,9 +41,8 @@ import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV0;
  */
 @Service("ScheduleServiceV0")
 @Primary
+@Slf4j
 public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Hyperparameter
 	private static final Integer MAX_CARD_NUM = 5;
@@ -127,12 +124,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 	}
 
 	public void printDiffProbList(Map<String, List<Problem>> diffProbList) {
-		logger.info("");
+		log.info("");
 		for (String key : diffProbList.keySet()) {
 			List<Problem> probList = diffProbList.get(key);
 			List<Integer> probIdList = new ArrayList<Integer>();
 			probList.forEach(prob -> probIdList.add(prob.getProbId()));
-			logger.info(String.format("%s 난이도 문제들 = " + probIdList.toString(), key));
+			log.info(String.format("%s 난이도 문제들 = " + probIdList.toString(), key));
 		}
 	}
 
@@ -241,8 +238,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		else {
 			//			List<Integer> ukIdList = problemUkRelRepo.findAllUkIdList(typeProbIdList);
 			//			List<Integer> preUkIdList = ukRelRepo.findPreUkIdList(ukIdList, "선수");
-			//			logger.info("유형카드 내 ukIdList: " + ukIdList.toString());
-			//			logger.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
+			//			log.info("유형카드 내 ukIdList: " + ukIdList.toString());
+			//			log.info("유형카드 내 preUkIdList: " + preUkIdList.toString());
 			//
 			//			// 이해도가 낮은 애들 선별
 			//			List<UkMasteryDTO> preUkMasteryList = new ArrayList<UkMasteryDTO>();
@@ -255,7 +252,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			//					preUkUserKnowledge = userKnowledgeRepo.findById(preMasteryKey)
 			//							.orElseThrow(() -> new Exception(Integer.toString(preUkId)));
 			//				} catch (Exception e) {
-			//					logger.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
+			//					log.info(String.format("User mastery of ukId %s not in USER_KNOWLEDGE TB.", e.getMessage()));
 			//					continue;
 			//				}
 			//				Float preUkMastery = preUkUserKnowledge.getUkMastery();
@@ -276,7 +273,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			//					: SMALL_CARD_PRE_UK_NUM;
 			//			List<Integer> preUkList = new ArrayList<Integer>();
 			//			preUkMasteryList.forEach(preUkMastery -> preUkList.add(preUkMastery.getUkId()));
-			//			logger.info("그중 이해도가 낮은 것들: " + preUkList.toString());
+			//			log.info("그중 이해도가 낮은 것들: " + preUkList.toString());
 			//			Map<String, List<Problem>> diffPreProbList = gerenateDiffProbListByUk(preUkList, preUkProbNum);
 			//			printDiffProbList(diffPreProbList);
 			//			if (diffPreProbList.keySet().size() == 3)
@@ -346,7 +343,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
+		log.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -380,7 +377,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 
 		List<String> totalSectionList = problemTypeRepo.findAllSection(subSectionList);
 		Set<String> totalSectionSet = new HashSet<String>(totalSectionList); // 토탈 범위 중 단원들
-		logger.info("1. 시험범위 전체 중 단원들 : " + totalSectionSet.toString());
+		log.info("1. 시험범위 전체 중 단원들 : " + totalSectionSet.toString());
 
 		List<Integer> completedTypeIdList;
 		try {
@@ -389,19 +386,19 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("2. 유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
+		log.info("2. 유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
 
 		List<String> notCompletedSectionList = new ArrayList<String>();
 		if (completedTypeIdList.size() == 0) {
-			logger.info("- 푼게 하나도 없음.");
+			log.info("- 푼게 하나도 없음.");
 			notCompletedSectionList.addAll(totalSectionList);
 		} else
 			notCompletedSectionList = problemTypeRepo.findAllSectionNotInTypeList(subSectionList, completedTypeIdList);
 		Set<String> notCompletedSectionSet = new HashSet<String>(notCompletedSectionList); // 안푼 단원들
-		logger.info("3. 안푼 중단원들 : " + notCompletedSectionSet.toString());
+		log.info("3. 안푼 중단원들 : " + notCompletedSectionSet.toString());
 
 		totalSectionSet.removeAll(notCompletedSectionSet); // totalSectionSet에 완벽히 푼 단원들 저장됨
-		logger.info("4. 완벽히 유형카드를 중 푼 단원들 : " + totalSectionSet.toString());
+		log.info("4. 완벽히 유형카드를 중 푼 단원들 : " + totalSectionSet.toString());
 
 		Set<String> completedSectionSet;
 		try {
@@ -410,15 +407,15 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionSet.toString());
+		log.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionSet.toString());
 
 		totalSectionSet.removeAll(completedSectionSet); // totalSectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨
-		logger.info("6. 중간평가 대상인 최종 중 단원 : " + totalSectionSet.toString());
+		log.info("6. 중간평가 대상인 최종 중 단원 : " + totalSectionSet.toString());
 
 		// 완벽히 푼 단원이 있으면 중간 평가
 		if (totalSectionSet.size() != 0) {
 			String sectionId = totalSectionSet.iterator().next();
-			logger.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
+			log.info("\n중간에 다 풀었으니까 중간평가 진행: " + sectionId);
 			CardDTOV1 midExamCard = generateMidExamCard(sectionId);
 			cardList.add(midExamCard);
 			output.setCardList(cardList);
@@ -435,8 +432,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("7. 지금까지 보충 카드로 풀어본 ukID 리스트 = ");
-		logger.info(suppleUkIdList.toString());
+		log.info("7. 지금까지 보충 카드로 풀어본 ukID 리스트 = ");
+		log.info(suppleUkIdList.toString());
 
 		List<Integer> solvedUkIdList;
 		try {
@@ -448,13 +445,13 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList, suppleUkIdList,
 				SUP_UK_MASTERY_THRESHOLD);
 
-		logger.info("8. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
+		log.info("8. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
 		for (UserKnowledge lowMastery : lowMasteryList)
-			logger.info(String.format("   ukId = %s, mastery = %f", lowMastery.getUkId(), lowMastery.getUkMastery()));
+			log.info(String.format("   ukId = %s, mastery = %f", lowMastery.getUkId(), lowMastery.getUkMastery()));
 
 		// 보충 채울만큼 넉넉하면 보충 카드
 		if (lowMasteryList.size() >= MAX_SMALL_CARD_PROBLEM_NUM) {
-			logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+			log.info("	이해도 낮은게 많아서 보충 카드 진행");
 			CardDTOV1 supplementCard = generateSupplementCard(lowMasteryList);
 			cardList.add(supplementCard);
 		}
@@ -470,7 +467,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		// 공부 안한 유형uk가 있으면 유형카드
 		if (remainTypeIdList.size() != 0) {
 			for (Integer typeId : remainTypeIdList) {
-				logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
+				log.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
 				CardDTOV1 typeCard;
 				typeCard = generateTypeCard(typeId);
 				// 문제가 하나도 없으면 뛰어넘자
@@ -482,7 +479,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 				if (cardList.size() == MAX_CARD_NUM)
 					break;
 			}
-			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
+			log.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
@@ -490,12 +487,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 
 		// 보충카드 한장만 구성된 경우, 한장만 제공
 		if (cardList.size() != 0) {
-			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
+			log.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		} else {
-			logger.info("	다 풀어서 모의고사 카드 진행. ");
+			log.info("	다 풀어서 모의고사 카드 진행. ");
 			CardDTOV1 trialExamCard = generateTrialExamCard(subSectionList);
 			cardList.add(trialExamCard);
 			output.setCardList(cardList);
@@ -524,7 +521,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
+		log.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -546,25 +543,25 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		String gradeEndCurriculumId = ExamScope.examScope.get(grade + "-" + semester + "-final").get(1);
 		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, gradeEndCurriculumId); // 시험범위
 
-		logger.info("요번 학년 학기까지 범위 = ");
-		logger.info(subSectionList.toString());
+		log.info("요번 학년 학기까지 범위 = ");
+		log.info(subSectionList.toString());
 
 		Integer typeId = 1081;
-		logger.info("1. 유형 카드: " + typeId);
+		log.info("1. 유형 카드: " + typeId);
 		CardDTOV1 typeCard;
 		typeCard = generateTypeCard(typeId);
 		cardList.add(typeCard);
 
-		logger.info("2. 보충 카드");
+		log.info("2. 보충 카드");
 		CardDTOV1 supplementCard = generateSupplementCard(new ArrayList<UserKnowledge>());
 		cardList.add(supplementCard);
 
 		String sectionId = "중등-중3-1학-03-01";
-		logger.info("3. 중간평가 카드: " + sectionId);
+		log.info("3. 중간평가 카드: " + sectionId);
 		CardDTOV1 midExamCard = generateMidExamCard(sectionId);
 		cardList.add(midExamCard);
 
-		logger.info("4. 모의고사 카드");
+		log.info("4. 모의고사 카드");
 		CardDTOV1 trialExamCard = generateTrialExamCard(subSectionList);
 		cardList.add(trialExamCard);
 
@@ -592,7 +589,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
+		log.info("\n이미 푼 probId 리스트 : " + solvedProbIdSet);
 
 		// Load user information from USER_MASTER TB
 		User userInfo;
@@ -614,8 +611,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		String gradeEndCurriculumId = ExamScope.examScope.get(grade + "-" + semester + "-final").get(1);
 		List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, gradeEndCurriculumId); // 시험범위
 
-		logger.info("요번 학년 학기까지 범위 = ");
-		logger.info(subSectionList.toString());
+		log.info("요번 학년 학기까지 범위 = ");
+		log.info(subSectionList.toString());
 		// 유형 카드 (혹은 보충 UK)
 		// 보충 필요한지 판단
 		List<Integer> suppleUkIdList;
@@ -625,8 +622,8 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("1. 지금까지 보충 카드로 풀어본 ukID 리스트 = ");
-		logger.info(suppleUkIdList.toString());
+		log.info("1. 지금까지 보충 카드로 풀어본 ukID 리스트 = ");
+		log.info(suppleUkIdList.toString());
 
 		List<Integer> solvedUkIdList;
 		try {
@@ -638,13 +635,13 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		List<UserKnowledge> lowMasteryList = userKnowledgeRepo.findAllLowMasteryUkUuid(userId, solvedUkIdList, suppleUkIdList,
 				SUP_UK_MASTERY_THRESHOLD);
 
-		logger.info("2. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
+		log.info("2. 보충 카드 제외, 유형 카드로 추천된 ukID의 이해도 리스트 = ");
 		for (UserKnowledge lowMastery : lowMasteryList)
-			logger.info(String.format("   ukId = %s, mastery = %f", lowMastery.getUkId(), lowMastery.getUkMastery()));
+			log.info(String.format("   ukId = %s, mastery = %f", lowMastery.getUkId(), lowMastery.getUkMastery()));
 
 		// 보충 채울만큼 넉넉하면 보충 카드
 		if (lowMasteryList.size() >= MAX_SMALL_CARD_PROBLEM_NUM) {
-			logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+			log.info("	이해도 낮은게 많아서 보충 카드 진행");
 			CardDTOV1 supplementCard = generateSupplementCard(lowMasteryList);
 			cardList.add(supplementCard);
 		}
@@ -658,7 +655,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 			output.setMessage(e.getMessage());
 			return output;
 		}
-		logger.info("유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
+		log.info("유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
 		if (completedTypeIdList.size() == 0)
 			remainTypeIdList = problemTypeRepo.findTypeIdListInSubSectionList(subSectionList);
 		else
@@ -668,7 +665,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 		// 공부 안한 유형uk가 있으면 유형카드
 		if (remainTypeIdList.size() != 0) {
 			for (Integer typeId : remainTypeIdList) {
-				logger.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
+				log.info("\n중간평가 아니니까 유형 UK 카드 진행: " + typeId);
 				CardDTOV1 typeCard;
 				typeCard = generateTypeCard(typeId);
 				// 문제가 하나도 없으면 뛰어넘자
@@ -680,7 +677,7 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 				if (cardList.size() == MAX_CARD_NUM)
 					break;
 			}
-			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
+			log.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
@@ -688,12 +685,12 @@ public class ScheduleServiceV0 implements ScheduleServiceBaseV1 {
 
 		// 보충카드 한장만 구성된 경우, 한장만 제공
 		if (cardList.size() != 0) {
-			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
+			log.info("문제가 없어서 못만든 유형UK: " + noProbTypeList);
 			output.setCardList(cardList);
 			output.setMessage("Successfully return curriculum card list.");
 			return output;
 		} else {
-			logger.info("	다 풀어서 모의고사 카드 진행. ");
+			log.info("	다 풀어서 모의고사 카드 진행. ");
 			CardDTOV1 trialExamCard = generateTrialExamCard(subSectionList);
 			cardList.add(trialExamCard);
 			output.setCardList(cardList);

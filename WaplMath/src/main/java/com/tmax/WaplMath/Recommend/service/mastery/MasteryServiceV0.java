@@ -6,13 +6,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
@@ -23,6 +16,10 @@ import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Update student knowledge mastery using Triton inference server
@@ -31,9 +28,8 @@ import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
  */
 @Service("MasteryServiceV0")
 @Primary
+@Slf4j
 public class MasteryServiceV0 implements MasteryServiceBase {
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Hyperparameter
 	private static final Float SCALE_PARAM_1 = 0.65079f;
@@ -54,9 +50,9 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 	public ResultMessageDTO updateMastery(String userId, List<String> probIdList, List<String> correctList) {
 		ResultMessageDTO output = new ResultMessageDTO();
 
-		System.out.println("userId: " + userId);
-		System.out.println("probIdList: " + probIdList);
-		System.out.println("correctList: " + correctList);
+		log.info("userId: " + userId);
+		log.info("probIdList: " + probIdList);
+		log.info("correctList: " + correctList);
 
 		String userEmbedding = "";
 
@@ -70,13 +66,13 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 		}
 
 		// check whether user embedding saved in UserEmbedding TB or not
-//		logger.info("Get user embedding...");
+//		log.info("Get user embedding...");
 //		Optional<UserEmbedding> userEmbeddingOptional = userEmbeddingRepository.findById(userId);
 //		if (userEmbeddingOptional.isPresent())
 //			userEmbedding = userEmbeddingOptional.get().getUserEmbedding();
 		userEmbedding = "";
 		
-		logger.info("User embedding input length = " + Integer.toString(userEmbedding.length()));
+		log.info("User embedding input length = " + Integer.toString(userEmbedding.length()));
 
 		// generate triton server input: probId --> ukId
 		List<String> ukIdList = new ArrayList<String>();
@@ -118,10 +114,10 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 
 		JsonObject masteryJson = JsonParser.parseString(tritonOutput.get("Mastery").getAsString()).getAsJsonObject();
 		userEmbedding = tritonOutput.get("Embeddings").getAsString();
-		logger.info("User embedding output length = " + Integer.toString(userEmbedding.length()));
+		log.info("User embedding output length = " + Integer.toString(userEmbedding.length()));
 
 		// update user mastery
-		logger.info("Update mastery of user...");
+		log.info("Update mastery of user...");
 		Set<UserKnowledge> userKnowledgeSet = new HashSet<UserKnowledge>();
 
 		masteryJson.keySet().forEach(ukId -> {
@@ -138,7 +134,7 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 		userKnowledgeRepository.saveAll(userKnowledgeSet);
 
 		// update user embedding
-		logger.info("Update embedding of user...");
+		log.info("Update embedding of user...");
 		UserEmbedding updateEmbedding = new UserEmbedding();
 		updateEmbedding.setUserUuid(userId);
 		updateEmbedding.setUserEmbedding(userEmbedding);

@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,15 +27,15 @@ import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Schedule card configuration logic v1
  * @author Sangheon_lee
  */
+@Slf4j
 @Component
 public class ScheduleConfiguratorV1 {
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Hyperparameter
 	private static final Integer MAX_CARD_NUM = 5;
@@ -51,8 +49,6 @@ public class ScheduleConfiguratorV1 {
 	private UserRepository userRepo;
 	@Autowired
 	private ProblemTypeRepo problemTypeRepo;
-	@Autowired
-	private UserExamScopeRepo userExamScopeRepo;
 	@Autowired
 	private CurriculumRepository curriculumRepo;
 	@Autowired
@@ -100,7 +96,7 @@ public class ScheduleConfiguratorV1 {
 		// Get total normal subsectionList
 		String endCurriculumId = ExamScope.examScope.get("3-2-final").get(1);
 		subSectionIdList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurriculumId); // 그냥 학년 마지막까지
-		logger.info("전체 소단원 범위 = {}", subSectionIdList);
+		log.info("전체 소단원 범위 = {}", subSectionIdList);
 		return subSectionIdList;
 	}
 
@@ -110,12 +106,12 @@ public class ScheduleConfiguratorV1 {
 		Set<String> addtlSubSectionIdSet = new HashSet<String>();
 
 		List<String> subSectionIdList = getSubSectionScope(userId);
-		logger.info("전체 소단원 범위 = {}", subSectionIdList);
+		log.info("전체 소단원 범위 = {}", subSectionIdList);
 
 		// 중간평가 판단 - 중단원만 일단
 		Set<String> sectionIdSet = new HashSet<String>(); // 토탈 범위 중 단원들
 		subSectionIdList.forEach(subSection -> sectionIdSet.add(subSection.substring(0, 14)));
-		logger.info("1.지금부터 중 단원들 : " + sectionIdSet.toString());
+		log.info("1.지금부터 중 단원들 : " + sectionIdSet.toString());
 		//		Set<String> sectionSet = new HashSet<String>(Arrays.asList("중등-중2-1학-01-02"));
 
 		List<Integer> completedTypeIdList;
@@ -124,20 +120,20 @@ public class ScheduleConfiguratorV1 {
 		} catch (Exception e) {
 			throw e;
 		}
-		logger.info("2. 유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
+		log.info("2. 유저가 푼 유형 UK들 : " + completedTypeIdList.toString());
 
 		List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, completedTypeIdList);
 		Set<String> notDoneSectionIdSet = new HashSet<String>(); // 안푼 중단원들
 		if (completedTypeIdList.size() == 0) {
-			logger.info("- 푼게 하나도 없음.");
+			log.info("- 푼게 하나도 없음.");
 			notDoneSectionIdSet.addAll(sectionIdSet);
 		} else {
 			remainTypeList.forEach(type -> notDoneSectionIdSet.add(type.getCurriculumId().substring(0, 14)));
 		}
-		logger.info("3. 안푼 중 단원들 : " + notDoneSectionIdSet.toString());
+		log.info("3. 안푼 중 단원들 : " + notDoneSectionIdSet.toString());
 
 		sectionIdSet.removeAll(notDoneSectionIdSet); // sectionSet에 완벽히 푼 단원들 저장됨
-		logger.info("4. 완벽히 유형카드를 푼 중 단원들 : " + sectionIdSet.toString());
+		log.info("4. 완벽히 유형카드를 푼 중 단원들 : " + sectionIdSet.toString());
 
 		Set<String> completedSectionIdSet;
 		try {
@@ -145,15 +141,15 @@ public class ScheduleConfiguratorV1 {
 		} catch (Exception e) {
 			throw e;
 		}
-		logger.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionIdSet.toString());
+		log.info("5. 이미 중간평가 카드 푼 중 단원들 : " + completedSectionIdSet.toString());
 
 		sectionIdSet.removeAll(completedSectionIdSet); // sectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨
-		logger.info("6. 중간평가 대상인 최종 중 단원 : " + sectionIdSet.toString());
+		log.info("6. 중간평가 대상인 최종 중 단원 : " + sectionIdSet.toString());
 
 		// 완벽히 푼 단원이 있으면 중간 평가
 		if (sectionIdSet.size() != 0) {
 			String sectionId = sectionIdSet.iterator().next();
-			logger.info("중간에 다 풀었으니까 중간평가 진행: " + sectionId);
+			log.info("중간에 다 풀었으니까 중간평가 진행: " + sectionId);
 			cardConfigList.add(CardConfigDTO.builder().cardType("midExam").curriculumId(sectionId).testType("section").build());
 			addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 			output.setCardConfigList(cardConfigList);
@@ -170,8 +166,8 @@ public class ScheduleConfiguratorV1 {
 		} catch (Exception e) {
 			throw e;
 		}
-		logger.info("7. 지금까지 보충 카드로 풀어본 유형ID 리스트 = ");
-		logger.info(suppleTypeIdList.toString());
+		log.info("7. 지금까지 보충 카드로 풀어본 유형ID 리스트 = ");
+		log.info(suppleTypeIdList.toString());
 
 		List<Integer> solvedTypeIdList;
 		try {
@@ -182,13 +178,13 @@ public class ScheduleConfiguratorV1 {
 		if (solvedTypeIdList.size() != 0) {
 			List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, suppleTypeIdList,
 				LOW_MASTERY_THRESHOLD);
-			logger.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
+			log.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
 			for (TypeMasteryDTO typeMastery : lowMasteryTypeList)
-				logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
+				log.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
 
 			// 보충 채울만큼 넉넉하면 보충 카드
 			if (lowMasteryTypeList.size() >= SUPPLE_CARD_TYPE_NUM) {
-				logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+				log.info("	이해도 낮은게 많아서 보충 카드 진행");
 				List<Integer> suppleCardTypeIdList = new ArrayList<Integer>();
 				for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM))
 					suppleCardTypeIdList.add(e.getTypeId());
@@ -197,7 +193,7 @@ public class ScheduleConfiguratorV1 {
 				addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
 
 				if (lowMasteryTypeList.size() >= SUPPLE_CARD_TYPE_NUM * 2) {
-					logger.info("	보충카드 하나 더 추가");
+					log.info("	보충카드 하나 더 추가");
 					suppleCardTypeIdList = new ArrayList<Integer>();
 					for (TypeMasteryDTO e : lowMasteryTypeList.subList(SUPPLE_CARD_TYPE_NUM, SUPPLE_CARD_TYPE_NUM * 2))
 						suppleCardTypeIdList.add(e.getTypeId());
@@ -213,7 +209,7 @@ public class ScheduleConfiguratorV1 {
 		if (remainTypeList.size() != 0) {
 			for (ProblemType type : remainTypeList) {
 				Integer typeId = type.getTypeId();
-				logger.info("중간평가 아니니까 유형 UK 카드 진행: " + typeId);
+				log.info("중간평가 아니니까 유형 UK 카드 진행: " + typeId);
 				List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
 				if (typeProbList.size() == 0) {
 					noProbTypeIdList.add(typeId);
@@ -224,7 +220,7 @@ public class ScheduleConfiguratorV1 {
 				if (cardConfigList.size() == MAX_CARD_NUM)
 					break;
 			}
-			logger.info("문제가 없어서 못만든 유형UK: " + noProbTypeIdList);
+			log.info("문제가 없어서 못만든 유형UK: " + noProbTypeIdList);
 			output.setCardConfigList(cardConfigList);
 			output.setAddtlSubSectionIdSet(addtlSubSectionIdSet);
 			return output;
@@ -268,7 +264,7 @@ public class ScheduleConfiguratorV1 {
 		// 유형카드 : 첫 번째 유형
 		List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, null);
 		Integer typeId = remainTypeList.get(0).getTypeId();
-		logger.info("중간평가 아니니까 유형 UK 카드 진행: " + typeId);
+		log.info("중간평가 아니니까 유형 UK 카드 진행: " + typeId);
 		cardConfigList.add(CardConfigDTO.builder().cardType("type").typeId(typeId).build());
 		addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId).orElse(new ProblemType()).getCurriculumId());
 
@@ -278,10 +274,10 @@ public class ScheduleConfiguratorV1 {
 			Arrays.asList(remainTypeList.get(1).getTypeId(), remainTypeList.get(2).getTypeId(), remainTypeList.get(3).getTypeId()));
 		List<TypeMasteryDTO> lowMasteryTypeList = userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, suppleTypeIdList,
 			LOW_MASTERY_THRESHOLD);
-		logger.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
+		log.info("8. 보충 카드로 풀어본 유형 제외, 유형 카드들의 이해도 리스트 = ");
 		for (TypeMasteryDTO typeMastery : lowMasteryTypeList)
-			logger.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
-		logger.info("	이해도 낮은게 많아서 보충 카드 진행");
+			log.info(String.format("   typeId = %s, mastery = %f", typeMastery.getTypeId(), typeMastery.getMastery()));
+		log.info("	이해도 낮은게 많아서 보충 카드 진행");
 		List<Integer> suppleCardTypeIdList = new ArrayList<Integer>();
 		for (TypeMasteryDTO e : lowMasteryTypeList.subList(0, SUPPLE_CARD_TYPE_NUM))
 			suppleCardTypeIdList.add(e.getTypeId());
@@ -291,18 +287,18 @@ public class ScheduleConfiguratorV1 {
 
 		// 중간 평가 카드 (중단원)
 		String sectionId = currentCurriculumId.substring(0, 14);
-		logger.info("중간평가 진행(중단원): " + sectionId);
+		log.info("중간평가 진행(중단원): " + sectionId);
 		cardConfigList.add(CardConfigDTO.builder().cardType("midExam").curriculumId(sectionId).testType("section").build());
 		addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
 
 		//		String chapterId = currentCurriculumId.substring(0, 11);
-		//		logger.info("\n중간평가 진행(대단원): " + chapterId);
+		//		log.info("\n중간평가 진행(대단원): " + chapterId);
 		//		CardDTO midExamCard2 = cardManager.generateMidExamCard(chapterId, "chapter");
 		//		cardList.add(midExamCard2);
 
 		// 모의고사 카드
 		String trialExamType = String.format("%s-%s-%s", grade, semester, "final");
-		logger.info("모의고사 진행: " + String.format("%s-%s-%s", grade, semester, "final"));
+		log.info("모의고사 진행: " + String.format("%s-%s-%s", grade, semester, "final"));
 		cardConfigList.add(CardConfigDTO.builder().cardType("trialExam").examKeyword(trialExamType).build());
 		addtlSubSectionIdSet.addAll(examSubSectionList);
 

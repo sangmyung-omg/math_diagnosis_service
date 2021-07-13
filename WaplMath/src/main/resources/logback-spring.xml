@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE configuration>
 <configuration>
-	<!-- log file path -->
+	<!-- log file root path -->
 	<property name="LOG_PATH" value="./logs/" />
 	<!-- log file name -->
-	<property name="LOG_FILE_NAME" value="sap_log" />
+	<property name="LOG_FILE_NAME" value="log" />
 	<!-- err log file name -->
 	<property name="ERR_LOG_FILE_NAME" value="err_log" />
 	<!-- pattern -->
-	<property name="LOG_PATTERN"
-		value="%d{HH:mm:ss.SSS} [%-5level] [%thread] [%logger{36}] - %m%n" />
+	<property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%-5level] [%thread] [%logger{36}] - %m%n" />
+	<!-- max file size (MB) -->
+	<property name="MAX_FILE_SIZE" value="20MB" />
+	<!-- max history save days (day) -->
+	<property name="MAX_SAVE_DAYS" value="28" />
 		
+	<!-- Console Appender -->
 	<springProfile name="default, dev">
-		<!-- Console Appender -->
 		<appender name="STDOUT"
 			class="ch.qos.logback.core.ConsoleAppender">
 			<layout class="ch.qos.logback.classic.PatternLayout">
@@ -21,9 +24,9 @@
 		</appender>
 	</springProfile>
 
+	<!-- File Appender -->
 	<springProfile name="prod">
-		<!-- File Appender -->
-		<appender name="FILE"
+		<appender name="FILE_ALL"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">
 			<!-- 파일경로 설정 -->
 			<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
@@ -40,17 +43,77 @@
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<!-- 파일당 최고 용량 kb, mb, gb -->
-					<maxFileSize>10MB</maxFileSize>
+					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
 				</timeBasedFileNamingAndTriggeringPolicy>
 				<!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거 -->
-				<maxHistory>10</maxHistory>
+				<maxHistory>${MAX_SAVE_DAYS}</maxHistory>
 				<!--<MinIndex>1</MinIndex> <MaxIndex>10</MaxIndex> -->
 			</rollingPolicy>
 		</appender>
 	</springProfile>
 
+	<!-- File Appender for Recommend -->
 	<springProfile name="prod">
-		<!-- 에러 따로 모으기 -->
+		<appender name="FILE_RECOMMEND" class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<file>${LOG_PATH}/Recommend/${LOG_FILE_NAME}.log</file>
+			<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				<pattern>${LOG_PATTERN}</pattern>
+			</encoder>
+			<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<fileNamePattern>${LOG_PATH}/Recommend/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+				</timeBasedFileNamingAndTriggeringPolicy>
+				<maxHistory>${MAX_SAVE_DAYS}</maxHistory>
+			</rollingPolicy>
+		</appender>
+	</springProfile>
+
+	<!-- File Appender for AnalysisReport -->
+	<springProfile name="prod">
+		<appender name="FILE_AR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<file>${LOG_PATH}/AnalysisReport/${LOG_FILE_NAME}.log</file>
+			<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				<pattern>${LOG_PATTERN}</pattern>
+			</encoder>
+			<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<fileNamePattern>${LOG_PATH}/AnalysisReport/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+				</timeBasedFileNamingAndTriggeringPolicy>
+				<maxHistory>${MAX_SAVE_DAYS}</maxHistory>
+			</rollingPolicy>
+		</appender>
+	</springProfile>
+
+	<!-- File Appender for AdditionalLearning -->
+	<springProfile name="prod">
+		<appender name="FILE_AL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<file>${LOG_PATH}/AdditionalLearning/${LOG_FILE_NAME}.log</file>
+			<encoder
+				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+				<pattern>${LOG_PATTERN}</pattern>
+			</encoder>
+			<rollingPolicy
+				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<fileNamePattern>${LOG_PATH}/AdditionalLearning/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<timeBasedFileNamingAndTriggeringPolicy
+					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+				</timeBasedFileNamingAndTriggeringPolicy>
+				<maxHistory>${MAX_SAVE_DAYS}</maxHistory>
+			</rollingPolicy>
+		</appender>
+	</springProfile>
+
+	<!-- 에러 따로 모으기 -->
+	<springProfile name="prod">
 		<appender name="ERROR"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">		
 			<filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -73,13 +136,28 @@
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<!-- 파일당 최고 용량 kb, mb, gb -->
-					<maxFileSize>10MB</maxFileSize>
+					<maxFileSize>20MB</maxFileSize>
 				</timeBasedFileNamingAndTriggeringPolicy>
 				<!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거 -->
-				<maxHistory>10</maxHistory>
+				<maxHistory>28</maxHistory>
 				<!--<MinIndex>1</MinIndex> <MaxIndex>10</MaxIndex> -->
 			</rollingPolicy>
 		</appender>
+	</springProfile>
+	
+	<!-- Recommend logger -->
+	<springProfile name="prod">
+		<logger name="com.tmax.WaplMath.Recommend" level="DEBUG" additivity="true">
+				<appender-ref ref="FILE_RECOMMEND"/>
+		</logger>
+		<!-- AnalysisReport logger -->
+		<logger name="com.tmax.WaplMath.AnalysisReport" level="DEBUG" additivity="true">
+				<appender-ref ref="FILE_AR"/>
+		</logger>
+		<!-- AdditionalLearning logger -->
+		<logger name="com.tmax.WaplMath.AdditionalLearning" level="DEBUG" additivity="true">
+				<appender-ref ref="FILE_AL"/>
+		</logger>
 	</springProfile>
 
 	<!-- 기본 log level을 설정한다. -->
@@ -88,7 +166,7 @@
 			<appender-ref ref="STDOUT" />
 		</springProfile>
 		<springProfile name="prod">
-			<appender-ref ref="FILE" />
+			<appender-ref ref="FILE_ALL" />
 		</springProfile>
 		<springProfile name="prod">
 			<appender-ref ref="ERROR" />

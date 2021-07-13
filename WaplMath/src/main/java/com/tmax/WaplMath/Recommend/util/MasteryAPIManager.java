@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -13,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
-
+import lombok.extern.slf4j.Slf4j;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -28,11 +26,10 @@ import com.tmax.WaplMath.Recommend.exception.RecommendException;
  * 
  * @author Sangheon Lee
  */
+@Slf4j
 @Component
 @PropertySource("classpath:triton.properties")
 public class MasteryAPIManager {
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
 //	private static final String IP = System.getenv("KT_TRITON_IP");
 //	private static final String PORT = System.getenv("KT_TRITON_PORT");
 	
@@ -53,7 +50,7 @@ public class MasteryAPIManager {
 							 @Value("${waplmath.recommend.masterytriton.modelname}") String MODEL_NAME, 
 							 @Value("${waplmath.recommend.masterytriton.modelver}") String MODEL_VERSION){
 		
-		logger.info("constructor"  + IP+PORT);
+		log.info("constructor"  + IP+PORT);
 		this.TRITON_ADDR = String.format("http://%s:%s/v2/models/%s/versions/%s/infer", IP, PORT, MODEL_NAME, MODEL_VERSION);
 	}
 	public MasteryAPIManager(){}
@@ -133,7 +130,7 @@ public class MasteryAPIManager {
 		inputs.add(UKListJson);
 		inputs.add(corListJson);
 		inputs.add(levelListJson);
-		logger.info("Triton request to {} with input (except print embedding) : {}", TRITON_ADDR, inputs);
+		log.info("Triton request to {} with input (except print embedding) : {}", TRITON_ADDR, inputs);
 		inputs.add(embeddingsJson);
 		return inputs;
 	}
@@ -174,10 +171,10 @@ public class MasteryAPIManager {
 
 		try {
 			ResponseEntity<String> tritonResponse = restTemplate.postForEntity(TRITON_ADDR, input, String.class);
-			logger.info("Triton Response with code {}", tritonResponse.getStatusCode());
+			log.info("Triton Response with code {}", tritonResponse.getStatusCode());
 			responseString = tritonResponse.getBody();
 		} catch (HttpStatusCodeException e) {
-			logger.info("Triton Response error. Body: {}", e.getResponseBodyAsString());
+			log.info("Triton Response error. Body: {}", e.getResponseBodyAsString());
 			throw e;
 		}
 

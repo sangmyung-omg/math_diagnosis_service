@@ -1,10 +1,10 @@
-package com.tmax.WaplMath.Recommend.controller;
+package com.tmax.WaplMath.Recommend.controller.diagnosis;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Recommend.service.problem.ProblemServiceBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -14,9 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.tmax.WaplMath.Common.util.auth.JWTUtil;
-import com.tmax.WaplMath.Recommend.service.problem.ProblemServiceBase;
 
 
 @RestController

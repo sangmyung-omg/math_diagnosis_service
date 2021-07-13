@@ -3,11 +3,9 @@ package com.tmax.WaplMath.Recommend.service.schedule;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV2;
@@ -21,10 +19,9 @@ import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV1;
  * @author Sangheon_lee
  * @since 2021-06-30
  */
+@Slf4j
 @Service("ScheduleServiceV2")
 public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	@Autowired
 	CardGeneratorV2 cardGenerator = new CardGeneratorV2();
@@ -49,7 +46,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
 		CardDTOV2 card;
-		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
+		log.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);
@@ -78,7 +75,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		cardGenerator.userId = userId;
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		CardDTOV2 card;
-		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
+		log.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);
@@ -108,7 +105,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 		cardGenerator.setSolvedProbIdSet(scheduleConfigurator.getSolvedProbIdSet());
 		cardGenerator.setExamSubSectionIdSet(scheduleConfigurator.getExamSubSectionIdSet());
 		CardDTOV2 card;
-		logger.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
+		log.info("소단원: {}", scheduleConfig.getAddtlSubSectionIdSet());
 		for (CardConfigDTO cardConfig : scheduleConfig.getCardConfigList()) {
 			card = cardGenerator.generateCard(cardConfig);
 			cardList.add(card);

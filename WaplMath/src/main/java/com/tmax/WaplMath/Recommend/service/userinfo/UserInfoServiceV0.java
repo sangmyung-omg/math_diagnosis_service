@@ -10,12 +10,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.UserBasicInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
@@ -30,9 +28,8 @@ import com.tmax.WaplMath.Recommend.util.ExamScope;
 
 @Service
 @Qualifier("UserInfoServiceV0")
+@Slf4j
 public class UserInfoServiceV0 implements UserInfoServiceBase {
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
 	@Autowired
 	private UserRepository userRepo;
 
@@ -64,9 +61,9 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		User result = new User();
 		List<String> input = new ArrayList<String>();
 		input.add(userId);
-		logger.info("Getting user basic info...");
+		log.info("Getting user basic info...");
 		List<User> queryList = (List<User>) userRepo.findAllById(input);
-		logger.info("user : " + input + ", Query Result Size: " + Integer.toString(queryList.size()));
+		log.info("user : " + input + ", Query Result Size: " + Integer.toString(queryList.size()));
 		if (queryList.size() != 0 && queryList != null) {
 			result = queryList.get(0);
 		}
@@ -108,7 +105,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
 		
 		if (startSubSectionId != null && endSubSectionId != null) {
-			logger.info("startSubSectionId:" + startSubSectionId + ", endSubSectionId:" + endSubSectionId);
+			log.info("startSubSectionId:" + startSubSectionId + ", endSubSectionId:" + endSubSectionId);
 			if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId) && 
 				  userExamScope.getEndSubSectionId().equals(endSubSectionId)))
 				isExamScopeChanged = true;
@@ -117,7 +114,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		}
 		// excepted sub section is not null
 		if (exceptSubSectionIdList != null) {
-			logger.info("exceptSubSectionIdList:" + exceptSubSectionIdList);
+			log.info("exceptSubSectionIdList:" + exceptSubSectionIdList);
 			String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
 			if (userExamScope.getExceptSubSectionIdList() == null && !exceptSubSectionIdStr.equals(""))
 				isExamScopeChanged = true;
@@ -196,7 +193,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 			} else term = "final";
 		}
 		
-		logger.info("userId:" + userId + ", grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId+ ", targetScore:" + targetScore);
+		log.info("userId:" + userId + ", grade:" + grade + ", semester:" + semester + ", name:" + name + ", CId:" + currentCurriculumId+ ", targetScore:" + targetScore);
 
 		if (name == null) {
 			if (output.getMessage() == null) {
@@ -252,8 +249,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 				currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
 			} else {
 				currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03-01-01";
-				logger.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);
-				logger.info(grade + ", " + semester + ", " + Integer.toString(month) + ", " + Integer.toString(week));
+				log.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);
+				log.info(grade + ", " + semester + ", " + Integer.toString(month) + ", " + Integer.toString(week));
 			}
 		}
 		

@@ -1,7 +1,10 @@
 package com.tmax.WaplMath.Recommend.controller.mastery;
 
 import java.util.List;
-
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
+import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
+import com.tmax.WaplMath.Recommend.service.mastery.MasteryServiceBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -11,11 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.tmax.WaplMath.Common.util.auth.JWTUtil;
-import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
-import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
-import com.tmax.WaplMath.Recommend.service.mastery.MasteryServiceBase;
 
 /**
  * Mastery update api controller

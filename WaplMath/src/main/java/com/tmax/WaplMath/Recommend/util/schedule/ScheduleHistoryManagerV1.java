@@ -8,11 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
+import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
@@ -23,10 +21,9 @@ import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
  * Get schedule card solved history from LRS
  * @author Sangheon_lee
  */
+@Slf4j
 @Component
 public class ScheduleHistoryManagerV1 {
-
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// Constant
 	private final Integer MAX_RECENET_STATEMENT_NUM = 200;
@@ -151,7 +148,7 @@ public class ScheduleHistoryManagerV1 {
 		} catch (Exception e) {
 			throw e;
 		}
-		logger.info("가장 최근에 푼 보충카드 날짜: " + lastSuppleDate);
+		log.info("가장 최근에 푼 보충카드 날짜: " + lastSuppleDate);
 		return getCompletedTypeIdList(userId, today, lastSuppleDate, "type-question");
 	}
 
