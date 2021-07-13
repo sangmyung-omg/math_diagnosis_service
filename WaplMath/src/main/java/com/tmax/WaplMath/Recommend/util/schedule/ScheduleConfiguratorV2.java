@@ -116,13 +116,13 @@ public class ScheduleConfiguratorV2 {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		String today = LocalDate.now().format(formatter);
 		this.today = today;
-		// Get solved problem set 
-		List<String> sourceTypeList = new ArrayList<String>(
-					Arrays.asList(CardConstants.TYPE_CARD_TYPESTR + "_question",
-								  CardConstants.SUPPLE_CARD_TYPESTR + "_question",
-								  CardConstants.SECTION_TEST_CARD_TYPESTR + "_question",
-								  CardConstants.CHAPTER_TEST_CARD_TYPESTR + "_question",
-								  CardConstants.TRIAL_EXAM_CARD_TYPESTR + "_question"));
+		// Get solved problem set
+		List<String> sourceTypeList =
+				new ArrayList<String>(Arrays.asList(CardConstants.TYPE_CARD_TYPESTR + "_question",
+						CardConstants.SUPPLE_CARD_TYPESTR + "_question",
+						CardConstants.SECTION_TEST_CARD_TYPESTR + "_question",
+						CardConstants.CHAPTER_TEST_CARD_TYPESTR + "_question",
+						CardConstants.TRIAL_EXAM_CARD_TYPESTR + "_question"));
 		try {
 			this.solvedProbIdSet = historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
 		} catch (Exception e) {

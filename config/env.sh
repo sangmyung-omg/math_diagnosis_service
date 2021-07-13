@@ -22,15 +22,6 @@ sed -i "s/%TRITON_IP%/${TRITON_IP}/g" /home/tmax/triton.properties
 if [ -z $TRITON_PORT ]; then export TRITON_PORT="8004"; fi
 sed -i "s/%TRITON_PORT%/${TRITON_PORT}/g" /home/tmax/triton.properties
 
-if [ -z $TRITON_MODEL_NAME ]; then export TRITON_MODEL_NAME="knowledge-tracing"; fi
-sed -i "s/%TRITON_MODEL_NAME%/${TRITON_MODEL_NAME}/g" /home/tmax/triton.properties
-
-if [ -z $TRITON_MODEL_VER ]; then export TRITON_MODEL_VER="1"; fi
-sed -i "s/%TRITON_MODEL_VER%/${TRITON_MODEL_VER}/g" /home/tmax/triton.properties
-
-if [ -z $TRITON_WAPLSCORE_IP ]; then export TRITON_WAPLSCORE_IP="192.168.158.31"; fi
-sed -i "s/%TRITON_WAPLSCORE_IP%/${TRITON_WAPLSCORE_IP}/g" /home/tmax/triton.properties
-
 if [ -z $TRITON_WAPLSCORE_PORT ]; then export TRITON_WAPLSCORE_PORT="18000"; fi
 sed -i "s/%TRITON_WAPLSCORE_PORT%/${TRITON_WAPLSCORE_PORT}/g" /home/tmax/triton.properties
 

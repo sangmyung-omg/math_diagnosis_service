@@ -46,6 +46,19 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 	UserInfoEventPublisher userInfoEventPublisher;
 	
 
+	Timestamp getTimestamp(String timeStr){
+		if (timeStr == null)	return null;
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDateTime dateTime;
+		try {
+			dateTime = LocalDate.parse(timeStr, dtf).atStartOfDay();
+		} catch (DateTimeParseException e) {
+			throw e;
+		}
+		return Timestamp.valueOf(dateTime);
+	}
+
+
 	@Override
 	public User getUserInfo(String userId) {
 		User result = new User();
@@ -73,21 +86,14 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 		String examDueDate = input.getExamDueDate();
 		
 		// parse date format
-		if (examStartDate != null && examDueDate != null) {
-			logger.info("examStartDate:" + examStartDate + ", examDueDate:" + examDueDate);
-			LocalDateTime examStartDateTime, examDueDateTime;
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			try {
-				examStartDateTime = LocalDate.parse(examStartDate, dtf).atStartOfDay();
-				examDueDateTime = LocalDate.parse(examDueDate, dtf).atStartOfDay();
-			} catch (DateTimeParseException e) {
-				output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
-				return output;
-			}
-			user.setExamStartDate(Timestamp.valueOf(examStartDateTime));
-			user.setExamDueDate(Timestamp.valueOf(examDueDateTime));
+		try{
+			user.setExamStartDate(getTimestamp(examStartDate));
+			user.setExamDueDate(getTimestamp(examDueDate));
+		} catch(Exception e){
+			output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
+			return output;
 		}
-		
+
 		// update user_master tb
 		userRepo.save(user);
 

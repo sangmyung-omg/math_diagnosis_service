@@ -90,30 +90,10 @@ paths:
                 $ref: "#/components/schemas/MasteryUpdateResult"
         "500":
           description: "오류 발생 시"
-          $ref: "#/components/responses/500-Generic" 
-  /recommend/v2/examschedulecard:
-    get:
-      tags:
-        - "Schedule"
-      summary: "시험 대비 학습 스케줄 카드 구성 리턴 v2"
-      description: |
-        - 사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
-        - 21.06.30 기획 반영
-        - Full path = http://192.168.153.154:8080/recommend/v2/examschedulecard
-      parameters:
-        - $ref: "#/components/parameters/UserToken"
-      responses:
-        "200":
-          description: "성공 시"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NormalScheduleCardV2"
-        "500":
-          description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic"
   /recommend/v1/normalschedulecard:
     get:
+      deprecated: true
       tags:
         - "Schedule"
       summary: "실력 향상 학습 스케줄 카드 구성 리턴 v1"
@@ -141,6 +121,27 @@ paths:
         - 사용자의 실력 향상 학습 스케줄 카드 구성 리턴
         - 21.06.30 기획 반영
         - Full path = http://192.168.153.154:8080/recommend/v2/normalschedulecard
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NormalScheduleCardV2"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic" 
+  /recommend/v2/examschedulecard:
+    get:
+      tags:
+        - "Schedule"
+      summary: "시험 대비 학습 스케줄 카드 구성 리턴 v2"
+      description: |
+        - 사용자의 시험 대비 학습 스케줄 오늘 카드 구성 리턴
+        - 21.06.30 기획 반영
+        - Full path = http://192.168.153.154:8080/recommend/v2/examschedulecard
       parameters:
         - $ref: "#/components/parameters/UserToken"
       responses:
@@ -523,22 +524,27 @@ components:
         - "exceptSubSectionIdList"
       properties:
         examStartDate:
+          nullable: true
           type: "string"
           example: "2021-07-01"
           description: "시험 준비 시작 날짜. yyyy-mm-dd 형식"
         examDueDate:
+          nullable: true
           type: "string"
           example: "2021-07-14"
           description: "시험 날짜. yyyy-mm-dd 형식"
         startSubSectionId:
+          nullable: true
           type: string
           example: "중등-중3-1학-03-01-01"
           description: "시험 범위 시작 소단원 id"
         endSubSectionId:
+          nullable: true
           type: string
           example: "중등-중3-1학-04-01-04"
           description: "시험 범위 끝 소단원 id"
         exceptSubSectionIdList:
+          nullable: true
           type: array
           items:
             type: string

@@ -42,10 +42,10 @@ public class CardGeneratorV2 {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
 	// logging option
-	private final Boolean printProbInfo = true; //level 1
-	private final Boolean printMastery = false; //level 2
-	private final Boolean printTypeInfo = true; //level 3
-	private final Boolean printCurrInfo = true; //level 4
+	private final Boolean printProbInfo = false; // level 1
+	private final Boolean printMastery = false; // level 2
+	private final Boolean printTypeInfo = true; // level 3
+	private final Boolean printCurrInfo = true; // level 4
 
 	@Autowired
 	private ProblemRepo problemRepo;
@@ -107,7 +107,7 @@ public class CardGeneratorV2 {
 		if (printProbInfo) {
 			for (String difficulty : Arrays.asList("상", "중", "하")) {
 				List<Problem> probList = diffProbList.getDiffProbList(difficulty);
-				logger.info(String.format("	{} 난이도 문제들 = {}", difficulty, getIdListFromProbList(probList)));
+				logger.info("	{} 난이도 문제들 = {}", difficulty, getIdListFromProbList(probList));
 			}
 			logger.info("");
 		}
