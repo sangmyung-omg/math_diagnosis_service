@@ -8,8 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.log;
+//import org.slf4j.logFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,9 +30,12 @@ import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service("FrequentCardServiceV2")
 public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
-	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+	//private final log log = logFactory.getlog(this.getClass().getSimpleName());
 	
 	
 	//조건에 맞는 문제 리스트를 반환하는 LRS 메소드
@@ -113,7 +116,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		//input 문제에 해당하는 소단원에 대한 평균 이해도 ==> 이해도 낮은 소단원에 대한 빈출문제 출제할 것
 		//타겟시험범위 내 소단원만 도출
 		List<UserSubSectionMastery> subsectionList = UserSubSecMasteryRepo.getSubSectionAndMastery(start,end,userId,probIdList);
-		logger.info("\n소단원과 평균 이해도 리스트 : " + subsectionList);
+		log.info("\n소단원과 평균 이해도 리스트 : " + subsectionList);
 		
 		for(int i = 0 ; i<subsectionList.size() ; i++) {
 			recentSubsectionIdList.add(subsectionList.get(i).getCurriculumId());
@@ -168,7 +171,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 			if(notEleDiagnosisSubsectionList.size()!=0) {
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,notEleDiagnosisSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-				logger.info("\n진단고사 내 중등 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				log.info("\n진단고사 내 중등 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 			
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,notEleDiagnosisSubsectionList,5));
 			}
@@ -179,7 +182,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 					
 					List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 					List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-					logger.info("\n(진단고사를 봤는데-모두 초등 소단원 or 한 문제도 풀지 않음,)오늘의학습카드 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+					log.info("\n(진단고사를 봤는데-모두 초등 소단원 or 한 문제도 풀지 않음,)오늘의학습카드 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 					
 					//진단고사 소단원 대체할 오늘의학습카드 내 소단원
 					recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
@@ -200,7 +203,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 				
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-				logger.info("\n(최근 공부한 소단원이 존재할 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				log.info("\n(최근 공부한 소단원이 존재할 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 				
 				//오늘 소단원
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
@@ -218,11 +221,11 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 				//
 				List<UserFrequentProblem> recentProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(forNotProvided,subsectionList);
 				List<FreqProbCurriDTO> recentProbList = entityToDto(recentProbList_m);
-				logger.info("\n최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + recentProbList);
+				log.info("\n최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + recentProbList);
 				
 				List<UserFrequentProblem> providedRecentProbList_m = UserFreqProbRepo.getFrequentProvidedProblem(solvedProbIdList,subsectionList);
 				List<FreqProbCurriDTO> providedRecentProbList = entityToDto(providedRecentProbList_m);
-				logger.info("\n최근 공부한 소단원에 대한 출제한 적 있는 빈출 문제 리스트 : " + providedRecentProbList);
+				log.info("\n최근 공부한 소단원에 대한 출제한 적 있는 빈출 문제 리스트 : " + providedRecentProbList);
 				
 				
 				//최근소단원 - 출제X
@@ -260,14 +263,14 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 				
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-				logger.info("\n(최근 공부한 소단원이 존재하지 않을 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				log.info("\n(최근 공부한 소단원이 존재하지 않을 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 				
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
 			}
 			
 		}
 		
-		logger.info("\n최종 추천 빈출 문제 리스트 : " + recommendFreqProbIdList);
+		log.info("\n최종 추천 빈출 문제 리스트 : " + recommendFreqProbIdList);
 		
 		return recommendFreqProbIdList;
 	};
@@ -277,8 +280,8 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 	//각 소단원마다 빈출 문제 골고루 뽑는 로직
 	public List<FrequentProblemDTO> SortingAndRecommend(List<FreqProbCurriDTO> freqProbSec, List<String> subsectionList , int num) {
 		
-		//logger.info("\n빈출문제 - 소단원 매핑 set : " + freqProbSec);
-		//logger.info("\n이해도 낮은 순서로 정렬된 소단원 리스트 : " + subsectionList);
+		//log.info("\n빈출문제 - 소단원 매핑 set : " + freqProbSec);
+		//log.info("\n이해도 낮은 순서로 정렬된 소단원 리스트 : " + subsectionList);
 		
 		List<FrequentProblemDTO> recommendFreqProbIdList = new ArrayList<FrequentProblemDTO>();
 
@@ -301,7 +304,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 				}
 			}
 		}
-		//logger.info("\n소단원 이해도 낮은 순서로 골고루 빈출 문제 뽑힐 수 있게 sorting : " + resultList);
+		//log.info("\n소단원 이해도 낮은 순서로 골고루 빈출 문제 뽑힐 수 있게 sorting : " + resultList);
 		
 
 		//추천 문제 개수 최대 num개
@@ -315,7 +318,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 			recommendFreqProbIdList.add(freqProb);
 			
 		}
-		logger.info("\n추천하고자 하는 빈출 문제 리스트 : " + recommendFreqProbIdList);
+		log.info("\n추천하고자 하는 빈출 문제 리스트 : " + recommendFreqProbIdList);
 		
 			
 		return recommendFreqProbIdList;
@@ -348,7 +351,7 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 		
 		//타겟시험범위시작 ~ 최근(14일)동안 공부했던 가장 오래전 소단원   내의 소단원과 평균 이해도 ==> 이해도 낮은 소단원에 대한 빈출문제 출제할 것
 		List<UserSubSectionMastery> AnotherSubsectionList = UserSubSecMasteryRepo.getAnotherSubSectionAndMastery(start,end,userId,subsectionList);
-		logger.info("\n타겟시험범위시작 ~ 최근(14일)동안 공부했던 가장 오래전 소단원 -> 소단원과 평균 이해도 리스트 : " + AnotherSubsectionList);
+		log.info("\n타겟시험범위시작 ~ 최근(14일)동안 공부했던 가장 오래전 소단원 -> 소단원과 평균 이해도 리스트 : " + AnotherSubsectionList);
 		
 		for(int i = 0 ; i<AnotherSubsectionList.size() ; i++) {
 			AnotherSubsectionIdList.add(AnotherSubsectionList.get(i).getCurriculumId());
@@ -464,19 +467,19 @@ public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
 
 		try {
 			diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
-			logger.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
+			log.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
 			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
 			
 			todayCardProbIdList.addAll(this.getLRSProblemIdList(userId, tomorrow, today, sourceTypeListTodayCards));
-			logger.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
+			log.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
 			todayCardSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, todayCardProbIdList);
 			
 			recentSolvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, Fromday, sourceTypeListTodayCards));
-			logger.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
+			log.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
 			recentSectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, recentSolvedProbIdList);
 			
 			solvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, null, sourceTypeListAll)); 
-			logger.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
+			log.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
 			
 			
 			//다른건 문제리스트가 없을 수 있어도, 오늘의 카드 문제리스트가 없을 수는 없음
