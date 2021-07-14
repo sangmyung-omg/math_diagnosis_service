@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -28,7 +29,10 @@ import com.tmax.WaplMath.Recommend.exception.RecommendException;
  */
 @Slf4j
 @Component
-@PropertySource("classpath:triton.properties")
+@PropertySources({
+	@PropertySource("classpath:triton.properties"),
+	@PropertySource(value="file:${external-config.url}/triton.properties", ignoreResourceNotFound=true),
+})
 public class MasteryAPIManager {
 //	private static final String IP = System.getenv("KT_TRITON_IP");
 //	private static final String PORT = System.getenv("KT_TRITON_PORT");

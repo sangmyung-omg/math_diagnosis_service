@@ -301,8 +301,9 @@ public class ChapterServiceV1 implements ChapterServiceBase{
             Map<Integer, UserKnowledge> ukMap = getChapterUKData(userID, curr.getCurriculumId());
             chapDetail.setImagePath("/dummy.png");
             chapDetail.setUkDetailList(getUKDetailFromUKMap(ukMap));
-            chapDetail.setSkillData(getSkillFromCurriculumMap(userID, curr.getCurriculumId(), currMasteryMap));
-        }            
+            
+        } 
+        chapDetail.setSkillData(getSkillFromCurriculumMap(userID, curr.getCurriculumId(), currMasteryMap));           
 
         return chapDetail;
     }

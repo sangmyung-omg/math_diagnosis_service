@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 
 class MasteryStat {
     private Float score = 0.0f;
@@ -62,10 +64,9 @@ class MasteryStat {
     public float getScore(){return this.score;}
 }
 
+@Slf4j
 @Service("CurrStatisticsServiceV0")
 public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
-    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
     @Autowired
     private StatisticCurrRepo statisticCurrRepo;
 
@@ -142,9 +143,18 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         }
 
         //save hash set to stat db
-        logger.info("Saving: " + updateSet.size());
+        log.info("Saving: " + updateSet.size());
         statisticCurrRepo.saveAll(updateSet);
-        logger.info("Saved: " + updateSet.size());
+        log.info("Saved: " + updateSet.size());
+    }
+
+    @Override
+    public boolean updateStatistics(boolean isForced) {
+        long result = statisticCurrRepo.count();
+        if(result == 0)
+            this.updateStatistics();
+
+        return result == 0;
     }
 
     private Set<StatsAnalyticsCurr> getAllUserUpdateSet(String currID, Map<String, MasteryStat> masteryMap, Timestamp now){
@@ -274,7 +284,7 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
 
             //IF not float list nor float
             if(Statistics.Type.FLOAT_LIST != type &&  Statistics.Type.FLOAT != type){
-                logger.warn("Invalid data type. Skipping." + result.toString());
+                log.warn("Invalid data type. Skipping." + result.toString());
                 continue;
             }
             
@@ -314,7 +324,7 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
                     idx++;
                 }
 
-                // logger.info(String.format("Stat log of [%s]. min:%f, max:%f", result.getCurrId(), min, max));
+                // log.info(String.format("Stat log of [%s]. min:%f, max:%f", result.getCurrId(), min, max));
             }
             else if(type == Statistics.Type.FLOAT){
                 Float value = null;

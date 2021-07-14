@@ -10,6 +10,7 @@ public interface CurrStatisticsServiceBase {
      * Update curriculum based statistics
      */
     public void updateStatistics();
+    public boolean updateStatistics(boolean isForced);
 
     /**
      * Returns statistics of given curriculum ID and statistic name
@@ -35,6 +36,9 @@ public interface CurrStatisticsServiceBase {
     //Public key values
     public static final String STAT_MASTERY_SORTED = "mastery_sorted";
     public static final String STAT_MASTERY_MEAN = "mastery_mean";
+    public static final String STAT_MASTERY_MEDIAN = "mastery_median";
     public static final String STAT_MASTERY_STD = "mastery_std";
     public static final String STAT_MASTERY_PERCENTILE_LUT = "mastery_percentile_lut";
+
+    public static final String STAT_MASTERY_HISTOGRAM = "mastery_histogram";
 }

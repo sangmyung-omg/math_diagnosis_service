@@ -15,6 +15,8 @@ public interface UserStatisticsServiceBase {
 
     public Statistics getUserStatistics(String userID, String statName);
 
+    public boolean hasUserStatistics(String userID, String statName);
+
 
 
     public static final String STAT_TOTAL_MASTERY_MEAN = "total_mastery_mean";
@@ -23,7 +25,11 @@ public interface UserStatisticsServiceBase {
     public static final String STAT_CURRICULUM_MASTERY_MAP = "curr_mastery";
 
     public static final String STAT_EXAMSCOPE_SCORE = "examscope_score";
+    public static final String STAT_EXAMSCOPE_PERCENTILE_LUT = "examscope_percentile_lut";
 
     public static final String STAT_CORRECT_RATE = "correct_rate";
     public static final String STAT_SOLVING_SPEED_SATISFY_RATE = "solve_speed_satisfy_rate";
+
+    public static final String STAT_WAPL_SCORE = "waplscore";
+    public static final String STAT_WAPL_SCORE_MASTERY = "waplscore_mastery";    
 }

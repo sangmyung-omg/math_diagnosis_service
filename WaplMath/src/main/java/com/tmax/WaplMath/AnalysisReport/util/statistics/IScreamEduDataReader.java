@@ -19,11 +19,10 @@ import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.UkRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
@@ -87,7 +86,10 @@ class UserData {
  */
 @Slf4j
 @Component
-@PropertySource("classpath:config/statistics_module.properties")
+@PropertySources({
+	@PropertySource("classpath:config/statistics_module.properties"),
+	@PropertySource(value="file:${external-config.url}/config/statistics_module.properties", ignoreResourceNotFound=true),
+})
 public class IScreamEduDataReader {
 
     @Autowired

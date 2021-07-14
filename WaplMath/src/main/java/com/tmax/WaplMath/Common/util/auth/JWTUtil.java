@@ -33,4 +33,8 @@ public class JWTUtil {
 
         return jsonObj.get(fieldName).getAsString();
     }
+
+    static public boolean checkValidity(String token){
+        return true;
+    }
 }

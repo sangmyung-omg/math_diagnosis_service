@@ -265,6 +265,14 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         return output;    
     }
 
+    @Override
+    public boolean hasUserStatistics(String userID, String statName) {
+        StatsAnalyticsUserKey searchKey = new StatsAnalyticsUserKey(userID, statName);
+        Optional<StatsAnalyticsUser> result = statisticUserRepo.findById(searchKey);
+
+        return result.isPresent();
+    }
+
     
     /**
      * 
@@ -311,7 +319,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             //Get probID duration
             Integer probID = Integer.valueOf(statement.getSourceId());
 
-            //Get correct tally
+            //Get correct histogram
             if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){
                 correctTally++;
             }

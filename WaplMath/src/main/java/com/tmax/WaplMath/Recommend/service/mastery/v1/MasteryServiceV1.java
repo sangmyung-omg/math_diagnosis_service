@@ -27,8 +27,6 @@ import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -140,7 +138,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
             List<Integer> ukList = probIDUKMap.get(Integer.parseInt(probId));
 
             //Log
-            log.info("correct: " +  correct + ", diff: " + diffLevel + ", probId: " + probId);
+            log.debug("correct: " +  correct + ", diff: " + diffLevel + ", probId: " + probId);
 
             if(ukList == null){
                 continue;
@@ -171,6 +169,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
                                             .userEmbedding(tritonMastery.getEmbedding())
                                             .updateDate(Timestamp.valueOf(LocalDateTime.now()))
                                             .build());
+    
 
         //Save each UK data to UK table
         Set<UserKnowledge> updateUKSet = new HashSet<>();

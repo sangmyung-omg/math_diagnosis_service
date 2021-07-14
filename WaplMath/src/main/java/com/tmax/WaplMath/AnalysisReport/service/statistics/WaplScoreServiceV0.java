@@ -82,7 +82,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     public WAPLScoreDTO getWaplScore(String userID) {
 
         //Check statistics table if wapl score exists
-        Statistics existingScore = userStatSvc.getUserStatistics(userID, STAT_WAPL_SCORE);
+        Statistics existingScore = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE);
 
         //If none found. get new score
         Float waplScore = 0.0f;
@@ -146,7 +146,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         Map<Integer, Float> output = null;
 
         //Try and get cache
-        Statistics waplMasteryStat = userStatSvc.getUserStatistics(userID, STAT_WAPL_SCORE_MASTERY);
+        Statistics waplMasteryStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY);
         String jsonData = null;
 
         //If stat does not exist invoke the generator
@@ -230,11 +230,11 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
         //Save the wapl score to stats
         Float waplScore = score/count;
-        userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
+        userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
 
         //Convert mastery map to Json with Gson
         String masteryJson = new Gson().toJson(ukMasteryMapSeq);
-        userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE_MASTERY, Statistics.Type.JSON, masteryJson);
+        userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY, Statistics.Type.JSON, masteryJson);
 
         //Log
         logger.info("Save to wapl score to table for user: " + userID);

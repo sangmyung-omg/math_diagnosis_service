@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,7 +41,10 @@ import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 
 @Component("WAPLScoreTriton")
-@PropertySource("classpath:triton.properties")
+@PropertySources({
+	@PropertySource("classpath:triton.properties"),
+	@PropertySource(value="file:${external-config.url}/triton.properties", ignoreResourceNotFound=true),
+})
 public class WAPLScoreTriton {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
