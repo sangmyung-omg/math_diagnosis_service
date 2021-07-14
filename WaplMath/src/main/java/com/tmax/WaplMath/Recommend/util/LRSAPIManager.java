@@ -22,6 +22,7 @@ import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,7 +46,10 @@ import reactor.netty.http.client.HttpClient;
  */
 @Slf4j
 @Component
-@PropertySource("classpath:lrs.properties")
+@PropertySources({
+  @PropertySource("classpath:lrs.properties"),
+  @PropertySource(value="file:${external-config.url}/lrs.properties", ignoreResourceNotFound=true),
+})
 public class LRSAPIManager {
 
 	private String HOST;
