@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -315,9 +316,15 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         Integer correctTally = 0;
         Integer speedSatisfyTally = 0;
 
+        Set<String> recentCurrSet = new LinkedHashSet<>();
+        // List<String> recentCurrList = new ArrayList<>();
+
         for(LRSStatementResultDTO statement: statementList){
             //Get probID duration
             Integer probID = Integer.valueOf(statement.getSourceId());
+
+            //Get curr ID of problem
+            recentCurrSet.add(curriculumInfoRepo.getProblemByCurriculumID(probID));
 
             //Get correct histogram
             if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){
@@ -365,6 +372,21 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                       .build(), 
                                             ts));
 
+        updateSet.add(statsToAnalyticsUser( userID, 
+                                            Statistics.builder()
+                                                      .name(STAT_RATE_PROBLEM_COUNT)
+                                                      .type(Statistics.Type.INT)
+                                                      .data(Integer.toString(statementList.size()))
+                                                      .build(), 
+                                            ts));
+        
+        updateSet.add(statsToAnalyticsUser( userID, 
+                                            Statistics.builder()
+                                                      .name(STAT_RECENT_CURR_ID_LIST)
+                                                      .type(Statistics.Type.STRING_LIST)
+                                                      .data(recentCurrSet.toString())
+                                                      .build(), 
+                                            ts));
         return updateSet;
     }
     

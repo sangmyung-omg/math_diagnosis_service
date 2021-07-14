@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CorrectRateDTO {
     private Float correctrate;
-    private Float passrate;
-    private Float wrongrate;
+    // private Float passrate;
+    // private Float wrongrate;
     private Integer problemcount;
 }

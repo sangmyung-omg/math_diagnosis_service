@@ -6,8 +6,10 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.tmax.WaplMath.AnalysisReport.dto.statistics.CorrectRateDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.statistics.SolveSpeedDTO;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
@@ -182,7 +184,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
             //Get userInfo and get target score
             Optional<User> userInfo = userRepo.findById(userID);
             if(userInfo.isPresent()){
-                score = (float)userInfo.get().getExamTargetScore() / 100.0f;
+                score = (float)userInfo.get().getExamTargetScore();
             }
         }
 
@@ -206,14 +208,14 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                 }
             }
 
-            percentile = ukStatSvc.getPercentile(score, masteryList);
+            percentile = 100* ukStatSvc.getPercentile(score / 100.0f, masteryList);
         }
 
 
         
         return PersonalScoreDTO.builder()
-                               .score(100*score)
-                               .percentile(100*percentile)
+                               .score(score)
+                               .percentile(percentile)
                                .build();
     }
 
@@ -267,7 +269,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                 histogram = new ArrayList<>(Collections.nCopies(histogramSize, 0));
                 float step = 1.0f / (float)histogramSize;
                 for(Float mastery : masteryList.getAsFloatList()){
-                    int idx = (int) Math.floor(mastery / step);
+                    int idx = Math.min((int) Math.floor(mastery / step), histogramSize - 1);
                     histogram.set(idx, histogram.get(idx) + 1);
                 }
 
@@ -291,6 +293,59 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                                  .histogram(histogram)
                                  .totalCnt(totalCnt)
                                  .build();
+    }
+
+
+    @Override
+    public CorrectRateDTO getCorrectRate(String userID, Set<String> excludeSet) {
+        //Get from stat
+        Float correctrate = null;
+        if(!excludeSet.contains("correctrate")){
+            Statistics correctRateStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_CORRECT_RATE);
+            if(correctRateStat != null){
+                correctrate = correctRateStat.getAsFloat();
+            }
+        }
+
+        
+        Integer problemcount = null;
+        if(!excludeSet.contains("problemcount")){
+            Statistics countStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_RATE_PROBLEM_COUNT);
+            if(countStat != null){
+                problemcount = countStat.getAsInt();
+            }
+        }
+
+        return CorrectRateDTO.builder()
+                             .correctrate(correctrate)
+                             .problemcount(problemcount)
+                             .build();
+    }
+
+    @Override
+    public SolveSpeedDTO getSolveSpeedRate(String userID, Set<String> excludeSet) {
+        //Get from stat
+        Float satisfyRate = null;
+        if(!excludeSet.contains("correctrate")){
+            Statistics satisfyRateStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_SOLVING_SPEED_SATISFY_RATE);
+            if(satisfyRateStat != null){
+                satisfyRate = satisfyRateStat.getAsFloat();
+            }
+        }
+
+        
+        Integer problemcount = null;
+        if(!excludeSet.contains("problemcount")){
+            Statistics countStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_RATE_PROBLEM_COUNT);
+            if(countStat != null){
+                problemcount = countStat.getAsInt();
+            }
+        }
+
+        return SolveSpeedDTO.builder()
+                            .satisfyRate(satisfyRate)
+                            .problemcount(problemcount)
+                            .build();
     }
 
     private List<Float> generatePercentileLUT(String userID) {

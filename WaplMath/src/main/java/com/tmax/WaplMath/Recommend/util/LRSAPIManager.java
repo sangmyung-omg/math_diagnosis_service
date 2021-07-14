@@ -61,10 +61,10 @@ public class LRSAPIManager {
 	public GetStatementInfoDTO input;
 
 	@Autowired
-	public LRSAPIManager(@Value("${waplmath.recommend.lrs.host}") String IP, @Value("${waplmath.recommend.lrs.port}") String PORT) {
-		log.info("constructor" + IP + PORT);
-		this.HOST = String.format("http://%s:%s", IP, PORT);
-		this.LRS_ADDR = String.format("%s/StatementList", this.HOST, PORT);
+	public LRSAPIManager(@Value("${waplmath.recommend.lrs.host}") String host) {
+		log.info("Using LRS server @ " + host);
+		this.HOST = host;
+		this.LRS_ADDR = String.format("%s/StatementList", this.HOST);
 	}
 
 	public LRSAPIManager() {

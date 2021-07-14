@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUk;
+import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUkKey;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticUKRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
@@ -22,6 +25,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+class MasteryStat {
+    private Float score = 0.0f;
+    private int count = 0;
+
+    public MasteryStat(){}
+
+    public void addScore(Float score) {
+        count++;
+
+        //If nan. add zero
+        if(score.isNaN()){
+            return;
+        }
+
+        this.score += score; 
+    }
+    public float getAverage(){
+        if(count == 0)
+            return 0.0f;
+
+        return this.score/count;        
+    }
+    public float getScore(){return this.score;}
+}
 
 
 @Service("UKStatisticsServiceV0")
@@ -42,6 +70,21 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
     private IScreamEduDataReader iScreamEduDataReader;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+
+    @Override
+    public Statistics getUKStatistics(Integer ukID, String statname) {
+        Optional<StatsAnalyticsUk> statOpt = statisticUKRepo.findById(new StatsAnalyticsUkKey(ukID, statname));
+        if(!statOpt.isPresent())
+            return null;
+        
+        StatsAnalyticsUk stat = statOpt.get();
+
+        return Statistics.builder()
+                         .name(stat.getName())
+                         .type(Statistics.Type.getFromValue(stat.getType()))
+                         .data(stat.getData())
+                         .build();
+    }
 
     /**
      * Method to update/save all uk key based statistics
@@ -119,6 +162,14 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
         
 
         return 0;
+    }
+
+    private Set<StatsAnalyticsUk> getSpecificGradeUpdateSet(  Integer ukID, 
+                                                              Map<String, MasteryStat> masteryMap, 
+                                                              Map<String, Integer> userGradeMap, 
+                                                              Integer grade, 
+                                                              Timestamp now){
+        return null;
     }
 
     /**

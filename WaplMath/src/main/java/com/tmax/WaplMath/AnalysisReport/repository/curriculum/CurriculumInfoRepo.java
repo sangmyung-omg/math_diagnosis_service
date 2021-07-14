@@ -54,4 +54,9 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
            "curr.curriculumSequence <= (Select ce.curriculumSequence from Curriculum ce where ce.curriculumId = :currEnd) and " + 
            "curr.curriculumId not in (:excludeIdList)")
     List<Curriculum> getCurriculumInRange(@Param("currStart") String currIdStart, @Param("currEnd") String currIdEnd, @Param("excludeIdList") List<String> excludeIdList);
+
+
+    //2021-07-15 get currID of problemID
+    @Query("select pt.curriculumId from Problem prob INNER JOIN ProblemType pt on prob.problemType = pt.typeId where prob.probId=:probID")
+    public String getProblemByCurriculumID(@Param("probID") Integer probID);
 }

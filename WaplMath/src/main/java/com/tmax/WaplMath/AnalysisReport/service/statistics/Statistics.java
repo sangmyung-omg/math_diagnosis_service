@@ -24,9 +24,12 @@ public class Statistics {
     private String data;
 
     public enum Type{
+        INT("int"),
         FLOAT("float"),
         STRING("string"),
         FLOAT_LIST("float_list"),
+        STRING_LIST("string_list"),
+        INT_LIST("int_list"),
         JSON("json")
         ;
 
@@ -52,9 +55,23 @@ public class Statistics {
         return Float.valueOf(data);
     }
 
+    public Integer getAsInt(){
+        return Integer.valueOf(data);
+    }
+
     public List<Float> getAsFloatList(){
         java.lang.reflect.Type floatType = new TypeToken<List<Float>>(){}.getType();
         return new Gson().fromJson(this.data, floatType);
+    }
+
+    public List<Integer> getAsIntegerList(){
+        java.lang.reflect.Type intType = new TypeToken<List<Integer>>(){}.getType();
+        return new Gson().fromJson(this.data, intType);
+    }
+
+    public List<String> getAsStringList(){
+        java.lang.reflect.Type strType = new TypeToken<List<String>>(){}.getType();
+        return new Gson().fromJson(this.data, strType);
     }
 
     public JsonElement getAsJson(){

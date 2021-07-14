@@ -93,4 +93,27 @@ public class CommentaryGenerator {
         
         return output;
     }
+
+    public static String getSpeedComment(Float speed){
+        //speed
+        if(speed < 0.5)
+            return Speed.SLOW.getMessage();
+        else if(speed < 0.8)
+            return Speed.MODERATE.getMessage();
+        else if(speed < 0.9)
+            return Speed.FAST.getMessage();
+        else
+            return Speed.VERY_FAST.getMessage();
+    }
+
+    public static String getCorrectComment(Float correctRate){
+        if(correctRate < 0.5)
+            return CorrectRate.LOW.getMessage();
+        else if(correctRate < 0.8)
+            return CorrectRate.MODERATE.getMessage();
+        else if(correctRate < 0.9)
+            return CorrectRate.AVERAGE.getMessage();
+        else
+            return CorrectRate.HIGH.getMessage();
+    }
 }

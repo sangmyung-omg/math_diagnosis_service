@@ -49,13 +49,13 @@ public class MasteryAPIManager {
 	 * @since 2021-06-21
 	 */
 	@Autowired
-	public MasteryAPIManager(@Value("${waplmath.recommend.masterytriton.host}") String IP, 
-							 @Value("${waplmath.recommend.masterytriton.port}")	String PORT,
+	public MasteryAPIManager(@Value("${waplmath.recommend.masterytriton.host}") String host, 
+							//  @Value("${waplmath.recommend.masterytriton.port}")	String PORT,
 							 @Value("${waplmath.recommend.masterytriton.modelname}") String MODEL_NAME, 
 							 @Value("${waplmath.recommend.masterytriton.modelver}") String MODEL_VERSION){
 		
-		log.info("constructor"  + IP+PORT);
-		this.TRITON_ADDR = String.format("http://%s:%s/v2/models/%s/versions/%s/infer", IP, PORT, MODEL_NAME, MODEL_VERSION);
+		log.info("Using Triton server @ "  + host);
+		this.TRITON_ADDR = String.format("%s/v2/models/%s/versions/%s/infer", host, MODEL_NAME, MODEL_VERSION);
 	}
 	public MasteryAPIManager(){}
 

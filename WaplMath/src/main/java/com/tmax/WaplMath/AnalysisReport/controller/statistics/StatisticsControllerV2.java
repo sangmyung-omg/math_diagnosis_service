@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
+import com.tmax.WaplMath.AnalysisReport.dto.statistics.CorrectRateDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.statistics.SolveSpeedDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
@@ -30,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping(path=ARConstants.apiPrefix + "/v2")
-public class ScoreControllerV2 {
+public class StatisticsControllerV2 {
     @Autowired
     ScoreServiceBase scoreSvc;
 
@@ -42,18 +44,18 @@ public class ScoreControllerV2 {
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");
         
         //split to get exclude list
-        Set<String> excludeList = new HashSet<>(Arrays.asList(exclude.split(",")));
+        Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
         
         PersonalScoreDTO result;
         switch(type){
             case "wapl":
-                result = scoreSvc.getWaplScore(userID, excludeList);
+                result = scoreSvc.getWaplScore(userID, excludeSet);
                 break;
             case "target":
-                result = scoreSvc.getTargetScore(userID, excludeList);
+                result = scoreSvc.getTargetScore(userID, excludeSet);
                 break;
             case "user":
-                result = scoreSvc.getUserScore(userID, excludeList);
+                result = scoreSvc.getUserScore(userID, excludeSet);
                 break;
             default:
                 log.error("Invalid type: " + type);
@@ -71,10 +73,38 @@ public class ScoreControllerV2 {
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");
         
         //split to get exclude list
-        Set<String> excludeList = new HashSet<>(Arrays.asList(exclude.split(",")));
+        Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
         
-        GlobalStatisticDTO result = scoreSvc.getScoreStats(userID, excludeList, Math.min(histogramSize, 1000));
+        GlobalStatisticDTO result = scoreSvc.getScoreStats(userID, excludeSet, Math.min(histogramSize, 1000));
         
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/solvespeed")
+    public ResponseEntity<Object> getSolveSpeed(@RequestHeader("token") String token, 
+                                               @RequestParam(defaultValue = "", name="exclude") String exclude) {
+        //Parse jwt to get userID
+        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
+        
+        //split to get exclude list
+        Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
+        
+        SolveSpeedDTO result = scoreSvc.getSolveSpeedRate(userID, excludeSet);
+        
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping("/correctrate")
+    public ResponseEntity<Object> getCorrectRate(@RequestHeader("token") String token, 
+                                               @RequestParam(defaultValue = "", name="exclude") String exclude) {
+        //Parse jwt to get userID
+        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
+        
+        //split to get exclude list
+        Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
+        
+        CorrectRateDTO result = scoreSvc.getCorrectRate(userID, excludeSet);
+
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

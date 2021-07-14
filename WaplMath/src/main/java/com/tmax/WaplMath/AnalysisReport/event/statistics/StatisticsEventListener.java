@@ -88,7 +88,7 @@ public class StatisticsEventListener {
 
 
     //TEMP. FIXME: scheduled statistics updater. every midnight
-    @Scheduled(cron="0 0 * * *")
+    @Scheduled(cron="0 0 0 * * *")
     public void updateAllStatistics(){
         log.info("======= Nightly statistics update START ========");
         log.info("Curriculum");
