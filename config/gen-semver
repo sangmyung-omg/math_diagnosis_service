@@ -39,7 +39,6 @@ def bump(latest):
         return semver.bump_patch(latest)
 
 def main():
-    git("status")
     try:
         latest = git("describe", "--tags").decode().strip().replace("v", "")
     except subprocess.CalledProcessError:
