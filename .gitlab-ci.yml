@@ -97,6 +97,6 @@ docker-push:
   script:
     - docker login $HCDC_URL -u $HCDC_ID -p $HCDC_PASSWD
     - docker image tag $(docker images -q --filter "reference=$IMAGE_NAME") $HCDC_URL/$IMAGE_NAME:$VERSION
-    - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep $HCDC_URL/$IMAGE_NAME:$VERSION | awk '{print $2":"$3}')
+    - docker push $(docker images --format "{{.ID}} {{.Repository}} {{.Tag}}" | grep $HCDC_URL/$IMAGE_NAME | grep $VERSION | awk '{print $2":"$3}')
   tags:
     - lsh-local
