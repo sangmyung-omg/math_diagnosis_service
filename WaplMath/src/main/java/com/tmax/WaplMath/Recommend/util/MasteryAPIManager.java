@@ -30,8 +30,8 @@ import com.tmax.WaplMath.Recommend.exception.RecommendException;
 @Slf4j
 @Component
 @PropertySources({
-	@PropertySource("classpath:triton.properties"),
-	@PropertySource(value="file:${external-config.url}/triton.properties", ignoreResourceNotFound=true),
+  @PropertySource("classpath:triton.properties"),
+  @PropertySource(value="file:${external-config.url}/triton.properties", ignoreResourceNotFound=true),
 })
 public class MasteryAPIManager {
 //	private static final String IP = System.getenv("KT_TRITON_IP");
