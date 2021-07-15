@@ -142,7 +142,7 @@ public class WAPLScoreTriton {
 
     private TritonDataDTO buildEmbeddingsInput(String embeddings){
         TritonDataDTO output = new TritonDataDTO();
-        output.setName("embeddings");
+        output.setName("inEmbedding");
         output.setDatatype("BYTES");
         output.setData(Arrays.asList(embeddings));
         output.setShape(Arrays.asList(1));

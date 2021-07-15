@@ -68,12 +68,13 @@ public class MasteryAPIManager {
 		JsonArray shape = new JsonArray();
 		JsonArray data = new JsonArray();
 
+		shape.add(1);
 		shape.add(ukIdList.size());
 
 		for (String UKId : ukIdList) {
 			data.add(Integer.parseInt(UKId));
 		}
-		UKListJson.addProperty("name", "UKList");
+		UKListJson.addProperty("name", "ukList");
 		UKListJson.add("shape", shape);
 		UKListJson.addProperty("datatype", "INT32");
 		UKListJson.add("data", data);
@@ -86,7 +87,7 @@ public class MasteryAPIManager {
 			Integer correctInt = cor.equals("true") ? 1 : 0;
 			data.add(correctInt);
 		}
-		corListJson.addProperty("name", "IsCorrectList");
+		corListJson.addProperty("name", "isCorrectList");
 		corListJson.add("shape", shape);
 		corListJson.addProperty("datatype", "INT32");
 		corListJson.add("data", data);
@@ -113,7 +114,7 @@ public class MasteryAPIManager {
 			}
 			data.add(levelKeyword);
 		}
-		levelListJson.addProperty("name", "DifficultyList");
+		levelListJson.addProperty("name", "difficultyList");
 		levelListJson.add("shape", shape);
 		levelListJson.addProperty("datatype", "INT32");
 		levelListJson.add("data", data);
@@ -124,9 +125,10 @@ public class MasteryAPIManager {
 		data = new JsonArray();
 
 		shape.add(1);
+		shape.add(1);
 		data.add(userEmbedding);
 
-		embeddingsJson.addProperty("name", "Embeddings");
+		embeddingsJson.addProperty("name", "inEmbedding");
 		embeddingsJson.add("shape", shape);
 		embeddingsJson.addProperty("datatype", "BYTES");
 		embeddingsJson.add("data", data);
@@ -143,8 +145,8 @@ public class MasteryAPIManager {
 		JsonArray outputs = new JsonArray();
 		JsonObject mastery = new JsonObject();
 		JsonObject embeddings = new JsonObject();
-		mastery.addProperty("name", "Mastery");
-		embeddings.addProperty("name", "Embeddings");
+		mastery.addProperty("name", "mastery");
+		embeddings.addProperty("name", "outEmbedding");
 		outputs.add(mastery);
 		outputs.add(embeddings);
 
@@ -205,13 +207,13 @@ public class MasteryAPIManager {
 			JsonObject result = measureMastery(userId, ukIdList, corList, levelList, userEmbedding);
 
 			//Create Map from the mastery json Object
-			JsonObject masteryDict = JsonParser.parseString(result.get("Mastery").getAsString()).getAsJsonObject();
+			JsonObject masteryDict = JsonParser.parseString(result.get("mastery").getAsString()).getAsJsonObject();
 			Map<Integer, Float> masteryMap = new HashMap<>();
 			for(Map.Entry<String,JsonElement> entry: masteryDict.entrySet()){
 				masteryMap.put(Integer.parseInt(entry.getKey()), entry.getValue().getAsFloat());
 			}
 
-			return new TritonMasteryDTO(masteryMap, result.get("Embeddings").getAsString());
+			return new TritonMasteryDTO(masteryMap, result.get("outEmbedding").getAsString());
 		}
 		catch(Throwable e) {
 			throw new RecommendException(RecommendErrorCode.TRITON_INFERENCE_ERROR, StackPrinter.getStackTrace(e));

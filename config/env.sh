@@ -1,4 +1,3 @@
-
 # Set Env ########################
 ##################################
 if [ -z $HTTP_PORT ]; then export HTTP_PORT="8080"; fi
@@ -16,17 +15,8 @@ sed -i "s/%DB_USER%/${DB_USER}/g" /home/tmax/application.properties
 if [ -z $DB_PASSWD ]; then export DB_PASSWD="tibero"; fi
 sed -i "s/%DB_PASSWD%/${DB_PASSWD}/g" /home/tmax/application.properties
 
-if [ -z $TRITON_IP ]; then export TRITON_IP="192.168.158.31"; fi
-sed -i "s/%TRITON_IP%/${TRITON_IP}/g" /home/tmax/triton.properties
+if [ -z $TRITON_HOST ]; then export TRITON_HOST="http://192.168.159.62:28000"; fi
+sed -i "s/%TRITON_HOST%/${TRITON_HOST}/g" /home/tmax/triton.properties
 
-if [ -z $TRITON_PORT ]; then export TRITON_PORT="8004"; fi
-sed -i "s/%TRITON_PORT%/${TRITON_PORT}/g" /home/tmax/triton.properties
-
-if [ -z $TRITON_WAPLSCORE_PORT ]; then export TRITON_WAPLSCORE_PORT="18000"; fi
-sed -i "s/%TRITON_WAPLSCORE_PORT%/${TRITON_WAPLSCORE_PORT}/g" /home/tmax/triton.properties
-
-if [ -z $LRS_IP ]; then export LRS_IP="192.168.153.132"; fi
-sed -i "s/%LRS_IP%/${LRS_IP}/g" /home/tmax/lrs.properties
-
-if [ -z $LRS_PORT ]; then export LRS_PORT="8080"; fi
-sed -i "s/%LRS_PORT%/${LRS_PORT}/g" /home/tmax/lrs.properties
+if [ -z $LRS_HOST ]; then export LRS_HOST="http://192.168.153.132:8080"; fi
+sed -i "s/%LRS_HOST%/${LRS_HOST}/g" /home/tmax/lrs.properties
