@@ -18,6 +18,8 @@ tags:
   description: "문제 추천을 위한 사용자 정보 입력 API"
 - name : 'Additional Learning'
   description: "추가학습(완벽학습) 카드 추천 API"
+- name : 'deprecated'
+  description: "더 이상 개발되지 않는 api"
 paths:
   /diagnosis:
     get:
@@ -70,7 +72,7 @@ paths:
                   resultMessage:
                     type: string
                     example: "Error: status code 500"
-  /mastery:
+  /recommend/v1/mastery:
     put:
       tags:
         - "Mastery"
@@ -79,8 +81,6 @@ paths:
         Triton Server를 활용하여 학생 지식 수준을 업데이트 함
       parameters:
         - $ref: "#/components/parameters/UserToken"
-      requestBody:
-        $ref: "#/components/requestBodies/ProblemSolveRecord"
       responses:
         "200":
           description: "성공 시"
@@ -88,27 +88,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MasteryUpdateResult"
-        "500":
-          description: "오류 발생 시"
-          $ref: "#/components/responses/500-Generic"
-  /recommend/v1/normalschedulecard:
-    get:
-      deprecated: true
-      tags:
-        - "Schedule"
-      summary: "실력 향상 학습 스케줄 카드 구성 리턴 v1"
-      description: |
-        - 사용자의 실력 향상 학습 스케줄 오늘 카드 구성 리턴
-        - Full path = http://192.168.153.154:8080/recommend/v1/normalschedulecard
-      parameters:
-        - $ref: "#/components/parameters/UserToken"
-      responses:
-        "200":
-          description: "성공 시"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NormalScheduleCardV1"
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic"
@@ -232,6 +211,49 @@ paths:
                 $ref: "#/components/schemas/FrequentCardResult"
         "500":
           description: "실패"
+          $ref: "#/components/responses/500-Generic"
+  /mastery:
+    put:
+      deprecated: true
+      tags:
+        - "deprecated"
+      summary: "학생 문제 풀이 결과 기반 지식 수준 업데이트"
+      description: |
+        Triton Server를 활용하여 학생 지식 수준을 업데이트 함
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref: "#/components/requestBodies/ProblemSolveRecord"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasteryUpdateResult"
+        "500":
+          description: "오류 발생 시"
+          $ref: "#/components/responses/500-Generic"
+  /recommend/v1/normalschedulecard:
+    get:
+      deprecated: true
+      tags:
+        - "deprecated"
+      summary: "실력 향상 학습 스케줄 카드 구성 리턴 v1"
+      description: |
+        - 사용자의 실력 향상 학습 스케줄 오늘 카드 구성 리턴
+        - Full path = http://192.168.153.154:8080/recommend/v1/normalschedulecard
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공 시"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NormalScheduleCardV1"
+        "500":
+          description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic"
 
 components:

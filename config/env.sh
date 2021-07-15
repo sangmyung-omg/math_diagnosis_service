@@ -16,7 +16,7 @@ if [ -z $DB_PASSWD ]; then export DB_PASSWD="tibero"; fi
 sed -i "s/%DB_PASSWD%/${DB_PASSWD}/g" /home/tmax/application.properties
 
 if [ -z $TRITON_HOST ]; then export TRITON_HOST="http://192.168.159.62:28000"; fi
-sed -i "s/%TRITON_HOST%/${TRITON_HOST}/g" /home/tmax/triton.properties
+sed -i "s-%TRITON_HOST%-${TRITON_HOST}-g" /home/tmax/triton.properties
 
 if [ -z $LRS_HOST ]; then export LRS_HOST="http://192.168.153.132:8080"; fi
-sed -i "s/%LRS_HOST%/${LRS_HOST}/g" /home/tmax/lrs.properties
+sed -i "s-%LRS_HOST%-${LRS_HOST}-g" /home/tmax/lrs.properties
