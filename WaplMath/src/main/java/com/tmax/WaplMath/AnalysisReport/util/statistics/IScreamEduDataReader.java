@@ -88,17 +88,22 @@ class UserData {
 @Component
 @PropertySources({
 	@PropertySource("classpath:config/statistics_module.properties"),
-	@PropertySource(value="file:${external-config.url}/config/statistics_module.properties", ignoreResourceNotFound=true),
+	@PropertySource(value="file:${external-config.url}/statistics_module.properties", ignoreResourceNotFound=true),
+    @PropertySource("classpath:application.properties"),
+    @PropertySource(value="file:${external-config.url}/application.properties", ignoreResourceNotFound=true),
 })
 public class IScreamEduDataReader {
 
     @Autowired
     private UkRepository ukRepository;
 
+    @Value("${external-config.url}")
+    private String externalConfigURL;
+
 
     //Hyper param for iscream edu data calibration
-    private static final Double PARAM_SCALE = 0.65079;
-    private static final Double PARAM_BIAS = 0.4;
+    // private static final Double PARAM_SCALE = 0.65079;
+    // private static final Double PARAM_BIAS = 0.4;
 
     private Map<String, Mastery> wholeData = null;
     private Map<Integer, UserData> ukData = null;
@@ -240,11 +245,13 @@ public class IScreamEduDataReader {
 
         //get Average uk mastery data
         Path path = null;
-        try {
-            path = ResourceUtils.getFile("classpath:statistics/user_uk_all.json").toPath();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        String filepathSuffix = "statistics/user_uk_all.json";
+        try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
+        catch (FileNotFoundException e) {log.warn("File not found internally: "+ filepathSuffix);}
+
+        try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+        catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
+        
 
         FileReader reader = null;
         try {
@@ -296,11 +303,12 @@ public class IScreamEduDataReader {
 
         //get Average uk mastery data
         Path path = null;
-        try {
-            path = ResourceUtils.getFile("classpath:statistics/uk_user_data.json").toPath();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        String filepathSuffix = "statistics/uk_user_data.json";
+        try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
+        catch (FileNotFoundException e) {log.warn("File not found internally: "+ filepathSuffix);}
+
+        try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+        catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
 
         FileReader reader = null;
         try {

@@ -1,6 +1,5 @@
 package com.tmax.WaplMath.AnalysisReport.service.report;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,22 +10,19 @@ import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataLiteDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
-import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
+// import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+// @Slf4j
 @Service("AR-ReportServiceV0")
 public class ReportServiceV0 implements ReportServiceBaseV0{
     @Autowired

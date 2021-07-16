@@ -40,6 +40,9 @@ import com.tmax.WaplMath.Recommend.repository.UkRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -51,8 +54,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service("ChapterServiceV1")
+@PropertySources({
+    @PropertySource("classpath:application.properties"),
+    @PropertySource(value="file:${external-config.url}/application.properties", ignoreResourceNotFound=true),
+})
 public class ChapterServiceV1 implements ChapterServiceBase{
-
+    @Value("${external-config.url}")
+    private String externalConfigURL;
+    
     @Autowired
     @Qualifier("AR-CurriculumInfoRepo")
     private CurriculumInfoRepo currInfoRepo;
@@ -435,11 +444,12 @@ public class ChapterServiceV1 implements ChapterServiceBase{
     private double calculateSkill(int i, Map<Integer,UserKnowledge> ukMap) {
         //Read top10, top50
         Path path = null;
-        try {
-            path = ResourceUtils.getFile("classpath:statistics/uk_" + i + "_percentile.json").toPath();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        String filepathSuffix = "statistics/uk_" + i + "_percentile.json";
+        try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
+        catch (FileNotFoundException e) {log.warn("File not found internally: "+ filepathSuffix);}
+
+        try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+        catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
 
         FileReader reader = null;
         try {

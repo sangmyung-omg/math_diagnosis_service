@@ -2,7 +2,6 @@ package com.tmax.WaplMath.AnalysisReport.controller.statistics;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
@@ -10,17 +9,15 @@ import com.tmax.WaplMath.AnalysisReport.dto.statistics.CorrectRateDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.SolveSpeedDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping(path=ARConstants.apiPrefix + "/v2")
 public class StatisticsControllerV2 {
     @Autowired

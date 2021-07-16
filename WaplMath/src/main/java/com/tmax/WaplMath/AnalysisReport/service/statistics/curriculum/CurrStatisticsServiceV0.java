@@ -30,8 +30,6 @@ import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

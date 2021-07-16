@@ -104,7 +104,7 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
             throw new UserNotFoundException();
         }
 
-        User user = userOpt.get();
+        // User user = userOpt.get();
 
         //Get sortedMastery TODO. make this percentile LUT format + apply grade
         Statistics sortedListStat = ukStatSvc.getUKStatistics(uk.getUkId(), UKStatisticsServiceBase.STAT_MASTERY_SORTED);

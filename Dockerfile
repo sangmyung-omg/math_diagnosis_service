@@ -14,6 +14,8 @@ COPY config/env.sh ${SCRIPT_HOME}/env.sh
 COPY config/application.properties /home/tmax/application.properties
 COPY config/triton.properties /home/tmax/triton.properties
 COPY config/lrs.properties /home/tmax/lrs.properties
+COPY config/statistics_module.properties /home/tmax/statistics_module.properties
+COPY WaplMath/src/main/resources/statistics /home/tmax/statistics
 
 RUN chmod -R 755 /home/tmax/script
 

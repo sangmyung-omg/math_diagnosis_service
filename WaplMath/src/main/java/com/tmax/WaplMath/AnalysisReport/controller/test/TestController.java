@@ -1,15 +1,15 @@
 package com.tmax.WaplMath.AnalysisReport.controller.test;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.nio.file.Path;
+// import java.io.FileReader;
+// import java.nio.file.Path;
 // import java.util.Arrays;
 // import java.util.List;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+// import com.google.gson.JsonObject;
+// import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 // import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
@@ -35,11 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.ResourceUtils;
+// import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -67,9 +66,9 @@ public class TestController {
     @GetMapping("/test")
     // @ResponseBody
     ResponseEntity<Object> getData(@RequestParam("probList") String probList, @RequestParam("userID") String userID) throws FileNotFoundException {
-        Path path = ResourceUtils.getFile("classpath:statistics/uk_avg_data.json").toPath();
-        FileReader reader = new FileReader(path.toString());
-        JsonObject result = (JsonObject)JsonParser.parseReader(reader);
+        // Path path = ResourceUtils.getFile("classpath:statistics/uk_avg_data.json").toPath();
+        // FileReader reader = new FileReader(path.toString());
+        // JsonObject result = (JsonObject)JsonParser.parseReader(reader);
 
         // List<ProblemCurriculum> data = repo.getCurriculumProblemMappingOfProbIDList(Arrays.asList(probList.split(",")));
 

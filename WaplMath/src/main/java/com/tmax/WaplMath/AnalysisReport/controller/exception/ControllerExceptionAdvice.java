@@ -2,6 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.controller.exception;
 
 import com.tmax.WaplMath.Common.dto.GenericErrorDTO;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +25,6 @@ public class ControllerExceptionAdvice {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public GenericErrorDTO handleInternalError(IllegalArgumentException exception){
-        return new GenericErrorDTO("ERR-0004", "Invalid parameter");
+        return new GenericErrorDTO("ERR-0004", "Invalid parameter. " + StackPrinter.getStackTrace(exception));
     }
 }

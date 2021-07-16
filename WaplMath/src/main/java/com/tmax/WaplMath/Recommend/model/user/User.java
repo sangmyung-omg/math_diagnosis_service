@@ -1,7 +1,6 @@
 package com.tmax.WaplMath.Recommend.model.user;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;

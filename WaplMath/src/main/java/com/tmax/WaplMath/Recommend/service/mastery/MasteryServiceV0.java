@@ -112,8 +112,8 @@ public class MasteryServiceV0 implements MasteryServiceBase {
 			return output;
 		}
 
-		JsonObject masteryJson = JsonParser.parseString(tritonOutput.get("Mastery").getAsString()).getAsJsonObject();
-		userEmbedding = tritonOutput.get("Embeddings").getAsString();
+		JsonObject masteryJson = JsonParser.parseString(tritonOutput.get("mastery").getAsString()).getAsJsonObject();
+		userEmbedding = tritonOutput.get("outEmbedding").getAsString();
 		log.info("User embedding output length = " + Integer.toString(userEmbedding.length()));
 
 		// update user mastery

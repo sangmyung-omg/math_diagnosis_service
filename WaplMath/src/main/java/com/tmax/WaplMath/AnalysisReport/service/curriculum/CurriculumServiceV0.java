@@ -24,8 +24,6 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.userknowledge.UserKnowledgeServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
@@ -67,7 +65,10 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
 
     @Override
     public CurriculumDataDTO getByIdList(String userID, List<String> currIDList, Set<String> excludeSet) {
-        //Get the curriculum Info
+        //Exception handling for currID's size is 0
+        if(currIDList.size() == 0){ return getEmptyCurriculumData();}
+
+        //Get the curriculum Info.
         List<Curriculum> currList = (List<Curriculum>)currRepo.findAllById(currIDList);
 
         //Get userInfo to get Grade
@@ -132,7 +133,6 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
                 type = "chapter";
                 break;
             default:
-
         }
 
         return type;
@@ -155,6 +155,10 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         } 
 
         return name;
+    }
+
+    private CurriculumDataDTO getEmptyCurriculumData(){
+        return new CurriculumDataDTO(new ArrayList<>(), new ArrayList<>());
     }
 
 

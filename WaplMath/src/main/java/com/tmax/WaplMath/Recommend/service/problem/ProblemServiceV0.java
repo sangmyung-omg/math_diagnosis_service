@@ -7,25 +7,33 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
 import com.tmax.WaplMath.Problem.repository.ProblemRepository;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.problem.DiagnosisProblem;
+import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
 import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+
 @Service("ProblemServiceV0")
 @Primary
 public class ProblemServiceV0 implements ProblemServiceBase {
+	
+	
+	private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 	
 	@Autowired
 	@Qualifier("UserInfoServiceV0")
@@ -45,7 +53,15 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	
 	@Override
 	public Map<String, Object> getDiagnosisProblems(String userId, String diagType){
-
+		
+		if (diagType.equalsIgnoreCase("in-depth")) {
+			diagType = "꼼꼼";
+		} else if (diagType.equalsIgnoreCase("simple")) {
+			diagType = "간단";
+		} else {
+			logger.info("diagType is ambiguous : " + diagType);
+		}
+		
 //		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
 		
 		Map<String, Object> resultMap = new HashMap<String, Object>();
@@ -54,13 +70,13 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 //		List<String> partNames = new ArrayList<String>();
 		
 		// DB에서 part 정보 불러오기 (어떤 파트가 있는지)
-		log.info("Getting part list......");
+		logger.info("Getting part list......");
 		List<String> partList = curriculumRepository.findDistinctPart();
 		Collections.shuffle(partList);			// 순서 섞기
 		
 		// User 현재 진도 단원 정보 DB에서 조회
 		User dao = userService.getUserInfo(userId);
-//				log.info("dao : " + dao);
+//				logger.info("dao : " + dao);
 		if (dao == null || dao.getUserUuid() == null) {
 			resultMap.put("error", "no userId in user table");
 			return resultMap;
@@ -78,7 +94,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			for (Curriculum curr : currQueryResult){
 				chapterIdList.add(curr.getCurriculumId());
 			}
-			log.info(partName + " 에 해당하는 대단원 : " + chapterIdList.toString());
+			logger.info(partName + " 에 해당하는 대단원 : " + chapterIdList.toString());
 
 			// 진단 범위에 해당하는 대단원들 select - 현재 학기에서 2학기 전부터 현재 배우고 있는 단원 바로 이전까지 (가장 최근에 다 배운 단원 까지)
 			List<String> available_chaps = new ArrayList<String>();
@@ -101,19 +117,19 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 					available_chaps.add(chap);
 				}
 			}
-			log.info("available_chaps : " + available_chaps.toString());
+			logger.info("available_chaps : " + available_chaps.toString());
 			
 			// available_chaps가 null이면, 각 영역에서 첫 단원 출제
 			String selected_chapter = "";
 			if (available_chaps.size() != 0 && available_chaps != null) {
 //				Collections.shuffle(available_chaps);
 				selected_chapter = available_chaps.get(available_chaps.size()-1);
-				log.info("Available_chaps exist and selected : " + selected_chapter);
+				logger.info("Available_chaps exist and selected : " + selected_chapter);
 			} else {
-				log.info("Available_chaps not exist");
+				logger.info("Available_chaps not exist");
 
 				selected_chapter = chapterIdList.get(0);				
-				log.info("No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
+				logger.info("No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
 //				if (resultMap.containsKey("error")) {
 //					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
 //				} else {
@@ -122,18 +138,20 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			}
 			
 			// 해당하는 단원에 대한 문제 set 가져오기
-			log.info("Getting problem set...");
+			logger.info("Getting problem set...");
 			DiagnosisProblem result;
 			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType);
 			List<Integer> prob_list = new ArrayList<Integer>();
 			
 			if (queryResult.size() != 0 && queryResult != null) {
-				log.info("Available problem sets for the selected chapter : " + queryResult.toString());
+				logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
 				Collections.shuffle(queryResult);
 				result = queryResult.get(0);
 				
 				// 문제 set의 각 문제에 대한 정보 불러오기
-				prob_list.add(result.getLowerProbId());
+				if (result.getLowerProbId() != null) {					
+					prob_list.add(result.getLowerProbId());
+				}
 				prob_list.add(result.getBasicProbId());
 				if (result.getUpperProbId() != null) {
 					prob_list.add(result.getUpperProbId());					
@@ -151,7 +169,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				
 				errOrderList.add(order);
 				// No problem set for the selected_chapter
-				log.info("No ACCEPTED problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+				logger.info("No ACCEPTED problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 //				if (resultMap.containsKey("error")) {
 //					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
 //				} else {
@@ -213,22 +231,22 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		List<Integer> extraProblems = new ArrayList<Integer>();
 		
 		// USER_MASTER 테이블에서 현재까지 배운 단원 정보 조회 & USER_EXAM_SCOPE 테이블에서 다음 시험의 범위 (단원) 조회
-		log.info("Getting user info......");
+		logger.info("Getting user info......");
 		UserExamScope examScope = userExamScopeRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
 		String start_sub_section = examScope.getStartSubSectionId();
 		String end_sub_section = examScope.getEndSubSectionId();
 		String current_chapter = examScope.getUser().getCurrentCurriculumId();
-		log.info(userId + "'s Sub section range for the next exam : " + start_sub_section + " ~ " + end_sub_section);
+		logger.info(userId + "'s Sub section range for the next exam : " + start_sub_section + " ~ " + end_sub_section);
 		
 		// 학생의 시험 범위에 해당하는 파트 (내용영역) 조회
-		log.info("Selecting target parts for the next exam......");
+		logger.info("Selecting target parts for the next exam......");
 		List<String> partList = curriculumRepository.findDistinctPartBetween(start_sub_section, end_sub_section);
-		log.info("Parts for next exam : " + partList.toString());
+		logger.info("Parts for next exam : " + partList.toString());
 		
 		// 시험 범위 파트에 해당하는 대단원들 조회
 		Map<String, List<String>> partChapterList = new HashMap<String, List<String>>();
 		for (String part : partList) {
-			log.info("Getting chapters of part : " + part);
+			logger.info("Getting chapters of part : " + part);
 			List<Curriculum> chapters = curriculumRepository.findChaptersByPart(part);
 			for (Curriculum chapter : chapters) {
 				// 현재까지 배운 소단원까지만 keep.
@@ -242,7 +260,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				}
 			}
 		}
-		log.info("partChapterList : " + partChapterList.toString());
+		logger.info("partChapterList : " + partChapterList.toString());
 		
 		
 		// 문제 찾을 대단원 선정 : (우선순위 1) 현재 학년의 대단원들 -> (우선순위 2) 없으면, 이전 학년 대단원들
@@ -256,7 +274,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			while ((candidate_chapters.size() == 0 || candidate_chapters == null) && grade_num > 0) {
 				for (String chapter : partChapterList.get(partList.get(i))) {
 					if (Integer.parseInt(chapter.substring(4, 5)) == grade_num) {
-						log.info(chapter);
+						logger.info(chapter);
 						candidate_chapters.add(chapter);
 					}
 				}
@@ -267,7 +285,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				available_chapters.put(partList.get(i), candidate_chapters);				
 			}
 		}
-		log.info("available_chapters : " + available_chapters.toString());
+		logger.info("available_chapters : " + available_chapters.toString());
 		
 		if (available_chapters.size() == 0 || available_chapters == null) {
 			// 에러 처리
@@ -276,7 +294,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		
 		// 파트별 문제 개수 결정 (임의로 : 시험 범위에 파트 2~3개 고정, 범위에 맞는 파트 최대 3개)
 		List<Integer> num_list = determine_combination(available_chapters.keySet().size());
-		log.info("num_list : " + num_list.toString());
+		logger.info("num_list : " + num_list.toString());
 		
 		Map<String, List<Integer>> partProblemMap = new HashMap<String, List<Integer>>();
 		for (String key : available_chapters.keySet()) {
@@ -301,14 +319,14 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				}
 			}
 			
-			log.info(chapter_condition);
+			logger.info(chapter_condition);
 			
 			// 해당 단원의 문제 조회
 			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, "꼼꼼");
 			
 			if (diagList.size() == 0 || diagList == null) {
 				// 예외 처리
-				log.info("diagList is empty : " + diagList.toString());
+				logger.info("diagList is empty : " + diagList.toString());
 			}
 			
 			
@@ -333,10 +351,10 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				}
 			}
 
-			log.info(diagList.toString());
+			logger.info(diagList.toString());
 			idx++;
 		}
-		log.info(partProblemMap.toString());
+		logger.info(partProblemMap.toString());
 		
 		int ii = 0;
 		for (String part : partProblemMap.keySet()) {

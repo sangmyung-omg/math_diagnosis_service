@@ -12,10 +12,10 @@ public interface DiagnosisProblemRepository extends CrudRepository<DiagnosisProb
 	@Query("SELECT dp FROM DiagnosisProblem dp WHERE (SUBSTR(dp.basicProblem.problemType.curriculumId, 0, 11) = ?1)"
 			+ " AND dp.basicProblem.status = 'ACCEPT'"
 			+ " AND dp.upperProblem.status = 'ACCEPT'"
-			+ " AND dp.lowerProblem.status = 'ACCEPT'"
-//			+ " AND dp.basicProblem.category = ?2"
-//			+ " AND dp.upperProblem.category = ?2"
-//			+ " AND dp.lowerProblem.category = ?2"
+//			+ " AND (dp.lowerProblem.status IS NULL OR dp.lowerProblem.status = 'ACCEPT')"
+			+ " AND dp.basicProblem.category = ?2"
+			+ " AND dp.upperProblem.category = ?2"
+//			+ " AND (dp.lowerProblem.category IS NULL OR dp.lowerProblem.category = ?2)"
 			+ " ORDER BY dp.basicProblem.problemType.curriculumId")
 	List<DiagnosisProblem> findAllByChapter(String chapter, String diagType);
 }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -164,13 +163,13 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
         return 0;
     }
 
-    private Set<StatsAnalyticsUk> getSpecificGradeUpdateSet(  Integer ukID, 
-                                                              Map<String, MasteryStat> masteryMap, 
-                                                              Map<String, Integer> userGradeMap, 
-                                                              Integer grade, 
-                                                              Timestamp now){
-        return null;
-    }
+    // private Set<StatsAnalyticsUk> getSpecificGradeUpdateSet(  Integer ukID, 
+    //                                                           Map<String, MasteryStat> masteryMap, 
+    //                                                           Map<String, Integer> userGradeMap, 
+    //                                                           Integer grade, 
+    //                                                           Timestamp now){
+    //     return null;
+    // }
 
     /**
      * Method to convert internal Statistics struct to uk
