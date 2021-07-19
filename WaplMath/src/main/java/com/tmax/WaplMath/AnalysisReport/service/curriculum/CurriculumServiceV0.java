@@ -88,12 +88,17 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
     public CurriculumDataDTO searchWithConditions(String userID, String searchTerm, String typeRange, String mode, String range,
                                                         boolean subSearch, String order, Set<String> excludeSet) {
         //Get all by search terms
-        List<Curriculum> searchResult;
-        if(subSearch){
-            searchResult = currInfoRepo.getCurriculumLikeId(searchTerm);
-        }
-        else {
-            searchResult = currInfoRepo.getFromCurrIdList(Arrays.asList(searchTerm));
+        List<Curriculum> searchResult = new ArrayList<>();
+
+        //Split searchTerms to list by comma
+        Set<String> searchSet = Arrays.asList(searchTerm.split(",")).stream().collect(Collectors.toSet());
+        for(String searchStr : searchSet){
+            if(subSearch){
+                searchResult.addAll( currInfoRepo.getCurriculumLikeId(searchStr) );
+            }
+            else {
+                searchResult.addAll( currInfoRepo.getFromCurrIdList(Arrays.asList(searchStr)) );
+            }
         }
 
         //Filter by type range
@@ -131,7 +136,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
     }
 
     @Override
-    public CurriculumDataDTO searchRecent(String userID, Integer count, String typeRange, String order, Set<String> excludeSet) {
+    public CurriculumDataDTO searchRecent(String userID, Integer count, String castTo, String order, Set<String> excludeSet) {
         //Get recent Curr List from stat table
         Statistics recentCurrStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_RECENT_CURR_ID_LIST);
         if(recentCurrStat == null){
@@ -145,16 +150,70 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         //Cut resultIDList by count
         recentCurrIDList = recentCurrIDList.subList(0, Math.min(Math.max(0, count), recentCurrIDList.size()));
 
-        List<Curriculum> recentCurrList = currInfoRepo.getFromCurrIdList(recentCurrIDList);
+        //Fill currList depending on typeRange
+        //split typerange to Set
+        Set<String> castSet = new HashSet<>();
+        if(castTo != null && !castTo.isEmpty())
+            castSet.addAll( Arrays.asList(castTo.split(",")).stream().collect(Collectors.toSet()) );
 
-        //Filter by type range
-        if(!typeRange.isEmpty()){
-            Set<String> typeSet = Arrays.asList(typeRange.split(",")).stream().collect(Collectors.toSet());
-            recentCurrList = filterTypeCurriculumList(recentCurrList, typeSet);
+        //Fill list
+        List<Curriculum> recentCurrList = new ArrayList<>();
+        for(String currID :  recentCurrIDList){
+            if(castSet.isEmpty()){
+                Optional<Curriculum> curr = currInfoRepo.findById(currID);
+                if(curr.isPresent())
+                    recentCurrList.add( curr.get() );
+                continue;
+            }
+
+            //Select currID ==> the highest of the castTo
+            String currIDsel = getHighestCurrID(currID, castSet);
+            
+            if(castSet.contains("chapter"))
+                recentCurrList.addAll( currInfoRepo.getChaptersLikeId(currIDsel) );
+            
+            if(castSet.contains("section"))
+                recentCurrList.addAll( currInfoRepo.getSectionsLikeId(currIDsel) );
+            
+            if(castSet.contains("subsection"))
+                recentCurrList.addAll( currInfoRepo.getSubSectionLikeId(currIDsel) );
         }
+
+        // //Filter by type range
+        // if(!typeRange.isEmpty()){
+        //     Set<String> typeSet = Arrays.asList(typeRange.split(",")).stream().collect(Collectors.toSet());
+        //     recentCurrList = filterTypeCurriculumList(recentCurrList, typeSet);
+        // }
 
         //Return list
         return buildFromCurriculum(userID, getUserInfo(userID).getGrade(), recentCurrList, excludeSet);
+    }
+
+    private String castCurriculumID(String inputID, String type){
+        Integer orilen = inputID.length();
+        if(type.equals("chapter"))
+            return inputID.substring(0, Math.min(orilen,11));
+        
+        if(type.equals("section"))
+            return inputID.substring(0,  Math.min(orilen,14));
+
+        if(type.equals("subsection"))
+            return inputID.substring(0,  Math.min(orilen,17));
+
+        return inputID;
+    }
+
+    private String getHighestCurrID(String currID, Set<String> castToSet){
+        if(castToSet.contains("chapter"))
+            return castCurriculumID(currID, "chapter");
+        
+        if(castToSet.contains("section"))
+            return castCurriculumID(currID, "section");
+
+        if(castToSet.contains("subsection"))
+            return castCurriculumID(currID, "subsection");
+
+        return currID;
     }
 
     private User getUserInfo(String userID) {

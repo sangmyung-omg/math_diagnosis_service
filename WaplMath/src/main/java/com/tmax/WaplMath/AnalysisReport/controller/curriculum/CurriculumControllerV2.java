@@ -109,8 +109,8 @@ public class CurriculumControllerV2 {
     @GetMapping("/curriculumquery/recent")
     public ResponseEntity<Object> queryRecentCurriculum(@RequestHeader("token") String token,
                                                         @RequestParam(name="exclude", defaultValue = "") String exclude,
-                                                        @RequestParam(name="count", defaultValue =  "5") Integer count,
-                                                        @RequestParam(name="typeRange", defaultValue = "") String typeRange,
+                                                        @RequestParam(name="count", defaultValue =  "1000") Integer count,
+                                                        @RequestParam(name="castto", defaultValue = "") String castTo,
                                                         @RequestParam(name="order", defaultValue = "id") String order) {
         //Parse jwt to get userID
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");               
@@ -118,7 +118,7 @@ public class CurriculumControllerV2 {
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));                                                    
         
-        CurriculumDataDTO result = currSvc.searchRecent(userID, count, typeRange, order, excludeSet);
+        CurriculumDataDTO result = currSvc.searchRecent(userID, count, castTo, order, excludeSet);
 
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
