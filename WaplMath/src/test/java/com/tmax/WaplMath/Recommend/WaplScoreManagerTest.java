@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
-import com.tmax.WaplMath.Recommend.util.schedule.WaplScoreManagerV1;
+import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
 
 @SpringBootTest
 public class WaplScoreManagerTest {

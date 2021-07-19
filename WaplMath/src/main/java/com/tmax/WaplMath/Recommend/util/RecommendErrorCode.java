@@ -13,8 +13,14 @@ public enum RecommendErrorCode implements ErrorCodeBase {
 
     TRITON_INFERENCE_ERROR("0003","Triton server returned error during inference. "),
     TRITON_JSON_PARSE_ERROR("0004","Triton server received invalid request JSON. "),
-    TRITON_UNSUPPORTED_UK("0005","Triton server encountered unsupported UK. ");
+    TRITON_UNSUPPORTED_UK("0005","Triton server encountered unsupported UK. "),
 
+    USER_NOT_EXIST_ERROR("0006", "Given user does not exist. "),
+    USER_INFO_NULL_ERROR("0007", "One of user's info is null. "),
+
+    CARD_GENERATE_NO_CARDS_ERROR("1000","No cards were created. User seems to have solved all the problems."),
+    SCHEDULE_CONFIGURATOR_ERROR("1001","Schedule configurator returned error. "),
+    CARD_GENERATOR_ERROR("1002","Card generator returned error. ");
 
     static final String ERROR_CODE_PREFIX = "ERR-REC-";
 

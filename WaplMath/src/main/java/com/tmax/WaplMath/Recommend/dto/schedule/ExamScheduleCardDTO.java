@@ -6,6 +6,6 @@ import lombok.Data;
 
 @Data
 public class ExamScheduleCardDTO {
-	public String message;
+	public String message; 
 	public List<CardDTOV1> cardList;
 }

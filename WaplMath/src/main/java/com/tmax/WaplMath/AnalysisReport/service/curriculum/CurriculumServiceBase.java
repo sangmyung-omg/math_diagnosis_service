@@ -11,4 +11,7 @@ public interface CurriculumServiceBase {
 
     public CurriculumDataDTO searchWithConditions(String userID, String searchTerm, String typeRange, String mode, String range, boolean subSearch, String order, Set<String> excludeSet);
        
+
+    public CurriculumDataDTO searchByYear(String userID, String schoolType, String year, String typeRange, String order, Set<String> excludeSet);
+    public CurriculumDataDTO searchRecent(String userID, Integer count, String typeRange, String order, Set<String> excludeSet);
 }

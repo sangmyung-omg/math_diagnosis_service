@@ -25,7 +25,7 @@ import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
-
+import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManagerV1;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

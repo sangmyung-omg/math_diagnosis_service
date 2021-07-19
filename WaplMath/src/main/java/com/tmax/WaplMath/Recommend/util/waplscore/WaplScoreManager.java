@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.util.schedule;
+package com.tmax.WaplMath.Recommend.util.waplscore;
 
 import java.util.ArrayList;
 import java.util.Arrays;

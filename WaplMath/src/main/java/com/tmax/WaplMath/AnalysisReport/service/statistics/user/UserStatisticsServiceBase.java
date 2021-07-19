@@ -29,7 +29,7 @@ public interface UserStatisticsServiceBase {
 
     public static final String STAT_CORRECT_RATE = "correct_rate";
     public static final String STAT_SOLVING_SPEED_SATISFY_RATE = "solve_speed_satisfy_rate";
-    public static final String STAT_RATE_PROBLEM_COUNT = "rate_problem_cpunt";
+    public static final String STAT_RATE_PROBLEM_COUNT = "rate_problem_count";
 
     public static final String STAT_WAPL_SCORE = "waplscore";
     public static final String STAT_WAPL_SCORE_MASTERY = "waplscore_mastery";    

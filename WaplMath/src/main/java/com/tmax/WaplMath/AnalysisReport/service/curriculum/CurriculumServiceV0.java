@@ -3,6 +3,7 @@ package com.tmax.WaplMath.AnalysisReport.service.curriculum;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,9 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.userknowledge.UserKnowledgeServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
@@ -95,26 +99,98 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         //Filter by type range
         if(!typeRange.isEmpty()){
             Set<String> typeSet = Arrays.asList(typeRange.split(",")).stream().collect(Collectors.toSet());
-            searchResult = searchResult.stream()
-                                        .filter(curr -> checkTypeRange(curr, typeSet))
-                                        .collect(Collectors.toList());
+            searchResult = filterTypeCurriculumList(searchResult, typeSet);
         }
 
-        //Order by
+        //Order List by condition
 
 
         //Build output List
+        return buildFromCurriculum(userID, getUserInfo(userID).getGrade(), searchResult, excludeSet);
+    }
+
+    @Override
+    public CurriculumDataDTO searchByYear(String userID, String schoolType, String year, String typeRange, String order, Set<String> excludeSet) {
+        //Build searchTerm from schoolType
+        String searchTerm = "";
+        switch(schoolType){
+            case "prim":
+                searchTerm += "초등-초";
+                break;
+            case "mid":
+                searchTerm += "중등-중";
+                break;
+            case "high":
+                searchTerm += "고등-고";
+                break;
+            default:
+                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, "Unsupported school type. " + schoolType);
+        }
+
+        return searchWithConditions(userID, searchTerm + year, typeRange, null, null, true, order, excludeSet);
+    }
+
+    @Override
+    public CurriculumDataDTO searchRecent(String userID, Integer count, String typeRange, String order, Set<String> excludeSet) {
+        //Get recent Curr List from stat table
+        Statistics recentCurrStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_RECENT_CURR_ID_LIST);
+        if(recentCurrStat == null){
+            log.error("[{}] Recent curriculum list not found in stat table. Please check if LRS info.", userID);
+            throw new GenericInternalException(ARErrorCode.INVALID_STATISTICS_ERROR, 
+                                               "Recent curriculum list not found in stat table. Please check if LRS info is properly submitted.");
+        }
+
+        List<String> recentCurrIDList = recentCurrStat.getAsStringList();
+
+        //Cut resultIDList by count
+        recentCurrIDList = recentCurrIDList.subList(0, Math.min(Math.max(0, count), recentCurrIDList.size()));
+
+        List<Curriculum> recentCurrList = currInfoRepo.getFromCurrIdList(recentCurrIDList);
+
+        //Filter by type range
+        if(!typeRange.isEmpty()){
+            Set<String> typeSet = Arrays.asList(typeRange.split(",")).stream().collect(Collectors.toSet());
+            recentCurrList = filterTypeCurriculumList(recentCurrList, typeSet);
+        }
+
+        //Return list
+        return buildFromCurriculum(userID, getUserInfo(userID).getGrade(), recentCurrList, excludeSet);
+    }
+
+    private User getUserInfo(String userID) {
         //Get userInfo to get Grade
         Optional<User> user = userRepo.findById(userID);
         if(!user.isPresent()){
             log.warn("No user Information found for " + userID);
+            throw new UserNotFoundException();
         }
+        return user.get();
+    }
 
-        return buildFromCurriculum(userID, user.get().getGrade(), searchResult, excludeSet);
+    private List<Curriculum> filterTypeCurriculumList(List<Curriculum> inputList, Set<String> typeSet){
+        return inputList.stream().filter(curr -> checkTypeRange(curr, typeSet)).collect(Collectors.toList());
     }
 
     private boolean checkTypeRange(Curriculum curr, Set<String> typeSet){
         return typeSet.contains(getCurriculumType(curr));
+    }
+
+    private Comparator<CurriculumDataDetailDTO> getCurrDataComparator(String type){
+        if(type.equals("mastery")){
+
+        }
+
+        //Return default comparator (sequence compare)
+        return new Comparator<CurriculumDataDetailDTO>() {
+            @Override
+            public int compare(CurriculumDataDetailDTO o1, CurriculumDataDetailDTO o2) {
+                if(o1.getBasic().getSeq() < o2.getBasic().getSeq())
+                    return -1;
+                else if (o1.getBasic().getSeq() > o2.getBasic().getSeq())
+                    return 1;
+                return 0;
+            }
+        };
     }
 
     //TODO. make this prune to currID stype change
@@ -171,6 +247,12 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         //Total UKSet
         Set<Integer> ukIdSetTotal = new HashSet<>();
 
+        //make Exclude field set for currData (with prefix currData)
+        Set<String> cdExcludeSet = excludeSet.stream().filter(data -> data.startsWith("currDataList."))
+                                                      .map(data -> data.substring("currDataList.".length()))
+                                                      .collect(Collectors.toSet());
+
+        //Build currList
         List<CurriculumDataDetailDTO> dataList = new ArrayList<>();
         for(Curriculum curr : currList){
             //Get percentile  LUT
@@ -182,20 +264,30 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
 
             dataList.add(CurriculumDataDetailDTO.builder()
                                                 .basic(buildBasicInfo(curr))
-                                                .score(getUserScore(userID, grade, curr.getCurriculumId(), scoreLUT))
-                                                .waplscore(getWaplScore(userID, grade, curr.getCurriculumId(), scoreLUT, ukIdSet))
-                                                .stats(getStats(curr.getCurriculumId()))
-                                                .ukIdList(new ArrayList<>(ukIdSet))
+                                                .score(!cdExcludeSet.contains("score") ? getUserScore(userID, grade, curr.getCurriculumId(), scoreLUT) : null)
+                                                .waplscore(!cdExcludeSet.contains("waplscore") ? getWaplScore(userID, grade, curr.getCurriculumId(), scoreLUT, ukIdSet) : null)
+                                                .stats(!cdExcludeSet.contains("stats") ? getStats(curr.getCurriculumId()) : null)
+                                                .ukIdList(!cdExcludeSet.contains("ukIdList") ? new ArrayList<>(ukIdSet) : null)
                                                 .build()
             );
 
             ukIdSetTotal.addAll(ukIdSet);
         }
+        
         //Get ukList of curriculum
+        List<UkUserKnowledgeDetailDTO> ukKnowledgeList = null;
+        if(!excludeSet.contains("ukKnowledgeList")){
+            //Build excludeset
+            Set<String> ukExcludeSet = excludeSet.stream().filter(data -> data.startsWith("ukKnowledgeList."))
+                                                          .map(data -> data.substring("ukKnowledgeList.".length()))
+                                                          .collect(Collectors.toSet());
+
+            ukKnowledgeList = buildUKKnowledgeList(userID, ukIdSetTotal, ukExcludeSet);
+        }
 
         return CurriculumDataDTO.builder()
                                 .currDataList(dataList)
-                                .ukKnowledgeList(!excludeSet.contains("ukKnowledgeList") ? buildUKKnowledgeList(userID, ukIdSetTotal) : null)
+                                .ukKnowledgeList(ukKnowledgeList)
                                 .build();
     }
 
@@ -361,7 +453,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
                                  .build();
     }
 
-    private List<UkUserKnowledgeDetailDTO> buildUKKnowledgeList(String userID, Set<Integer> ukIdSet){
-        return userKnowledgeSvc.getByUkIdList(userID, new ArrayList<>(ukIdSet));
+    private List<UkUserKnowledgeDetailDTO> buildUKKnowledgeList(String userID, Set<Integer> ukIdSet, Set<String> excludeSet){
+        return userKnowledgeSvc.getByUkIdList(userID, new ArrayList<>(ukIdSet), excludeSet);
     }
 }

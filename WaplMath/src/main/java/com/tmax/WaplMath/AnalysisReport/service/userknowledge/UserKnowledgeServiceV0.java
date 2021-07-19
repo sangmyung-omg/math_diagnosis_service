@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Collections;
+import java.util.HashSet;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -57,7 +59,7 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
     UserStatisticsServiceBase userStatSvc;
 
     @Override
-    public UkUserKnowledgeDetailDTO getByUkId(String userID, Integer ukID) {
+    public UkUserKnowledgeDetailDTO getByUkId(String userID, Integer ukID, Set<String> excludeSet) {
         //Get UK info
         Optional<Uk> ukOpt = ukRepo.findById(ukID);
         if(!ukOpt.isPresent()){
@@ -69,15 +71,25 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
         
         return UkUserKnowledgeDetailDTO.builder()
                                        .ukInfo(getUkInfo(uk))
-                                       .mastery(getMastery(userID, uk))
-                                       .stats(getStats(uk))
-                                       .waplscore(getWaplScore(userID, uk))
+                                       .mastery(!excludeSet.contains("mastery") ? getMastery(userID, uk) : null)
+                                       .stats(!excludeSet.contains("stats") ? getStats(uk) : null)
+                                       .waplscore(!excludeSet.contains("waplscore") ? getWaplScore(userID, uk) : null)
                                        .build();
+    }
+    
+    @Override
+    public UkUserKnowledgeDetailDTO getByUkId(String userID, Integer ukID) {
+        return getByUkId(userID, ukID, new HashSet<>());
     }
 
     @Override
-    public List<UkUserKnowledgeDetailDTO> getByUkIdList(String userID, List<Integer> ukIDList) {
-        return ukIDList.stream().map(ukID -> getByUkId(userID, ukID)).collect(Collectors.toList());
+    public List<UkUserKnowledgeDetailDTO> getByUkIdList(String userID, List<Integer> ukID) {
+        return getByUkIdList(userID, ukID, new HashSet<>());
+    }
+
+    @Override
+    public List<UkUserKnowledgeDetailDTO> getByUkIdList(String userID, List<Integer> ukIDList, Set<String> excludeSet) {
+        return ukIDList.stream().map(ukID -> getByUkId(userID, ukID, excludeSet)).collect(Collectors.toList());
     }
 
     private UkSimpleDTO getUkInfo(Uk uk){

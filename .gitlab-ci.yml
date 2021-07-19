@@ -19,6 +19,8 @@ java-build-check:
   stage: build
   only:
     - /^ae1-3\/feature\/.*$/
+    - /^ae1-3\/refactor\/.*$/
+    - /^ae1-3\/fix\/.*$/
   script: 
     - cd WaplMath
     - ./gradlew build -x test

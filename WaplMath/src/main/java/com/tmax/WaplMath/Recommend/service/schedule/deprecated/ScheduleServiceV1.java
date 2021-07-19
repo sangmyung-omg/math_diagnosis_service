@@ -1,19 +1,18 @@
-package com.tmax.WaplMath.Recommend.service.schedule;
+package com.tmax.WaplMath.Recommend.service.schedule.deprecated;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
-import com.tmax.WaplMath.Recommend.util.schedule.CardGeneratorV1;
+import com.tmax.WaplMath.Recommend.util.card.CardGeneratorV1;
+import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManagerV1;
 import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfiguratorV1;
-import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV1;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Generate today normal/exam schedule card v1

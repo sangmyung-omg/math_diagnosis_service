@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.util.schedule;
+package com.tmax.WaplMath.Recommend.util.card;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-
+import com.tmax.WaplMath.Recommend.util.config.CardConstants.Difficulty;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -71,7 +71,7 @@ public class CardGeneratorV1 {
 		DiffProbListDTO diffProbList = new DiffProbListDTO();
 		for (Problem prob : probList) {
 			String difficulty = prob.getDifficulty();
-			diffProbList.addDiffProb(prob, difficulty);
+			diffProbList.addDiffProb(prob, Difficulty.valueOf(difficulty));
 		}
 		return diffProbList;
 	}
@@ -79,7 +79,7 @@ public class CardGeneratorV1 {
 	public void printDiffProbList(DiffProbListDTO diffProbList) {
 		if (printProbInfo) {
 			for (String difficulty : Arrays.asList("상", "중", "하")) {
-				List<Problem> probList = diffProbList.getDiffProbList(difficulty);
+				List<Problem> probList = diffProbList.getDiffProbList(Difficulty.valueOf(difficulty));
 				List<Integer> probIdList = new ArrayList<Integer>();
 				probList.forEach(prob -> probIdList.add(prob.getProbId()));
 				log.info(String.format("	%s 난이도 문제들 = " + probIdList.toString(), difficulty));

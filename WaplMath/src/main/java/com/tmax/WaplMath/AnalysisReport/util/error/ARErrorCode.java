@@ -28,6 +28,8 @@ public enum ARErrorCode implements ErrorCodeBase {
 
     INVALID_PARAMETER("0011", "Invalid parameter."),
 
+    INVALID_STATISTICS_ERROR("0012", "Invalid statistics data"),
+
     //The lower bound error code;
     UNKNOWN_ERROR("ERR-AR-999", "Unknown error");
 

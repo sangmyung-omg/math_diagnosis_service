@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.service.schedule;
+package com.tmax.WaplMath.Recommend.service.schedule.deprecated;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -33,7 +33,7 @@ import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
-import com.tmax.WaplMath.Recommend.util.schedule.ScheduleHistoryManagerV0;
+import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManagerV0;
 
 /**
  * Generate today normal/exam schedule card

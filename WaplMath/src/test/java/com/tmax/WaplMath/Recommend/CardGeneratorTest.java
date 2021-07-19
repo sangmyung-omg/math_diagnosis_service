@@ -11,7 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-import com.tmax.WaplMath.Recommend.util.schedule.CardGeneratorV1;
+import com.tmax.WaplMath.Recommend.util.card.CardGeneratorV1;
 
 @SpringBootTest
 public class CardGeneratorTest {

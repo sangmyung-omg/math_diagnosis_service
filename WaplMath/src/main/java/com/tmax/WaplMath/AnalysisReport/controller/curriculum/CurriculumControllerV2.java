@@ -71,7 +71,7 @@ public class CurriculumControllerV2 {
     @GetMapping("/curriculumquery")
     public ResponseEntity<Object> queryCurriculum(  @RequestHeader("token") String token,
                                                     @RequestParam("searchTerm") String searchTerm,
-                                                    @RequestParam(name="exclude", defaultValue = "ukKnowledgeList") String exclude,
+                                                    @RequestParam(name="exclude", defaultValue = "") String exclude,
                                                     @RequestParam(name="mode", required =  false) String mode,
                                                     @RequestParam(name="range", required = false) String range,
                                                     @RequestParam(name="typeRange", defaultValue = "") String typeRange,
@@ -90,7 +90,7 @@ public class CurriculumControllerV2 {
 
     @GetMapping("/curriculumquery/year")
     public ResponseEntity<Object> queryCurriculumByYear(@RequestHeader("token") String token,
-                                                        @RequestParam(name="exclude", defaultValue = "ukKnowledgeList") String exclude,
+                                                        @RequestParam(name="exclude", defaultValue = "") String exclude,
                                                         @RequestParam(name="schoolType", defaultValue =  "mid") String schoolType,
                                                         @RequestParam(name="year", defaultValue = "") String year,
                                                         @RequestParam(name="typeRange", defaultValue = "") String typeRange,
@@ -98,33 +98,17 @@ public class CurriculumControllerV2 {
         //Parse jwt to get userID
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");               
         
-        //Build searchTerm from schoolType
-        String searchTerm = "";
-        switch(schoolType){
-            case "prim":
-                searchTerm += "초등-초";
-                break;
-            case "mid":
-                searchTerm += "중등-중";
-                break;
-            case "high":
-                searchTerm += "고등-고";
-                break;
-            default:
-                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, "Unsupported school type. " + schoolType);
-        }
-
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
 
-        CurriculumDataDTO result = currSvc.searchWithConditions(userID, searchTerm + year, typeRange, null, null, true, order, excludeSet);
+        CurriculumDataDTO result = currSvc.searchByYear(userID, schoolType, year, typeRange, order, excludeSet);
 
         return new ResponseEntity<>(result,HttpStatus.OK);
     }
 
     @GetMapping("/curriculumquery/recent")
     public ResponseEntity<Object> queryRecentCurriculum(@RequestHeader("token") String token,
-                                                        @RequestParam(name="exclude", defaultValue = "ukKnowledgeList") String exclude,
+                                                        @RequestParam(name="exclude", defaultValue = "") String exclude,
                                                         @RequestParam(name="count", defaultValue =  "5") Integer count,
                                                         @RequestParam(name="typeRange", defaultValue = "") String typeRange,
                                                         @RequestParam(name="order", defaultValue = "id") String order) {
@@ -134,7 +118,8 @@ public class CurriculumControllerV2 {
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));                                                    
         
+        CurriculumDataDTO result = currSvc.searchRecent(userID, count, typeRange, order, excludeSet);
 
-        return null;
+        return new ResponseEntity<>(result,HttpStatus.OK);
     }
 }

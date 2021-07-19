@@ -2,8 +2,8 @@ package com.tmax.WaplMath.Recommend.controller.schedule;
 
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.config.RecommendConstants;
-import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV2;
-import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBaseV2;
+import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
+import com.tmax.WaplMath.Recommend.service.schedule.v2.ScheduleServiceBaseV2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -21,34 +21,46 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(path = RecommendConstants.apiPrefix + "/v2")
 public class ScheduleControllerV2 {
 
-	@Autowired
-	@Qualifier("ScheduleServiceV2")
-	private ScheduleServiceBaseV2 scheduleMvc;
+  @Autowired
+  @Qualifier("ScheduleServiceV2")
+  private ScheduleServiceBaseV2 scheduleMvc;
 
-	@GetMapping(value = "/normalschedulecard", produces = "application/json; charset=utf-8")
-	ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
-		log.info("userId: " + userId);
-		NormalScheduleCardDTOV2 normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
-		log.info("version 2");
-		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
-	}
 
-	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
-	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
-		log.info("userId: " + userId);
-		NormalScheduleCardDTOV2 examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
-		log.info("version 2");
-		return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
-	}
+  @GetMapping(value = "/normalschedulecard", produces = "application/json; charset=utf-8")
+  public ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
 
-	@GetMapping(value = "/normalschedulecard/dummy", produces = "application/json; charset=utf-8")
-	ResponseEntity<Object> getNormalScheduleCardDummy(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
-		log.info("userId: " + userId);
-		NormalScheduleCardDTOV2 normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
-		System.out.println("version 2");
-		return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
-	}
+    String userId = JWTUtil.getJWTPayloadField(token, "userID");
+
+    log.info("userId : {}", userId);
+
+    ScheduleCardOutputDTO normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
+
+    return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
+  }
+
+
+  @GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
+  public ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
+
+    String userId = JWTUtil.getJWTPayloadField(token, "userID");
+    
+    log.info("userId : {}", userId);
+
+    ScheduleCardOutputDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
+    
+    return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
+  }
+
+  
+  @GetMapping(value = "/normalschedulecard/dummy", produces = "application/json; charset=utf-8")
+  public ResponseEntity<Object> getNormalScheduleCardDummy(@RequestHeader("token") String token) {
+
+    String userId = JWTUtil.getJWTPayloadField(token, "userID");
+    
+    log.info("userId : {}", userId);
+
+    ScheduleCardOutputDTO normalScheduleCard = scheduleMvc.getScheduleCardDummy(userId);
+
+    return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
+  }
 }

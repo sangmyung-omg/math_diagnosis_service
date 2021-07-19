@@ -24,8 +24,7 @@ import com.tmax.WaplMath.Recommend.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.UkRepository;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
-import com.tmax.WaplMath.Recommend.util.schedule.WaplScoreManagerV1;
-
+import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -342,6 +342,12 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             Integer duration = Integer.valueOf(durationRaw);
             String difficulty = probDiffMap.get(probID);
 
+            //Check if diff exist --> is it a valid problem
+            if(difficulty == null){
+                log.error("Difficulty is null for problem [{}]. Skipping statistics entry for current problem.", probID);
+                continue;
+            }
+
             if(difficulty.equals("상") && duration < (3 * 60 + 30 )* 1000){
                 speedSatisfyTally++;
             }

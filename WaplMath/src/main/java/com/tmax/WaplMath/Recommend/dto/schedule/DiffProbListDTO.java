@@ -2,26 +2,30 @@ package com.tmax.WaplMath.Recommend.dto.schedule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
+import java.util.stream.Collectors;
 import com.tmax.WaplMath.Recommend.model.problem.Problem;
-
+import com.tmax.WaplMath.Recommend.util.config.CardConstants.Difficulty;
 import lombok.Data;
 
 @Data
 public class DiffProbListDTO {
-	public List<Problem> highProbList;
-	public List<Problem> middleProbList;
-	public List<Problem> lowProbList;
+
+	private List<Problem> highProbList;
+	private List<Problem> middleProbList;
+	private List<Problem> lowProbList;
+
 
 	public DiffProbListDTO() {
-		this.highProbList = new ArrayList<Problem>();
-		this.middleProbList = new ArrayList<Problem>();
-		this.lowProbList = new ArrayList<Problem>();
+		this.highProbList = new ArrayList<>();
+		this.middleProbList = new ArrayList<>();
+		this.lowProbList = new ArrayList<>();
 	}
 
-	public List<Problem> getDiffProbList(String difficulty) {
-		switch (difficulty) {
+
+	public List<Problem> getDiffProbList(Difficulty difficulty) {
+		switch (difficulty.name()) {
 			case "상":
 				return this.highProbList;
 			case "중":
@@ -29,89 +33,77 @@ public class DiffProbListDTO {
 			case "하":
 				return this.lowProbList;
 			default:
-				return new ArrayList<Problem>();
+				return new ArrayList<>();
 		}
 	}
 
+
 	public void addHighProb(Problem highProb) {
 		if (this.highProbList == null)
-			this.setHighProbList(new ArrayList<Problem>(Arrays.asList(highProb)));
+			this.setHighProbList(new ArrayList<>(Arrays.asList(highProb)));
 		else
 			this.highProbList.add(highProb);
 	}
 
+
 	public void addMiddleProb(Problem middleProb) {
 		if (this.middleProbList == null)
-			this.setMiddleProbList(new ArrayList<Problem>(Arrays.asList(middleProb)));
+			this.setMiddleProbList(new ArrayList<>(Arrays.asList(middleProb)));
 		else
 			this.middleProbList.add(middleProb);
 	}
 
+
 	public void addLowProb(Problem lowProb) {
 		if (this.lowProbList == null)
-			this.setLowProbList(new ArrayList<Problem>(Arrays.asList(lowProb)));
+			this.setLowProbList(new ArrayList<>(Arrays.asList(lowProb)));
 		else
 			this.lowProbList.add(lowProb);
 	}
 
-	public void addDiffProb(Problem prob, String difficulty) {
-		switch (difficulty) {
+
+	public void addDiffProb(Problem prob, Difficulty difficulty) {
+		switch (difficulty.name()) {
 			case "상":
-				this.addHighProb(prob);
-				break;
+				this.addHighProb(prob);	break;
 			case "중":
-				this.addMiddleProb(prob);
-				break;
+				this.addMiddleProb(prob);	break;
 			case "하":
-				this.addLowProb(prob);
-				break;
+				this.addLowProb(prob); break;
 			default:
-				this.addMiddleProb(prob);
-				break;
+				this.addMiddleProb(prob);	break;
 		}
 	}
 	
-	public List<String> getExistDiffList() {
-		List<String> diffList = new ArrayList<String>();
-		for (String diff : Arrays.asList("상", "중", "하")) {
-			if (getDiffProbList(diff).size() != 0)
-				diffList.add(diff);
+	public List<String> getExistDiffStrList() {
+		List<String> diffList = new ArrayList<>();
+
+		for (Difficulty diff : Difficulty.values()) {
+
+			if (!getDiffProbList(diff).isEmpty())
+				diffList.add(diff.name());
 		}
 		return diffList;
 	}
 
-	public List<String> getLenOrderedDiffList() {
-		List<String> temp = new ArrayList<String>();
-		if (this.highProbList.size() >= this.middleProbList.size() && this.highProbList.size() >= this.lowProbList.size()) {
-			temp.add("상");
-			if (this.middleProbList.size() >= this.lowProbList.size()) {
-				temp.add("중");
-				temp.add("하");
-			} else {
-				temp.add("하");
-				temp.add("중");
-			}
-		}
-		if (this.middleProbList.size() >= this.highProbList.size() && this.middleProbList.size() >= this.lowProbList.size()) {
-			temp.add("중");
-			if (this.highProbList.size() >= this.lowProbList.size()) {
-				temp.add("상");
-				temp.add("하");
-			} else {
-				temp.add("하");
-				temp.add("상");
-			}
-		}
-		if (this.lowProbList.size() >= this.highProbList.size() && this.lowProbList.size() >= this.middleProbList.size()) {
-			temp.add("하");
-			if (this.highProbList.size() >= this.middleProbList.size()) {
-				temp.add("상");
-				temp.add("중");
-			} else {
-				temp.add("중");
-				temp.add("상");
-			}
-		}
-		return temp;
+	public List<Difficulty> getSizeOrderedDiffList() {
+
+		List<Integer> idxList = new ArrayList<>(Arrays.asList(0, 1, 2));
+
+		List<Integer> sizeList = Arrays.asList(this.highProbList, this.middleProbList, this.lowProbList)
+																	 .stream().map(list -> list.size()).collect(Collectors.toList());
+
+		Integer maxIdx = sizeList.indexOf(Collections.max(sizeList));
+		Integer minIdx = sizeList.indexOf(Collections.min(sizeList));
+		minIdx = maxIdx.equals(minIdx) ? 2 : minIdx;
+
+		idxList.remove(maxIdx);
+		idxList.remove(minIdx);
+
+		Integer midIdx = idxList.iterator().next();
+
+		return Difficulty.getDiffListByOrder(new Integer[] {maxIdx, midIdx, minIdx});
+
 	}
+
 }

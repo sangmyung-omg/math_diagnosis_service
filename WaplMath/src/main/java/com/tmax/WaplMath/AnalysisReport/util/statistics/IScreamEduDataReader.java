@@ -87,7 +87,7 @@ class UserData {
 @Slf4j
 @Component
 @PropertySources({
-	@PropertySource("classpath:config/statistics_module.properties"),
+	@PropertySource("classpath:statistics_module.properties"),
 	@PropertySource(value="file:${external-config.url}/statistics_module.properties", ignoreResourceNotFound=true),
     @PropertySource("classpath:application.properties"),
     @PropertySource(value="file:${external-config.url}/application.properties", ignoreResourceNotFound=true),

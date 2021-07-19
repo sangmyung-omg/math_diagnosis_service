@@ -1,9 +1,10 @@
 package com.tmax.WaplMath.Recommend.dto.schedule;
 
 import java.util.List;
-
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Learning schedule card DTO
@@ -12,6 +13,8 @@ import lombok.Data;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class CardDTOV2 {
 	private String cardType;
 	private String cardTitle;

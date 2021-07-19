@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.service.schedule;
+package com.tmax.WaplMath.Recommend.service.schedule.deprecated;
 
 import com.tmax.WaplMath.Recommend.dto.schedule.ExamScheduleCardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.NormalScheduleCardDTOV1;
