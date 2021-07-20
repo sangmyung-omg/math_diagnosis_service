@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AdditionalLearning.model.problem;
+package com.tmax.WaplMath.AdditionalLearning.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

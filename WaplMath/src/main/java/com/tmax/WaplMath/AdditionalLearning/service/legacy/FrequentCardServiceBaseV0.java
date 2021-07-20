@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AdditionalLearning.service;
+package com.tmax.WaplMath.AdditionalLearning.service.legacy;
 
 import java.util.List;
 import java.util.Set;
@@ -7,7 +7,7 @@ import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentProblemDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionMasteryDTO;
 
-public interface FrequentCardServiceBaseV2 {
+public interface FrequentCardServiceBaseV0 {
 	
 	
 	//조건에 맞는 문제 리스트를 반환하는 LRS 메소드

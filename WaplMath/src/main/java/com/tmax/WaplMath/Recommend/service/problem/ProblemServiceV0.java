@@ -56,10 +56,15 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		
 		if (diagType.equalsIgnoreCase("in-depth")) {
 			diagType = "꼼꼼";
+			logger.info("> IN-DEPTH DIAGNOSIS SERVICE START!");
 		} else if (diagType.equalsIgnoreCase("simple")) {
 			diagType = "간단";
+			logger.info("> SIMPLE DIAGNOSIS SERVICE START!");
 		} else {
-			logger.info("diagType is ambiguous : " + diagType);
+			logger.info("error) diagType is ambiguous : " + diagType);
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("error", "diagType is ambiguous : " + diagType);
+			return map;
 		}
 		
 //		List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
@@ -76,7 +81,6 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		
 		// User 현재 진도 단원 정보 DB에서 조회
 		User dao = userService.getUserInfo(userId);
-//				logger.info("dao : " + dao);
 		if (dao == null || dao.getUserUuid() == null) {
 			resultMap.put("error", "no userId in user table");
 			return resultMap;
@@ -89,7 +93,6 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		for (String partName : partList) {
 			// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
 			List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
-//			Map<String, List<String>> chapterIdList = new HashMap<String, List<String>>();
 			List<String> chapterIdList = new ArrayList<String>();
 			for (Curriculum curr : currQueryResult){
 				chapterIdList.add(curr.getCurriculumId());
@@ -144,9 +147,17 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			List<Integer> prob_list = new ArrayList<Integer>();
 			
 			if (queryResult.size() != 0 && queryResult != null) {
-				logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
+				// logger.info("Available problem sets for the selected chapter : " + queryResult.toString());
+				logger.info("# of available problem sets for the selected chapter : " + Integer.toString(queryResult.size()) + " sets");
 				Collections.shuffle(queryResult);
 				result = queryResult.get(0);
+
+				String log = "One random problem set chosen : Set_Id " + Integer.toString(result.getDiagnosisProbId()) 
+																+ " / Basic " + Integer.toString(result.getBasicProbId()) 
+																+ " / Upper " + Integer.toString(result.getUpperProbId());
+				if (result.getLowerProbId() != null) log += " / Lower " + Integer.toString(result.getLowerProbId());
+				logger.info(log);
+			
 				
 				// 문제 set의 각 문제에 대한 정보 불러오기
 				if (result.getLowerProbId() != null) {					
@@ -168,38 +179,12 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				}
 				
 				errOrderList.add(order);
+
 				// No problem set for the selected_chapter
 				logger.info("No ACCEPTED problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-//				if (resultMap.containsKey("error")) {
-//					resultMap.replace("error", resultMap.get("error") + "\n" + "No problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-//				} else {
-//					resultMap.put("error", order + " element of diagnosisProblems isNo problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
-//				}
-				if (diagType.equalsIgnoreCase("in-depth")) {
-					// 임시 err 처리 (dummy)
-					if (partName.equalsIgnoreCase("기하")) {
-						prob_list.add(7363);
-						prob_list.add(7361);
-						prob_list.add(7362);
-					} else if (partName.equalsIgnoreCase("확률과 통계")) {
-						prob_list.add(7352);
-						prob_list.add(7350);
-						prob_list.add(7351);					
-					} else if (partName.equalsIgnoreCase("함수")) {
-						prob_list.add(4505);
-						prob_list.add(5081);
-						prob_list.add(6595);					
-					} else if (partName.equalsIgnoreCase("문자와 식")) {
-						prob_list.add(4562);
-						prob_list.add(4594);
-						prob_list.add(4575);					
-					} else if (partName.equalsIgnoreCase("수와 연산")) {
-						prob_list.add(277);
-						prob_list.add(308);
-						prob_list.add(424);					
-					}
-					
-				}				
+
+				// 임시 err 처리 (dummy)
+				// 삭제
 			}
 			diagnosisProblems.add(prob_list);
 		}
@@ -319,14 +304,14 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				}
 			}
 			
-			logger.info(chapter_condition);
+			// logger.info(chapter_condition);
 			
 			// 해당 단원의 문제 조회
 			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, "꼼꼼");
 			
 			if (diagList.size() == 0 || diagList == null) {
 				// 예외 처리
-				logger.info("diagList is empty : " + diagList.toString());
+				logger.info("diagList is empty : " + Integer.toString(diagList.size()) + " rows");
 			}
 			
 			
@@ -351,7 +336,6 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				}
 			}
 
-			logger.info(diagList.toString());
 			idx++;
 		}
 		logger.info(partProblemMap.toString());

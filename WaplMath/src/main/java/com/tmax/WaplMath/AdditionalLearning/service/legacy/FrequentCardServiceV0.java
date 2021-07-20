@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AdditionalLearning.service;
+package com.tmax.WaplMath.AdditionalLearning.service.legacy;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,15 +17,15 @@ import com.tmax.WaplMath.AdditionalLearning.dto.FreqProbCurriDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentCardDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.FrequentProblemDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionMasteryDTO;
-import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSubSectionMastery;
-import com.tmax.WaplMath.AdditionalLearning.model.problem.UserTargetExamScope;
-import com.tmax.WaplMath.AdditionalLearning.model.problem.UserFrequentProblem;
-import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSectionMastery;
-import com.tmax.WaplMath.AdditionalLearning.repository.EstimatedTimeRepo;
-import com.tmax.WaplMath.AdditionalLearning.repository.UserFrequentProbRepo;
-import com.tmax.WaplMath.AdditionalLearning.repository.UserSectionMasteryRepo;
-import com.tmax.WaplMath.AdditionalLearning.repository.UserSubSectionMasteryRepo;
-import com.tmax.WaplMath.AdditionalLearning.repository.UserTargetExamScopeRepo;
+import com.tmax.WaplMath.AdditionalLearning.model.UserFrequentProblem;
+import com.tmax.WaplMath.AdditionalLearning.model.UserSectionMastery;
+import com.tmax.WaplMath.AdditionalLearning.model.UserSubSectionMastery;
+import com.tmax.WaplMath.AdditionalLearning.model.UserTargetExamScope;
+import com.tmax.WaplMath.AdditionalLearning.repository.legacy.EstimatedTimeRepo;
+import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserFrequentProbRepo;
+import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserSectionMasteryRepo;
+import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserSubSectionMasteryRepo;
+import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserTargetExamScopeRepo;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
@@ -33,8 +33,8 @@ import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service("FrequentCardServiceV2")
-public class FrequentCardServiceV2 implements FrequentCardServiceBaseV2{
+@Service("FrequentCardServiceV0")
+public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 	//private final log log = logFactory.getlog(this.getClass().getSimpleName());
 	
 	

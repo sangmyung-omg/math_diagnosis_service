@@ -49,8 +49,9 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
         // CurriculumDataDTO currData = currSvc.getByIdList(userID, currIDList, excludeSet);
         CurriculumDataDTO currData = null;
         if(!excludeSet.contains("currData")){
-            List<String> currIDList = getRecentCurrIDList(userID, 10);
-            currData = currSvc.getByIdList(userID, currIDList, excludeSet);
+            //List<String> currIDList = getRecentCurrIDList(userID, 10);
+            //currData = currSvc.getByIdList(userID, currIDList, excludeSet);
+            currData = currSvc.searchRecent(userID, 1000, "chapter", "", excludeSet);
         }
         
         return ReportDataDTO.builder()

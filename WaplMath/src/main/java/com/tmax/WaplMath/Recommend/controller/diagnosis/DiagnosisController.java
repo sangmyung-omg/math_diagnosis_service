@@ -53,7 +53,7 @@ public class DiagnosisController {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map = problemService.getDiagnosisProblems(userId, diagType);
 		if (map == null || map.keySet().size() == 0) {
-			map.put("resultMessage", "error : result of getnextProblemSet is null, " + map);
+			map.put("resultMessage", "error : result of getnextProblemSet is empty, " + map);
 		} else {
 			if (map.containsKey("error")) {
 				map.put("resultMessage", map.get("error"));

@@ -26,6 +26,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServic
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.userknowledge.UserKnowledgeServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
+import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
@@ -485,9 +486,10 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
             std = 100 * stdStat.getAsFloat();
         }
 
-        //Histogram + Total cnt
+        //Histogram + Total cnt + percentile
         Statistics sortedListStat = currStatSvc.getStatistics(currID, CurrStatisticsServiceBase.STAT_MASTERY_PERCENTILE_LUT);
         List<Integer> histogram = null;
+        List<Float> percentile = null;
         Integer totalCnt = 0;
         int histogramSize = 10;
         if(sortedListStat != null){
@@ -500,7 +502,14 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
             }
 
             totalCnt = sortedListStat.getAsFloatList().size();
+
+
+            //percentile
+            percentile = StatisticsUtil.createPercentileLUT(sortedListStat.getAsFloatList(), 101).stream().map(data -> 100*data).collect(Collectors.toList());
         }
+
+        //percentile
+
 
 
         return GlobalStatisticDTO.builder()
@@ -508,6 +517,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
                                  .median(median)
                                  .std(std)
                                  .histogram(histogram)
+                                 .percentile(percentile)
                                  .totalCnt(totalCnt)
                                  .build();
     }

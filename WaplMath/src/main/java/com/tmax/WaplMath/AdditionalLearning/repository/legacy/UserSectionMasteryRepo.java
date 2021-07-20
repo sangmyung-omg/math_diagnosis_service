@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AdditionalLearning.repository;
+package com.tmax.WaplMath.AdditionalLearning.repository.legacy;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import com.tmax.WaplMath.AdditionalLearning.model.problem.UserSectionMastery;
+import com.tmax.WaplMath.AdditionalLearning.model.UserSectionMastery;
 
 public interface UserSectionMasteryRepo extends CrudRepository<UserSectionMastery,String>{
 	

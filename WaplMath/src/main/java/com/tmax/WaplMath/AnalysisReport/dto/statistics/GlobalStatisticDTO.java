@@ -16,5 +16,6 @@ public class GlobalStatisticDTO {
     private Float mean;
     private Float median;
     private List<Integer> histogram;
+    private List<Float> percentile;
     private Integer totalCnt;
 }

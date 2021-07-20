@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.CorrectRateDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
@@ -17,11 +18,13 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServic
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
+import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Recommend.model.user.User;
 import com.tmax.WaplMath.Recommend.repository.UserRepository;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -229,6 +232,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
 
         //Get grade
         String grade = userInfo.get().getGrade();
+        String currentCurrID = userInfo.get().getCurrentCurriculumId();
         List<String> examScopeCurrIDList = examScopeUtil.getCurrIdListOfScope(userID);
 
         Float mean = null;
@@ -277,6 +281,21 @@ public class ScoreServiceV0 implements ScoreServiceBase {
             }
         }
 
+        List<Float> percentile = null;
+        if(!excludeList.contains("percentile")){
+            //Statistics percentileLUTStat = currStatSvc.getStatistics(currentCurrID ,CurrStatisticsServiceBase.STAT_MASTERY_PERCENTILE_LUT+ "_grade_" + grade);
+
+            //TODO fix: this LUT is not precise. must fix
+            Statistics percentileLUTStat = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList,
+                                                                            CurrStatisticsServiceBase.STAT_MASTERY_PERCENTILE_LUT+ "_grade_" + grade);
+            if(percentileLUTStat != null){
+                List<Float> percentileLUT = percentileLUTStat.getAsFloatList();
+
+                //resize to 101; TODO. potential short list error
+                percentile = StatisticsUtil.createPercentileLUT(percentileLUT, 101).stream().map(data -> 100*data).collect(Collectors.toList());
+            }
+        }
+
         //TODO: Fix this dumb thing
         if(!excludeList.contains("totalCnt")){
             if(totalCnt == null)
@@ -291,6 +310,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                                  .median(median)
                                  .std(std)
                                  .histogram(histogram)
+                                 .percentile(percentile)
                                  .totalCnt(totalCnt)
                                  .build();
     }
