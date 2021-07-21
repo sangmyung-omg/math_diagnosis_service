@@ -371,7 +371,7 @@ public class CardGeneratorV1 {
 		int cnt = 1;
 		for (TypeMasteryDTO typeMastery : lowMasteryTypeList) {
 			Integer typeId = typeMastery.getTypeId();
-			String typeName = problemTypeRepo.NfindTypeNameById(typeId);
+			String typeName = problemTypeRepo.findTypeNameById(typeId);
 			Float mastery = typeMastery.getMastery();
 			log.info("보충카드 {}번째 유형 = {} (mastery={}) {} 문제", cnt, typeId, mastery, cnt == 1 ? 2 : 1); // 첫 유형은 두 문제
 

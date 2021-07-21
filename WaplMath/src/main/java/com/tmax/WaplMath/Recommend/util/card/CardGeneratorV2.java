@@ -757,7 +757,7 @@ public class CardGeneratorV2 extends CardConstants {
       Integer typeId = typeMastery.getTypeId();
       Float mastery = typeMastery.getMastery();
 
-      cardDetailJson.addProperty(problemTypeRepo.NfindTypeNameById(typeId), mastery * 100.0f);
+      cardDetailJson.addProperty(problemTypeRepo.findTypeNameById(typeId), mastery * 100.0f);
 
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
@@ -793,7 +793,7 @@ public class CardGeneratorV2 extends CardConstants {
       Integer typeId = typeMastery.getTypeId();
       Float mastery = typeMastery.getMastery();
 
-      cardDetailJson.addProperty(problemTypeRepo.NfindTypeNameById(typeId), mastery * 100.0f);
+      cardDetailJson.addProperty(problemTypeRepo.findTypeNameById(typeId), mastery * 100.0f);
 
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 

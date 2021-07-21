@@ -44,14 +44,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	public List<Integer> findAllProbIdByTypeNotInList(@Param("typeId") Integer typeId,
 			@Param("probIdSet") Set<Integer> probIdSet);
 
-	
-	//신
-	@Query("select p from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
-	public List<Problem> NfindProbListByType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
-	
-	@Query("select p from Problem p where p.problemType.curriculumId in (:subSectionList) and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
-	public List<Problem> findProbListInSubSectionList(@Param("subSectionList") List<String> subSectionList, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
-
+  // CardGenerator v1
 	@Query("select p from Problem p where p.problemType.curriculumId=:subSectionId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
 	public List<Problem> NfindProbListBySubSection(@Param("subSectionId") String subSectionId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 	
@@ -62,11 +55,14 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	public List<Problem> NfindProbListByChapter(@Param("chapterId") String chapterId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 	//21.07.01 card generator v2
-	@Query("select count(p) from Problem p where p.problemType.curriculumId like concat(:currId, '%') and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
+	@Query("select count(p) from Problem p where p.problemType.curriculumId like concat(:currId, '%') and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet)) and p.category not in ('간단', '꼼꼼')")
 	public Integer findProbCntInCurrId(@Param("currId") String currId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
   
-	@Query("select count(p) from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
+	@Query("select count(p) from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet)) and p.category not in ('간단', '꼼꼼')")
 	public Integer findProbCntInType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+
+	@Query("select p from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet)) and p.category not in ('간단', '꼼꼼')")
+	public List<Problem> NfindProbListByType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 	//2021-06-17 Added by Jonghyun Seong. gets Problem List from probIDList
 	@Query("select p from Problem p where p.probId in :probIdList")
