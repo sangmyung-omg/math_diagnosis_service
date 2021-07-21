@@ -31,9 +31,11 @@ public class ScheduleControllerV2 {
 
     String userId = JWTUtil.getJWTPayloadField(token, "userID");
 
-    log.info("userId : {}", userId);
+    log.info("Normal card service. userId : {}", userId);
 
     ScheduleCardOutputDTO normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
+
+    log.info("Successfully return normal cards. ");
 
     return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
   }
@@ -44,10 +46,12 @@ public class ScheduleControllerV2 {
 
     String userId = JWTUtil.getJWTPayloadField(token, "userID");
     
-    log.info("userId : {}", userId);
+    log.info("Exam card service. userId : {}", userId);
 
     ScheduleCardOutputDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
     
+    log.info("Successfully return exam cards. ");
+
     return new ResponseEntity<>(examScheduleCard, HttpStatus.OK);
   }
 
@@ -57,9 +61,11 @@ public class ScheduleControllerV2 {
 
     String userId = JWTUtil.getJWTPayloadField(token, "userID");
     
-    log.info("userId : {}", userId);
+    log.info("Normal dummy service. userId : {}", userId);
 
     ScheduleCardOutputDTO normalScheduleCard = scheduleMvc.getScheduleCardDummy(userId);
+
+    log.info("Successfully return normal dummy cards. ");
 
     return new ResponseEntity<>(normalScheduleCard, HttpStatus.OK);
   }

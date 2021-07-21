@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants.Difficulty;
 import lombok.Data;
 

@@ -7,25 +7,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.problem.DiagnosisProblem;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.model.user.UserExamScope;
+import com.tmax.WaplMath.Common.repository.user.UserExamScopeRepo;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
+import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepo;
+import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-
-import com.tmax.WaplMath.Problem.repository.ProblemRepository;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.problem.DiagnosisProblem;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.repository.DiagnosisProblemRepository;
-import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
-import com.tmax.WaplMath.Recommend.service.userinfo.UserInfoServiceV0;
 
 
 @Service("ProblemServiceV0")
@@ -40,13 +35,12 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	UserInfoServiceV0 userService;
 	
 	@Autowired
-	DiagnosisProblemRepository diagnosisProblemRepository;
+  @Qualifier("RE-DiagnosisProblemRepo")
+	DiagnosisProblemRepo diagnosisProblemRepository;
 	
 	@Autowired
-	ProblemRepository problemRepository;
-	
-	@Autowired
-	CurriculumRepository curriculumRepository;
+  @Qualifier("RE-CurriculumRepo")
+	CurriculumRepo curriculumRepository;
 	
 	@Autowired
 	UserExamScopeRepo userExamScopeRepo;

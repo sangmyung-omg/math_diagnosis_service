@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.tmax.WaplMath.AdditionalLearning.dto.FreqProbCurriDTO;
 import com.tmax.WaplMath.AdditionalLearning.repository.ProblemRepo;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

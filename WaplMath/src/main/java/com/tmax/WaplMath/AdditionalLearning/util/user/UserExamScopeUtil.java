@@ -6,11 +6,9 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
 import com.tmax.WaplMath.AdditionalLearning.repository.UserExamScopeRepo;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
-
+import com.tmax.WaplMath.Common.model.user.UserExamScope;
 import lombok.extern.slf4j.Slf4j;
 
 

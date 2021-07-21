@@ -17,6 +17,7 @@ public enum RecommendErrorCode implements ErrorCodeBase {
 
     USER_NOT_EXIST_ERROR("0006", "Given user does not exist. "),
     USER_INFO_NULL_ERROR("0007", "One of user's info is null. "),
+    USER_MASTERY_NOT_EXIST_ERROR("0008", "User's mastery is null. Call /mastery api for initialize USER_KNOWLEDGE TB. "),
 
     CARD_GENERATE_NO_CARDS_ERROR("1000","No cards were created. User seems to have solved all the problems."),
     SCHEDULE_CONFIGURATOR_ERROR("1001","Schedule configurator returned error. "),

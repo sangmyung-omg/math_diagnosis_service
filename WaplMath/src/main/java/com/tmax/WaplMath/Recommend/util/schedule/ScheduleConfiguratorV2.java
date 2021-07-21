@@ -2,6 +2,8 @@ package com.tmax.WaplMath.Recommend.util.schedule;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -12,24 +14,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import com.tmax.WaplMath.Common.model.problem.ProblemType;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.model.user.UserExamScope;
+import com.tmax.WaplMath.Common.repository.user.UserExamScopeRepo;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
-import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
-import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManagerV1;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,22 +49,26 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
   // Repository
   @Autowired
+  @Qualifier("RE-ProblemRepo")
   private ProblemRepo problemRepo;
 
   @Autowired
-  private UserRepository userRepo;
+  private UserRepo userRepo;
 
   @Autowired
+  @Qualifier("RE-ProblemTypeRepo")
   private ProblemTypeRepo problemTypeRepo;
 
   @Autowired
   private UserExamScopeRepo userExamScopeRepo;
 
   @Autowired
-  private CurriculumRepository curriculumRepo;
+  @Qualifier("RE-CurriculumRepo")
+  private CurriculumRepo curriculumRepo;
 
   @Autowired
-  private UserKnowledgeRepository userKnowledgeRepo;
+  @Qualifier("RE-UserKnowledgeRepo")
+  private UserKnowledgeRepo userKnowledgeRepo;
 
   @Autowired
   ScheduleHistoryManagerV1 historyManager;
@@ -79,7 +86,11 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   public void setUserValue(String userId){
     // set today
     this.userId = userId;
-    this.today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    // this.today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    ZoneId zoneId = ZoneId.of("Asia/Seoul");
+    this.today = ZonedDateTime.now(zoneId).plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
     setUserSolvedProbIdSet(userId);
     this.examSubSectionIdSet = new HashSet<>();
   }
@@ -251,7 +262,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     // 보충 필요한지 판단
     List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "", 
             SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
-    log.info("7. Type list already solved through SUPPLE cards = \n{}", suppleTypeIdList);
+    log.info("7. Type list already solved through SUPPLE cards = {}", suppleTypeIdList);
 
     List<Integer> solvedTypeIdList = historyManager.getCompletedTypeIdListAfterSuppleCard(userId, today);
 

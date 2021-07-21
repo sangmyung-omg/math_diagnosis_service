@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import com.google.gson.JsonObject;
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.dto.mastery.CurrMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
@@ -16,15 +18,14 @@ import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.DiffProbListDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetListDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,16 +48,20 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   @Autowired
+  @Qualifier("RE-ProblemRepo")
   private ProblemRepo problemRepo;
 
   @Autowired
+  @Qualifier("RE-ProblemTypeRepo")
   private ProblemTypeRepo problemTypeRepo;
 
   @Autowired
-  private CurriculumRepository curriculumRepo;
+  @Qualifier("RE-CurriculumRepo")
+  private CurriculumRepo curriculumRepo;
 
   @Autowired
-  private UserKnowledgeRepository userKnowledgeRepo;
+  @Qualifier("RE-UserKnowledgeRepo")
+  private UserKnowledgeRepo userKnowledgeRepo;
 
 
   private String userId;

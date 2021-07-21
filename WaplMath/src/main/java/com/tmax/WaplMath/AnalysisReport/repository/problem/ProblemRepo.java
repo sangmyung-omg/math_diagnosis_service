@@ -1,9 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.repository.problem;
 
 import java.util.List;
-
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

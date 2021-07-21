@@ -14,6 +14,7 @@ import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +33,7 @@ public class ScheduleHistoryManagerV1 {
 
   
   @Autowired
+  @Qualifier("RE-ProblemRepo")
   private ProblemRepo problemRepo;
 
   @Autowired
@@ -53,6 +55,7 @@ public class ScheduleHistoryManagerV1 {
 
     return LRSResult.isEmpty() ? new HashSet<>()
                                : LRSResult.stream()
+                                          .filter(statement -> statement.getSourceId() != null)
                                           .map(statement -> Integer.parseInt(statement.getSourceId()))
                                           .collect(Collectors.toSet());
   }
@@ -81,7 +84,8 @@ public class ScheduleHistoryManagerV1 {
         Set<Integer> probIdSet = dayProbIdSet.containsKey(date) ? dayProbIdSet.get(date) 
                                                                 : new HashSet<>();
 
-        probIdSet.add(Integer.parseInt(statement.getSourceId()));
+        if (statement.getSourceId() != null)
+          probIdSet.add(Integer.parseInt(statement.getSourceId()));
         dayProbIdSet.put(date, probIdSet);
       });
     }

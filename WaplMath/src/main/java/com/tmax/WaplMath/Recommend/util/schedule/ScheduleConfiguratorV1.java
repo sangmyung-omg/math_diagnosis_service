@@ -10,20 +10,19 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
+import com.tmax.WaplMath.Common.model.problem.Problem;
+import com.tmax.WaplMath.Common.model.problem.ProblemType;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
-import com.tmax.WaplMath.Recommend.repository.UserExamScopeRepo;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManagerV1;
 import lombok.Getter;
@@ -44,15 +43,19 @@ public class ScheduleConfiguratorV1 {
 
 	// Repository
 	@Autowired
+  @Qualifier("RE-ProblemRepo")
 	private ProblemRepo problemRepo;
 	@Autowired
-	private UserRepository userRepo;
+	private UserRepo userRepo;
 	@Autowired
+  @Qualifier("RE-ProblemTypeRepo")
 	private ProblemTypeRepo problemTypeRepo;
 	@Autowired
-	private CurriculumRepository curriculumRepo;
+  @Qualifier("RE-CurriculumRepo")
+	private CurriculumRepo curriculumRepo;
 	@Autowired
-	private UserKnowledgeRepository userKnowledgeRepo;
+  @Qualifier("RE-UserKnowledgeRepo")
+	private UserKnowledgeRepo userKnowledgeRepo;
 
 	@Autowired
 	ScheduleHistoryManagerV1 historyManager;

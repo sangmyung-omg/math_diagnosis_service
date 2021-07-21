@@ -7,9 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 
 
 @Repository("AddLearn-ProblemRepo")

@@ -1,7 +1,6 @@
 package com.tmax.WaplMath.AnalysisReport.repository.user;
 
-import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
-
+import com.tmax.WaplMath.Common.model.user.UserExamScope;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

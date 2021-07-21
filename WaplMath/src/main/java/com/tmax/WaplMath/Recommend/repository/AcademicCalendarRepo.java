@@ -1,12 +1,12 @@
 package com.tmax.WaplMath.Recommend.repository;
 
 import java.util.List;
-
+import com.tmax.WaplMath.Common.model.curriculum.AcademicCalendar;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
-import com.tmax.WaplMath.Recommend.model.curriculum.AcademicCalendar;
-
+@Repository("RE-AcademicCalendarRepo")
 public interface AcademicCalendarRepo extends CrudRepository<AcademicCalendar, String> {
 	@Query("SELECT AC FROM AcademicCalendar AC"
 			+ " WHERE SUBSTR(AC.curriculumId,5,1)=?1 AND SUBSTR(AC.curriculumId,7,1)=?2"

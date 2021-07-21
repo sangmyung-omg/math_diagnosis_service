@@ -20,8 +20,7 @@ import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
 import com.tmax.WaplMath.AnalysisReport.util.temp.CommentaryGenerator;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
-import com.tmax.WaplMath.Recommend.model.user.User;
-
+import com.tmax.WaplMath.Common.model.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

@@ -22,8 +22,9 @@ import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Recommend.repository.UserRepo;
+
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,8 @@ public class ScoreServiceV0 implements ScoreServiceBase {
 
 
     @Autowired
-    private UserRepository userRepo;
+    @Qualifier("RE-UserRepo")
+    private UserRepo userRepo;
 
     @Autowired
     private ExamScopeUtil examScopeUtil;

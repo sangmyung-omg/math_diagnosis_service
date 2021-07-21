@@ -1,5 +1,6 @@
 package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,11 +24,11 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.repository.problem.ProblemRepo;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service("UserStatisticsServiceV0")
 public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     @Autowired
-    private UserRepository userRepository;
+    private UserRepo userRepository;
 
 
     @Autowired

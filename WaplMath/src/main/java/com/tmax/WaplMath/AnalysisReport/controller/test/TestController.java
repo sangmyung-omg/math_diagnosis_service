@@ -24,10 +24,10 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 

@@ -21,13 +21,6 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledgeKey;
-import com.tmax.WaplMath.Recommend.model.uk.Uk;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,18 +29,25 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledgeKey;
+import com.tmax.WaplMath.Common.model.uk.Uk;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
+import com.tmax.WaplMath.Common.repository.uk.UkRepo;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 
 @Slf4j
 @Service("AR-UserKnowledgeServiceV0")
 public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
     @Autowired
-    UkRepository ukRepo;
+    UkRepo ukRepo;
 
     @Autowired
-    UserKnowledgeRepository userKnowledgeRepo;
+    UserKnowledgeRepo userKnowledgeRepo;
 
     @Autowired
-    UserRepository userRepo;
+    UserRepo userRepo;
 
     @Autowired
     CurrStatisticsServiceBase currStatSvc;

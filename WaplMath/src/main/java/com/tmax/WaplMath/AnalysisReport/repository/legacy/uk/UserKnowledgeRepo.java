@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("AR-UserKnowledgeRepo-Legacy")
 public interface UserKnowledgeRepo extends CrudRepository<UserKnowledgeJoined, String>{
     
     @Query(value="select USER_UUID, know.UK_ID, UK_MASTERY, UK_NAME, UK_DESCRIPTION, CURRICULUM_ID, PROB_ID from user_knowledge know " +

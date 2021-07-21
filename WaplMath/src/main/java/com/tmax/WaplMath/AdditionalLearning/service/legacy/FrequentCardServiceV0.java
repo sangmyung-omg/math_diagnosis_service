@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.AdditionalLearning.service.legacy;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -152,6 +153,13 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 	public List<FrequentProblemDTO> getSubsectionFreqProb
 	(String userId, boolean isFirstFreq, List<String> diagnosisSubsectionList, List<String> subsectionList, List<String> todayCardSubsectionList, List<Integer> solvedProbIdList) throws Exception{
 		List<FrequentProblemDTO> recommendFreqProbIdList = new ArrayList<FrequentProblemDTO>();
+		
+		if(solvedProbIdList.isEmpty()) {
+			solvedProbIdList.add(0);
+		}
+		if(subsectionList.isEmpty()) {
+			subsectionList.add("0");
+		}
 		
 		//1. 진단고사 직후
 		if(isFirstFreq) 
@@ -453,17 +461,23 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		List<String> diagnosisSubsectionList = new ArrayList<String>();
 		
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		String today = LocalDate.now().format(formatter);
-		String tomorrow = LocalDate.now().plusDays(1).format(formatter);
-		String Fromday = LocalDate.now().minusDays(14).format(formatter);
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//		String today = LocalDate.now().format(formatter);
+//		String tomorrow = LocalDate.now().plusDays(1).format(formatter);
+//		String Fromday = LocalDate.now().minusDays(14).format(formatter);
+		
+	
+		String today = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+		String tomorrow = ZonedDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+		String Fromday = ZonedDateTime.now().minusDays(14).format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+
 		
 		List<String> sourceTypeListDiagnosis = new ArrayList<String>(
-				Arrays.asList("diagnosis")); // 진단고사 문제
+				Arrays.asList("diagnosis","diagnosis_simple")); // 진단고사 문제
 		List<String> sourceTypeListTodayCards = new ArrayList<String>(
 				Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question")); // 진단고사, 추가학습(빈출문제카드)에서 푼 문제를 제외 - 오늘의 학습 카드 source type
 		List<String> sourceTypeListAll = new ArrayList<String>(
-				Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question","diagnosis","frequent_question")); // 모든 source type
+				Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question","frequent_question")); // 모든 source type(진단고사 제외)
 
 		try {
 			diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 

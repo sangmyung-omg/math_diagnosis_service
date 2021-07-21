@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tmax.WaplMath.AdditionalLearning.model.UserTargetExamScope;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 
 @Repository
 public interface EstimatedTimeRepo extends CrudRepository<Problem,String>{

@@ -2,13 +2,11 @@ package com.tmax.WaplMath.AdditionalLearning.repository;
 
 import java.util.List;
 import java.util.Set;
-
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
 
 
 @Repository("AddLearn-SectionRepo")

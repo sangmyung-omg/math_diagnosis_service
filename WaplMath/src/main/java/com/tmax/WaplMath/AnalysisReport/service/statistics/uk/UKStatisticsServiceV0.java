@@ -15,9 +15,9 @@ import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticUKRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.uk.Uk;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.uk.Uk;
+import com.tmax.WaplMath.Recommend.repository.UkRepo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,8 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
     private UserKnowledgeRepo userKnowledgeRepo;
 
     @Autowired
-    private UkRepository ukRepository;
+    @Qualifier("RE-UkRepo")
+    private UkRepo ukRepository;
 
 
     @Autowired

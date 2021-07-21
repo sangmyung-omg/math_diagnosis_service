@@ -14,9 +14,8 @@ import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.CurriculumI
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.user.User;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

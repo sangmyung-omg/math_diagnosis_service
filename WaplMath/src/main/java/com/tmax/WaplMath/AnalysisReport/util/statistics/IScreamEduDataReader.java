@@ -15,11 +15,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Recommend.repository.UkRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
@@ -95,7 +96,8 @@ class UserData {
 public class IScreamEduDataReader {
 
     @Autowired
-    private UkRepository ukRepository;
+    @Qualifier("RE-UkRepo")
+    private UkRepo ukRepository;
 
     @Value("${external-config.url}")
     private String externalConfigURL;

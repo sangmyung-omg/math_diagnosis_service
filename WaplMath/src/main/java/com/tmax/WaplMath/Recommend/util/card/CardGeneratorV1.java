@@ -8,21 +8,22 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.gson.JsonObject;
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.dto.mastery.CurrMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
 import com.tmax.WaplMath.Recommend.dto.schedule.DiffProbListDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetDTO;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants.Difficulty;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,13 +55,17 @@ public class CardGeneratorV1 {
 	private final Boolean printCurrInfo = false; //level 2
 
 	@Autowired
+  @Qualifier("RE-ProblemRepo")
 	private ProblemRepo problemRepo;
 	@Autowired
+  @Qualifier("RE-ProblemTypeRepo")
 	private ProblemTypeRepo problemTypeRepo;
 	@Autowired
-	private CurriculumRepository curriculumRepo;
+  @Qualifier("RE-CurriculumRepo")
+	private CurriculumRepo curriculumRepo;
 	@Autowired
-	private UserKnowledgeRepository userKnowledgeRepo;
+  @Qualifier("RE-UserKnowledgeRepo")
+	private UserKnowledgeRepo userKnowledgeRepo;
 
 	public String userId;
 	public @Setter Set<Integer> solvedProbIdSet;

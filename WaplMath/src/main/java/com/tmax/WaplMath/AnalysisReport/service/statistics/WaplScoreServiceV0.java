@@ -18,12 +18,12 @@ import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
 import com.tmax.WaplMath.AnalysisReport.util.triton.WAPLScoreTriton;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
+import com.tmax.WaplMath.Common.model.uk.Uk;
+import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
-import com.tmax.WaplMath.Recommend.model.uk.Uk;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
-import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
+import com.tmax.WaplMath.Recommend.repository.UkRepo;
+import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepo;
 import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,8 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     private UserInfoRepo userInfoRepo;
 
     @Autowired
-	private UserEmbeddingRepository userEmbeddingRepo;
+    @Qualifier("RE-UserEmbeddingRepo")
+	  private UserEmbeddingRepo userEmbeddingRepo;
 
     @Autowired
     private WAPLScoreTriton waplScoreTriton;
@@ -66,7 +67,8 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     private UKStatisticsServiceBase ukStatSvc;
 
     @Autowired
-    private UkRepository ukRepo;
+    @Qualifier("RE-UkRepo")
+    private UkRepo ukRepo;
 
     @Autowired
     @Qualifier("CurrStatisticsServiceV0")

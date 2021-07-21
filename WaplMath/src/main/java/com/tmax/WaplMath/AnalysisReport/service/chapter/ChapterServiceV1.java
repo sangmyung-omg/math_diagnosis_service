@@ -32,12 +32,11 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsSe
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.uk.Uk;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.uk.Uk;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.repository.uk.UkRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,7 +74,7 @@ public class ChapterServiceV1 implements ChapterServiceBase{
     private UserKnowledgeRepo ukInfoRepo;
 
     @Autowired
-    private UkRepository ukRepo;
+    private UkRepo ukRepo;
 
     @Autowired
     @Qualifier("UserStatisticsServiceV0")

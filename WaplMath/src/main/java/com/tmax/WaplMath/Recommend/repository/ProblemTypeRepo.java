@@ -2,13 +2,13 @@ package com.tmax.WaplMath.Recommend.repository;
 
 import java.util.List;
 import java.util.Set;
-
+import com.tmax.WaplMath.Common.model.problem.ProblemType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
-
+@Repository("RE-ProblemTypeRepo")
 public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 
 

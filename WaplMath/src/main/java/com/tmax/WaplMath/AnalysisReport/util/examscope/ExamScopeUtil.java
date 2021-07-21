@@ -8,17 +8,16 @@ import java.util.stream.Collectors;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.model.user.UserExamScope;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.model.user.UserExamScope;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,7 +32,7 @@ public class ExamScopeUtil {
     private UserExamScopeInfoRepo examScopeRepo;
 
     @Autowired
-    private UserRepository userRepo;
+    private UserRepo userRepo;
 
     public List<String> getCurrIdListOfScope(String userID){
         //Get user curriculumList from examscope

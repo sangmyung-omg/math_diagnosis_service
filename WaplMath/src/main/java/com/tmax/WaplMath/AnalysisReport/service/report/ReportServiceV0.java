@@ -14,9 +14,8 @@ import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.repository.curriculum.CurriculumRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +34,7 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
     UserStatisticsServiceBase userStatSvc;
 
     @Autowired
-    CurriculumRepository currRepo;
+    CurriculumRepo currRepo;
 
     @Override
     public ReportDataDTO getReport(String userID, Set<String> excludeSet) {

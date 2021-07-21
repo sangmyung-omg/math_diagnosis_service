@@ -11,12 +11,13 @@ import java.util.Random;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
+import com.tmax.WaplMath.Common.model.problem.ProblemType;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbDTO;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
-import com.tmax.WaplMath.Recommend.model.problem.ProblemType;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
 import com.tmax.WaplMath.Recommend.repository.TypeUkRelRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
@@ -36,11 +37,14 @@ public class WaplScoreManagerV1 {
   private final Boolean printProbInfo = false; //level 3
 
   @Autowired
+  @Qualifier("RE-TypeUkRelRepo")
   TypeUkRelRepo typeUkRelRepo;
   @Autowired
+  @Qualifier("RE-ProblemTypeRepo")
   ProblemTypeRepo problemTypeRepo;
   @Autowired
-  CurriculumRepository curriculumRepo;
+  @Qualifier("RE-CurriculumRepo")
+  CurriculumRepo curriculumRepo;
 
   public Integer totalUkLength = 0;
   public Integer totalProbCnt = 0;

@@ -1,9 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.repository.curriculum;
 
 import java.util.List;
-
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

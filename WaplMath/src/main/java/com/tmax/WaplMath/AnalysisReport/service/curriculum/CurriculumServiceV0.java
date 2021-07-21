@@ -29,14 +29,15 @@ import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.uk.Uk;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.CurriculumRepository;
-import com.tmax.WaplMath.Recommend.repository.UkRepository;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.uk.Uk;
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.repository.curriculum.CurriculumRepo;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
+import com.tmax.WaplMath.Recommend.repository.UkRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,10 +46,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service("AR-CurriculumServiceV0")
 public class CurriculumServiceV0 implements CurriculumServiceBase {
     @Autowired
-    UserRepository userRepo;
+    UserRepo userRepo;
 
     @Autowired
-    CurriculumRepository currRepo;
+    CurriculumRepo currRepo;
 
     @Autowired
     CurriculumInfoRepo currInfoRepo;
@@ -63,7 +64,8 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
     CurrStatisticsServiceBase currStatSvc;
 
     @Autowired
-    UkRepository ukRepo;
+    @Qualifier("RE-UkRepo")
+    UkRepo ukRepo;
 
     @Autowired
     UserKnowledgeServiceBase userKnowledgeSvc;

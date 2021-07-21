@@ -6,11 +6,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV1;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.card.CardGeneratorV1;
 
 @SpringBootTest
@@ -18,7 +19,8 @@ public class CardGeneratorTest {
 	@Autowired
 	CardGeneratorV1 cardGenerator;
 	@Autowired
-	private UserKnowledgeRepository userKnowledgeRepo;
+  @Qualifier("RE-UserKnowledgeRepo")
+	private UserKnowledgeRepo userKnowledgeRepo;
 
 	@Test
 	public void generateCardTest() {

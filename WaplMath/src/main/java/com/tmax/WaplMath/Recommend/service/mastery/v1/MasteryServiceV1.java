@@ -8,26 +8,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.problem.Problem;
+import com.tmax.WaplMath.Common.model.problem.ProblemUkRel;
+import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserEmbedding;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Recommend.model.problem.Problem;
-import com.tmax.WaplMath.Recommend.model.problem.ProblemUkRel;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
-import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepository;
-import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepository;
-import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepository;
+import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepo;
+import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepo;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,16 +43,19 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
     MasteryAPIManager masteryAPIManager;
 
     @Autowired
-	UserEmbeddingRepository userEmbeddingRepo;
+    @Qualifier("RE-UserEmbeddingRepo")
+    UserEmbeddingRepo userEmbeddingRepo;
 
-	@Autowired
-	ProblemUkRelRepository probUkRelRepo;
+    @Autowired
+    @Qualifier("RE-ProblemUkRelRepo")
+    ProblemUkRelRepo probUkRelRepo;
 
-	@Autowired
-	ProblemRepo probRepo;
-    
-	@Autowired
-	UserKnowledgeRepository userKnowledgeRepository;
+    @Autowired
+    @Qualifier("RE-ProblemRepo")
+    ProblemRepo probRepo;
+      
+    @Autowired
+    UserKnowledgeRepo userKnowledgeRepository;
 
 
 
@@ -63,7 +66,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     //Scaler for uk mastery
     private static final float SCALE_PARAM = 0.65079f;
-	private static final float BIAS_PARAM = 0.4f;
+  private static final float BIAS_PARAM = 0.4f;
     private static final float SCALE_THRESHOLD = 0.85f;
     
     private float correctUkMastery(float currentMastery){

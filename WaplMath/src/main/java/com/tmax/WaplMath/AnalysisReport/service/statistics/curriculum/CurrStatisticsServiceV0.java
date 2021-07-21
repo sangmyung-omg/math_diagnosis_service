@@ -24,12 +24,10 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
-import com.tmax.WaplMath.Recommend.model.curriculum.Curriculum;
-import com.tmax.WaplMath.Recommend.model.knowledge.UserKnowledge;
-
 import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
-
+import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -73,6 +71,7 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
     private CurriculumInfoRepo curriculumInfoRepo;
 
     @Autowired
+    @Qualifier("AR-UserKnowledgeRepo")
     private UserKnowledgeRepo userKnowledgeRepo;
 
     @Autowired

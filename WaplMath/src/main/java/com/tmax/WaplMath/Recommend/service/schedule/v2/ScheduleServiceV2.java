@@ -6,10 +6,12 @@ import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
+import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.card.CardGeneratorV2;
 import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfiguratorV2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,11 +29,27 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
   @Autowired
   ScheduleConfiguratorV2 scheduleConfigurator = new ScheduleConfiguratorV2();
+
+  @Autowired
+  @Qualifier("RE-UserKnowledgeRepo")
+  private UserKnowledgeRepo userKnowledgeRepo;
   
+
+  // 21.07.21. Check user mastery exist
+  public void checkUserMasteryExist(String userId) {
+
+    if (userKnowledgeRepo.findUserKnowledge(userId).isEmpty()){
+      log.error("User not exist mastery, {} ", userId);
+      throw new RecommendException(RecommendErrorCode.USER_MASTERY_NOT_EXIST_ERROR);
+    }
+  }
+
 
   public ScheduleCardOutputDTO getScheduleCard(String userId, String type){
 
     List<CardDTOV2> cardList = new ArrayList<>();
+
+    checkUserMasteryExist(userId);
 
     scheduleConfigurator.setUserValue(userId);
     

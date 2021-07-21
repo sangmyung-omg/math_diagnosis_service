@@ -18,9 +18,8 @@ import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceV1;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.temp.CommentaryGenerator;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
-import com.tmax.WaplMath.Recommend.model.user.User;
-import com.tmax.WaplMath.Recommend.repository.UserRepository;
-
+import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,7 @@ public class CommentaryService {
     ChapterServiceV1 chapterSvcv1;
 
     @Autowired
-    UserRepository userRepo;
+    UserRepo userRepo;
 
     @Autowired
     ScoreServiceBase scoreSvc;
