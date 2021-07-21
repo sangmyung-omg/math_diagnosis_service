@@ -225,7 +225,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
     }
 
     @Override
-    public GlobalStatisticDTO getScoreStats(String userID, Set<String> excludeList, int histogramSize) {
+    public GlobalStatisticDTO getScoreStats(String userID, Set<String> excludeSet, int histogramSize, int percentileLUTSize) {
         //Get all grade statistics
         Optional<User> userInfo = userRepo.findById(userID);
         if(!userInfo.isPresent()){
@@ -234,15 +234,15 @@ public class ScoreServiceV0 implements ScoreServiceBase {
 
         //Get grade
         String grade = userInfo.get().getGrade();
-        String currentCurrID = userInfo.get().getCurrentCurriculumId();
+        // String currentCurrID = userInfo.get().getCurrentCurriculumId();
         List<String> examScopeCurrIDList = examScopeUtil.getCurrIdListOfScope(userID);
 
         Float mean = null;
-        if(!excludeList.contains("mean")){
+        if(!excludeSet.contains("mean")){
             Statistics meanStat = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList,
                                                                          CurrStatisticsServiceBase.STAT_MASTERY_MEAN + "_grade_" + grade);
             if(meanStat != null)
-                mean = meanStat.getAsFloat();
+                mean = 100 * meanStat.getAsFloat();
         }
 
         //Total count of users
@@ -250,23 +250,23 @@ public class ScoreServiceV0 implements ScoreServiceBase {
 
         //TODO: not supported yet
         Float median = null;
-        if(!excludeList.contains("median")){
+        if(!excludeSet.contains("median")){
             Statistics medianStat = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList,
                                                                            CurrStatisticsServiceBase.STAT_MASTERY_MEDIAN + "_grade_" + grade);
             if(medianStat != null)
-                median = medianStat.getAsFloat();
+                median = 100 * medianStat.getAsFloat();
         }
 
         Float std = null;
-        if(!excludeList.contains("std")){
+        if(!excludeSet.contains("std")){
             Statistics stdStat = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList,
                                                                         CurrStatisticsServiceBase.STAT_MASTERY_STD + "_grade_" + grade);
             if(stdStat != null)
-                std = stdStat.getAsFloat();
+                std = 100* stdStat.getAsFloat();
         }
 
         List<Integer> histogram = null;
-        if(!excludeList.contains("histogram")){
+        if(!excludeSet.contains("histogram")){
             Statistics masteryList = currStatSvc.getCoarseAverageStatistics(examScopeCurrIDList,
                                                                             CurrStatisticsServiceBase.STAT_MASTERY_PERCENTILE_LUT+ "_grade_" + grade);
             //Make histogram
@@ -284,7 +284,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
         }
 
         List<Float> percentile = null;
-        if(!excludeList.contains("percentile")){
+        if(!excludeSet.contains("percentile")){
             //Statistics percentileLUTStat = currStatSvc.getStatistics(currentCurrID ,CurrStatisticsServiceBase.STAT_MASTERY_PERCENTILE_LUT+ "_grade_" + grade);
 
             //TODO fix: this LUT is not precise. must fix
@@ -294,12 +294,12 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                 List<Float> percentileLUT = percentileLUTStat.getAsFloatList();
 
                 //resize to 101; TODO. potential short list error
-                percentile = StatisticsUtil.createPercentileLUT(percentileLUT, 101).stream().map(data -> 100*data).collect(Collectors.toList());
+                percentile = StatisticsUtil.createPercentileLUT(percentileLUT, percentileLUTSize).stream().map(data -> 100*data).collect(Collectors.toList());
             }
         }
 
         //TODO: Fix this dumb thing
-        if(!excludeList.contains("totalCnt")){
+        if(!excludeSet.contains("totalCnt")){
             if(totalCnt == null)
                 totalCnt = userRepo.getByGrade(grade).size();
         }
@@ -315,6 +315,11 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                                  .percentile(percentile)
                                  .totalCnt(totalCnt)
                                  .build();
+    }
+
+    @Override
+    public GlobalStatisticDTO getScoreStats(String userID, Set<String> excludeSet, int histogramSize) {
+        return getScoreStats(userID, excludeSet, histogramSize, 100 + 1);
     }
 
 

@@ -10,8 +10,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
+import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
+import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,6 +41,22 @@ public class ScheduleHistoryManagerV1 {
   @Autowired
   LRSAPIManager lrsAPIManager;
 
+
+  public Integer parseSourceId(String sourceId){
+    Integer output;
+
+    if (sourceId == null)
+      throw new RecommendException(RecommendErrorCode.NUMBER_PARSE_ERROR, sourceId);
+
+    try {
+      output = Integer.parseInt(sourceId);
+    } catch (NumberFormatException e){
+      throw new RecommendException(RecommendErrorCode.NUMBER_PARSE_ERROR, sourceId);
+    }
+
+    return output;
+  }
+
   
   public Set<Integer> getSolvedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList){
 
@@ -56,7 +74,7 @@ public class ScheduleHistoryManagerV1 {
     return LRSResult.isEmpty() ? new HashSet<>()
                                : LRSResult.stream()
                                           .filter(statement -> statement.getSourceId() != null)
-                                          .map(statement -> Integer.parseInt(statement.getSourceId()))
+                                          .map(statement -> parseSourceId(statement.getSourceId()))
                                           .collect(Collectors.toSet());
   }
 
@@ -84,8 +102,7 @@ public class ScheduleHistoryManagerV1 {
         Set<Integer> probIdSet = dayProbIdSet.containsKey(date) ? dayProbIdSet.get(date) 
                                                                 : new HashSet<>();
 
-        if (statement.getSourceId() != null)
-          probIdSet.add(Integer.parseInt(statement.getSourceId()));
+        probIdSet.add(parseSourceId(statement.getSourceId()));
         dayProbIdSet.put(date, probIdSet);
       });
     }

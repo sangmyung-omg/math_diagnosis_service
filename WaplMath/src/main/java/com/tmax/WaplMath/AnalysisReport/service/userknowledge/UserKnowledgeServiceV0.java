@@ -89,7 +89,7 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
 
     @Override
     public List<UkUserKnowledgeDetailDTO> getByUkIdList(String userID, List<Integer> ukIDList, Set<String> excludeSet) {
-        return ukIDList.stream().map(ukID -> getByUkId(userID, ukID, excludeSet)).collect(Collectors.toList());
+        return ukIDList.stream().parallel().map(ukID -> getByUkId(userID, ukID, excludeSet)).collect(Collectors.toList());
     }
 
     private UkSimpleDTO getUkInfo(Uk uk){
@@ -187,6 +187,7 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
         Statistics waplMasteryStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY);
         if(waplMasteryStat == null){
             log.warn("No wapl score mastery for " + userID);
+            return null;
         }
 
         //Make it to map

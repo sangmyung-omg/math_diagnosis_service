@@ -8,6 +8,8 @@ import javax.persistence.IdClass;
 import javax.persistence.Lob;
 import javax.persistence.Table;
 
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +36,12 @@ public class StatsAnalyticsCurr {
 
     private Timestamp lastUpdate;
     private Timestamp validUntil;
+
+    public Statistics toStatistics(){
+        return Statistics.builder()
+                            .name(this.name)
+                            .type(Statistics.Type.getFromValue(this.type))
+                            .data(this.data)
+                            .build();
+    }
 }

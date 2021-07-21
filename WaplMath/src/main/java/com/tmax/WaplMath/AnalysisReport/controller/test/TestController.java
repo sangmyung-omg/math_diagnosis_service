@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.controller.test;
 
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 // import java.io.FileReader;
 // import java.nio.file.Path;
 // import java.util.Arrays;
@@ -28,6 +29,7 @@ import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
+import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 
@@ -167,8 +169,12 @@ public class TestController {
 
     @GetMapping("/getLRS")
     ResponseEntity<Object> getLRS(@RequestParam("userID") String userID) {
-        lrsApiManager.getUserStatement(userID);
-        return null;
+        List<String> actionTypeList = Arrays.asList("submit", "start");
+        List<String> sourceTypeList = Arrays.asList("diagnosis","type_question", "supple_question", "section_test_question","chapter_test_question",
+                                                    "addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question",
+                                                    "retry_question","wrong_answer_question","starred_question");
+        List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
+        return new ResponseEntity<>(statementList, HttpStatus.OK);
     }
     
     @Autowired

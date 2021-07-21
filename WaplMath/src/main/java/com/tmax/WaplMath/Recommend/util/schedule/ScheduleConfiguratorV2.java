@@ -1,6 +1,5 @@
 package com.tmax.WaplMath.Recommend.util.schedule;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -87,12 +86,25 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     // set today
     this.userId = userId;
 
-    // this.today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    // set local time
     ZoneId zoneId = ZoneId.of("Asia/Seoul");
     this.today = ZonedDateTime.now(zoneId).plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
     setUserSolvedProbIdSet(userId);
     this.examSubSectionIdSet = new HashSet<>();
+  }
+
+
+  public void setUserSolvedProbIdSet(String userId){		
+    // Get solved problem set
+    List<String> sourceTypeList =
+        new ArrayList<>(Arrays.asList(TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
+                                      SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
+                                      SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
+                                      CHAPTER_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
+                                      TRIAL_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX));
+
+    this.solvedProbIdSet = historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
   }
 
 
@@ -140,19 +152,6 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
-  public void setUserSolvedProbIdSet(String userId){		
-    // Get solved problem set
-    List<String> sourceTypeList =
-        new ArrayList<>(Arrays.asList(TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      CHAPTER_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      TRIAL_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX));
-
-    this.solvedProbIdSet = historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
-  }
-
-
   public void setExamSubSectionIdSet(UserExamScope userExamScopeInfo) {		
     // sub-section lis in exam
     List<String> examSubSectionIdList = userExamScopeInfo.getExceptSubSectionIdList() != null
@@ -176,10 +175,10 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     User userInfo = getValidUserInfo(userId);
 
     // 이번 학기 마지막까지
-    String endCurriculumId = ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
+    String endCurriculumId = 
+      ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
 
     return curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId);
-
   }
 
 
@@ -188,7 +187,6 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     User userInfo = getValidUserInfo(userId);
 
     return String.format("%s-%s-%s", userInfo.getGrade(), userInfo.getSemester(), userInfo.getExamType());
-
   }
 
 
@@ -335,7 +333,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
       for (ProblemType type : remainTypeList) {
 
-        if (problemRepo.NfindProbListByType(type.getTypeId(), solvedProbIdSet).isEmpty()) {
+        if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet) == 0) {
           noProbTypeIdList.add(type.getTypeId());
           continue;
         }

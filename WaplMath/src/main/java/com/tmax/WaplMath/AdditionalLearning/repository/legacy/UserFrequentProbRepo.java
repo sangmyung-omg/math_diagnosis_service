@@ -17,7 +17,7 @@ public interface UserFrequentProbRepo extends CrudRepository<UserFrequentProblem
 			" from problem p, problem_type_master t, curriculum_master c"+
 			" where p.prob_id not in(:probIdList)"+
 			" and c.curriculum_id in(:curriculumIdList)"+
-			" and p.frequent is not null"+
+			" and p.frequent is null"+
 			" and p.type_id = t.type_id and t.curriculum_id = c.curriculum_id", nativeQuery=true)
 	List<UserFrequentProblem> getFrequentNotProvidedProblem(@Param("probIdList") List<Integer> probIdList, 
 																@Param("curriculumIdList") List<String> curriculumIdList);
@@ -28,7 +28,7 @@ public interface UserFrequentProbRepo extends CrudRepository<UserFrequentProblem
 			" from problem p, problem_type_master t, curriculum_master c"+
 			" where p.prob_id in(:probIdList)"+
 			" and c.curriculum_id in(:curriculumIdList)"+
-			" and p.frequent is not null"+
+			" and p.frequent is null"+
 			" and p.type_id = t.type_id and t.curriculum_id = c.curriculum_id", nativeQuery=true)
 			List<UserFrequentProblem> getFrequentProvidedProblem(@Param("probIdList") List<Integer> probIdList, 
 																	@Param("curriculumIdList") List<String> curriculumIdList);

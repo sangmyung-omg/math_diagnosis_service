@@ -85,6 +85,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
+  // return problem exist level
   public String getExistLevel(List<String> existDiffStrList, List<Difficulty> orderedDiffList){
     for (Difficulty diff: orderedDiffList){			
       if (existDiffStrList.contains(diff.name()))
@@ -92,6 +93,7 @@ public class CardGeneratorV2 extends CardConstants {
     }
     return null;
   }
+
 
   // high=0, middle=1, low=2
   public String getFirstProbLevel(Float mastery, List<String> existDiffStrList) {
@@ -163,14 +165,14 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 카드 안에 난이도 별로 문제 담기
+  // 카드 안에 난이도 별로 모든 문제 담기
   public void addAllProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROBLEM_NUM, 
                                    Integer MAX_PROBLEM_NUM) {
 
     List<ProblemSetListDTO> problemSetList = card.getProbIdSetList();
     Integer estimatedTime = card.getEstimatedTime();
 
-    // slice 최대 크기
+    // 최대 크기로 slice
     List<Problem> highProbList = sliceProbList(diffProbList.getHighProbList(), MAX_PROBLEM_NUM);
     List<Problem> middleProbList = sliceProbList(diffProbList.getMiddleProbList(), MAX_PROBLEM_NUM);
     List<Problem> lowProbList = sliceProbList(diffProbList.getLowProbList(), MAX_PROBLEM_NUM);
@@ -196,7 +198,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 카드 안에 난이도 확정 문제 담기
+  // 카드 안에 난이도 확정 문제 비율 맞춰 담기
   public void addRatioProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROB_NUM,
                                      Integer MAX_PROB_NUM, List<Integer> probDiffRatio) {
 
@@ -282,7 +284,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 빈출유형 수 고려하여 문제 추출 모듈
+  // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 빈출 유형 수 고려하여 문제 추출 모듈
   public void addCurrProblemWithFrequent(CardDTOV2 card, CurrType superCurr, Integer probNum, boolean isAdaptive,
                                          List<Integer> probDiffRatio) {
 
@@ -294,17 +296,20 @@ public class CardGeneratorV2 extends CardConstants {
       case "section":
         freqOrderedCurrIdList = problemTypeRepo.findSubSectionIdListInSectionOrderByFreq(superCurr.getCurrId());
         break;
+
       case "chapter":
         freqOrderedCurrIdList = problemTypeRepo.findSectionIdListInChapterOrderByFreq(superCurr.getCurrId());
         break;
+
       case "exam":
-        freqOrderedCurrIdList = problemTypeRepo.findChapterListInSubSectionSetOrderByFreq(examSubSectionIdSet);
+        freqOrderedCurrIdList = problemTypeRepo.findChapterListInSubSectionSetOrderByFreq(this.examSubSectionIdSet);
         break;
+
       default:
-        throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR, 
+        throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR,
                                      String.format("%s is not currType enum.", superCurr.name()));
-    }
-    
+    }    
+
     // print
     if (PRINT_CURR_INFO)
       log.info("[{} {}] Curriculums = ", superCurr.name(), superCurr.getCurrId());
@@ -321,7 +326,7 @@ public class CardGeneratorV2 extends CardConstants {
 
         // currId 내 모든 문제 수
         Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId) 
-                                 ? problemRepo.findProbListByCurrId(currId, solvedProbIdSet).size()
+                                 ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet)
                                  : totalCurrProbNumMap.get(currId);
 
         totalCurrProbNumMap.put(currId, totalCurrProbNum);
@@ -349,8 +354,7 @@ public class CardGeneratorV2 extends CardConstants {
     for (String currId : curriculumRepo.sortByCurrSeq(currentCurrProbNumMap.keySet())) {
       Integer currProbNum = currentCurrProbNumMap.get(currId);
 
-      switch (superCurr.name()) {
-        
+      switch (superCurr.name()) {        
         case "section":
           if (PRINT_CURR_INFO)
             log.info("Sub section {} : {} problems. ", currId, currProbNum);
@@ -409,14 +413,20 @@ public class CardGeneratorV2 extends CardConstants {
 
     switch (superCurr.name()) {
       case "section":
-        currMasteryList = userKnowledgeRepo.findMasteryListInSectionOrderByMastery(userId, superCurr.getCurrId());
+        currMasteryList = 
+          userKnowledgeRepo.findMasteryListInSectionOrderByMastery(userId, superCurr.getCurrId(), this.examSubSectionIdSet);
         break;
+
       case "chapter":
-        currMasteryList = userKnowledgeRepo.findMasteryListInChapterOrderByMastery(userId, superCurr.getCurrId());
+        currMasteryList = 
+          userKnowledgeRepo.findMasteryListInChapterOrderByMastery(userId, superCurr.getCurrId(), this.examSubSectionIdSet);
         break;
+
       case "exam":
-        currMasteryList = userKnowledgeRepo.findMasteryListInSubSectionSetOrderByMastery(userId, examSubSectionIdSet);
+        currMasteryList = 
+          userKnowledgeRepo.findMasteryListInSubSectionSetOrderByMastery(userId, this.examSubSectionIdSet);
         break;
+
       default:
         throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR, 
                                      String.format("%s is not currType enum.", superCurr.name()));
@@ -450,18 +460,19 @@ public class CardGeneratorV2 extends CardConstants {
 
         if (superCurr.name().equals("section")) {
           typeNum = !currTypeNumMap.containsKey(currId)
-                    ? problemTypeRepo.findTypeIdListInSubSection(currId).size()
+                    ? problemTypeRepo.findTypeCntInSubSection(currId)
                     : currTypeNumMap.get(currId);
 
           currTypeNumMap.put(currId, typeNum);
-        } else {
+        } 
+        else {
           typeNum = currProbNum;
         }
     
         if (currProbNum <= typeNum * probPerType) {
           // currId 내 가능한 문제 수
           Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId)
-                                   ? problemRepo.findProbListByCurrId(currId, solvedProbIdSet).size()
+                                   ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet)
                                    : totalCurrProbNumMap.get(currId);
                                    
           totalCurrProbNumMap.put(currId, totalCurrProbNum);
@@ -471,10 +482,10 @@ public class CardGeneratorV2 extends CardConstants {
             currentCurrProbNumMap.put(currId, currProbNum + 1);
             cardDetailJson.addProperty(currName, mastery * 100.0f);
             probCnt += 1;
-          } else // 문제가 없는 커리큘럼
+          } 
+          else // 문제가 없는 커리큘럼
             noProbCurrIdSet.add(currId);
-        } 
-        
+        }        
         else // 유형마다 포함되는 최대 문제수만큼 꽉차있는 소단원들
           fullCurrIdSet.add(currId);
 
@@ -528,11 +539,11 @@ public class CardGeneratorV2 extends CardConstants {
         default:
           throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR, 
                                        String.format("%s is not currType enum.", superCurr.name()));
-
       }
     }
     card.setCardDetail(cardDetailJson.toString());
   }
+
 
   // 소단원 내 문제 출제 모듈. 빈출 유형인 것들 중에 출제
   public void addSubSectionProblemWithFrequent(CardDTOV2 card, String subSectionId, Integer probNum, boolean isAdaptive,
@@ -548,12 +559,12 @@ public class CardGeneratorV2 extends CardConstants {
     while (probCnt != probNum) {
       for (Integer typeId : freqTypeIdList) {
 
-        Integer typeProbNum = currentTypeProbNumMap.containsKey(typeId) 
+        Integer typeProbNum = currentTypeProbNumMap.containsKey(typeId)
                             ? currentTypeProbNumMap.get(typeId) : 0;
 
         // typeId 내 모든 문제 수
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
-                                 ? problemRepo.NfindProbListByType(typeId, solvedProbIdSet).size()
+                                 ? problemRepo.findProbCntInType(typeId, solvedProbIdSet)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
@@ -562,10 +573,10 @@ public class CardGeneratorV2 extends CardConstants {
         if (typeProbNum < totalTypeProbNum) {
           currentTypeProbNumMap.put(typeId, typeProbNum + 1);
           probCnt += 1;
-        } else {
+        } 
+        else {
           noProbTypeIdSet.add(typeId);
-        }
-          
+        }          
         if (probCnt == probNum)
           break;
       }
@@ -595,6 +606,7 @@ public class CardGeneratorV2 extends CardConstants {
     }
   }
 
+
   // 소단원 내 문제 출제 모듈. 안본 유형 + 마스터리가 낮은 유형 순서대로 많이 출제
   public void addSubSectionProblemWithMastery(CardDTOV2 card, String subSectionId, Integer probNum) {
 
@@ -623,7 +635,7 @@ public class CardGeneratorV2 extends CardConstants {
 
         // typeId 내 모든 문제 수
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
-                                 ? problemRepo.NfindProbListByType(typeId, solvedProbIdSet).size()
+                                 ? problemRepo.findProbCntInType(typeId, solvedProbIdSet)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
@@ -632,7 +644,8 @@ public class CardGeneratorV2 extends CardConstants {
         if (totalTypeProbNum > typeProbNum) {
           currentTypeProbNumMap.put(typeId, typeProbNum + 1);
           probCnt += 1;
-        } else
+        } 
+        else
           noProbTypeIdSet.add(typeId);
 
         if (probCnt == probNum)
@@ -673,7 +686,7 @@ public class CardGeneratorV2 extends CardConstants {
 
     // 유형 점수
     TypeMasteryDTO typeMastery = userKnowledgeRepo.findTypeMastery(userId, typeId);
-    Float mastery = typeMastery != null ? typeMastery.getMastery() : 0.6328f;
+    Float mastery = typeMastery != null ? typeMastery.getMastery() : 0.7429f;
     
     CardDTOV2 typeCard = CardDTOV2.builder()
                                   .cardType(TYPE_CARD_TYPESTR)
@@ -688,7 +701,8 @@ public class CardGeneratorV2 extends CardConstants {
     List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
     if (typeProbList.isEmpty()){
       return new CardDTOV2();
-    } else {
+    } 
+    else {
       DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 
       addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
@@ -741,23 +755,21 @@ public class CardGeneratorV2 extends CardConstants {
     for (TypeMasteryDTO typeMastery : typeMasteryList) {
 
       Integer typeId = typeMastery.getTypeId();
-      String typeName = problemTypeRepo.NfindTypeNameById(typeId);
       Float mastery = typeMastery.getMastery();
+
+      cardDetailJson.addProperty(problemTypeRepo.NfindTypeNameById(typeId), mastery * 100.0f);
 
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
-
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
-
-      cardDetailJson.addProperty(typeName, mastery * 100.0f);
 
       if (cnt == 1)
         supplementCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
 
       cnt += 1;
-    }
-    
+    }    
+
     supplementCard.setCardDetail(cardDetailJson.toString());
     return supplementCard;
   }
@@ -779,16 +791,14 @@ public class CardGeneratorV2 extends CardConstants {
     for (TypeMasteryDTO typeMastery : typeMasteryList) {
 
       Integer typeId = typeMastery.getTypeId();
-      String typeName = problemTypeRepo.NfindTypeNameById(typeId);
       Float mastery = typeMastery.getMastery();
+
+      cardDetailJson.addProperty(problemTypeRepo.NfindTypeNameById(typeId), mastery * 100.0f);
 
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
-
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
-
-      cardDetailJson.addProperty(typeName, mastery * 100.0f);
 
       if (cnt == 1)
         supplementCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
@@ -835,7 +845,7 @@ public class CardGeneratorV2 extends CardConstants {
     String[] trialExamInfo = examKeyword.split("-");
     String examType = trialExamInfo[2].equals("mid") ? "중간고사" : "기말고사";
     
-    CurrMasteryDTO mastery = userKnowledgeRepo.findExamMastery(userId, examSubSectionIdSet);
+    CurrMasteryDTO mastery = userKnowledgeRepo.findExamMastery(userId, this.examSubSectionIdSet);
 
     CardDTOV2 trialExamCard = CardDTOV2.builder()
                                        .cardType(TRIAL_EXAM_CARD_TYPESTR)
@@ -894,7 +904,7 @@ public class CardGeneratorV2 extends CardConstants {
 
       default:
         throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR, 
-                                     "Invalid card config type. " + cardConfig.getCardType());
+                                     "Invalid card config type : " + cardConfig.getCardType());
 
     }
 

@@ -185,7 +185,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
      * @param userID
      * @return
      */
-    private ScoreMastery generateWaplScore(String userID){
+    public ScoreMastery generateWaplScore(String userID){
         //Get the target data from the appripriate DB
         User userInfo = userInfoRepo.getUserInfoByUUID(userID);
 
@@ -231,6 +231,14 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
         //Save the wapl score to stats
         Float waplScore = score/count;
+
+        //Fix waplScore if it is lower than examScore
+        Statistics examScoreStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_EXAMSCOPE_SCORE);
+        if(examScoreStat != null){
+            Float examScore = examScoreStat.getAsFloat();
+            if(waplScore < examScore)
+                waplScore = (float)Math.min(1.0, examScore * 1.01);
+        }
         userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
 
         //Convert mastery map to Json with Gson

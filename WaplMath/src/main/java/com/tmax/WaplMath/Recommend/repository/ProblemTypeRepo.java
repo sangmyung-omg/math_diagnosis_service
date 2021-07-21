@@ -39,6 +39,9 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId = :subSection order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
 	List<Integer> findTypeIdListInSubSection(@Param("subSection") String subSection);
 
+	@Query("select count(pt) from ProblemType pt where pt.curriculumId = :subSection")
+	Integer findTypeCntInSubSection(@Param("subSection") String subSection);
+
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId like concat(:section, '%') order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
 	List<Integer> findTypeIdListInSection(@Param("section") String section);
 

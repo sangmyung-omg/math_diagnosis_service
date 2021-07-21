@@ -4,6 +4,7 @@ package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
@@ -102,28 +104,67 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     */
     @Override
     public void updateSpecificUser(String userID) {
+        //Check if User is vali
+        Optional<User> user = userRepository.findById(userID);
+        if(!user.isPresent()){
+            log.error("User {} is not valid. skipping stat.", userID);
+            return;
+        }
+
         //Create set for DB update
-        Set<StatsAnalyticsUser> updateSet = new HashSet<>();
+        // Set<StatsAnalyticsUser> updateSet = new HashSet<>();
 
         //Prepare the update timestamp
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
-        //Add global stats
-        updateSet.addAll(getUKGlobalStats(userID, now));
+        // //Add global stats
+        // updateSet.addAll(getUKGlobalStats(userID, now));
 
-        //Add curriculum stats builder
-        updateSet.addAll(getPerCurriculumStats(userID, now));
+        // //Add curriculum stats builder
+        // updateSet.addAll(getPerCurriculumStats(userID, now));
 
-        //Add examscore stats
-        updateSet.addAll(getExamScopeStats(userID, now));
+        // //Add examscore stats
+        // updateSet.addAll(getExamScopeStats(userID, now));
 
-        //Add LRS stats
-        updateSet.addAll(getLRSStatistics(userID, now));
+        // //Add LRS stats
+        // updateSet.addAll(getLRSStatistics(userID, now));
+
+        //Test parallel streamer
+        //Create set for DB update
+        Set<StatsAnalyticsUser> updateSet = IntStream.range(0, 4)
+                                                    .parallel()
+                                                    .mapToObj(idx -> parallelRunner(userID, now, idx))
+                                                    .flatMap(set -> set.stream())
+                                                    .collect(Collectors.toSet());
 
         //Save to DB
-        log.info("Saving for user:" + userID);
+        log.info("Saving for user: {}, # in set = {}", userID, updateSet.size());
         statisticUserRepo.saveAll(updateSet);
         log.info("Saved. " + userID);
+    }
+
+    //Indexed stat selector for parallel processing
+    private Set<StatsAnalyticsUser> parallelRunner(String userID, Timestamp ts, Integer funcIdx) {
+        Set<StatsAnalyticsUser> output = null;
+        
+        switch(funcIdx) {
+            case 0:
+                output = getUKGlobalStats(userID, ts);
+                break;
+            case 1:
+                output = getPerCurriculumStats(userID, ts);
+                break;
+            case 2:
+                output = getExamScopeStats(userID, ts);
+                break;
+            case 3:
+                output = getLRSStatistics(userID, ts);
+                break;
+            default:
+                output = null;
+        }
+
+        return output;
     }
 
     private Set<StatsAnalyticsUser> getUKGlobalStats(String userID, Timestamp ts){
@@ -142,8 +183,11 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         }
 
         //Extract uk mastery from data and create new list
-        List<Float> masteryList = new ArrayList<>();
-        knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
+        // List<Float> masteryList = new ArrayList<>();
+        // knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
+
+        //Parallel stream
+        List<Float> masteryList = knowledgeList.stream().parallel().map(uknow -> uknow.getUkMastery()).collect(Collectors.toList());
 
 
         //Calc each UK statistics and push to set
@@ -286,7 +330,12 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
 
         //Get LRS statement list for user
-        List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID);
+        List<String> actionTypeList = Arrays.asList("submit", "start");
+        List<String> sourceTypeList = Arrays.asList("diagnosis", "type_question", "supple_question", "section_test_question","chapter_test_question",
+                                                    "addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question",
+                                                    "retry_question","wrong_answer_question","starred_question");
+
+        List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
 
         //If size == 0  retry with hyphened version TEMP. FIXME. only try if uuid is a 32 sized one;
         if(userID.length() == 32 && statementList.size() == 0){
@@ -295,8 +344,9 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                                     userID.substring(12,16),
                                                                     userID.substring(16,20),
                                                                     userID.substring(20, 32));
-            statementList = lrsApiManager.getUserStatement(formatedUserID);                                                   
+            statementList = lrsApiManager.getUserStatement(formatedUserID, actionTypeList, sourceTypeList);                                                  
         }
+        
 
         //if still null --> then return. do not create a update set
         if(statementList.size()==0){
@@ -305,7 +355,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         }
 
         // build set for problem info query
-        Set<Integer> probIDSet = statementList.stream().map(s -> Integer.valueOf(s.getSourceId()) ).collect(Collectors.toSet());
+        Set<Integer> probIDSet = statementList.stream().parallel().map(s -> Integer.valueOf(s.getSourceId()) ).collect(Collectors.toSet());
 
         //Get the probList and create map to get difficulty
         Map<Integer, String> probDiffMap = new HashMap<>();
@@ -345,7 +395,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
             //Check if diff exist --> is it a valid problem
             if(difficulty == null){
-                log.error("Difficulty is null for problem [{}]. Skipping statistics entry for current problem.", probID);
+                log.error("Difficulty is null for problem [{}]. Skipping statistics entry for current problem. user {}", probID, userID);
                 continue;
             }
 

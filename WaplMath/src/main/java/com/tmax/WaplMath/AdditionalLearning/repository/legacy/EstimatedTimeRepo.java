@@ -14,8 +14,8 @@ import com.tmax.WaplMath.Common.model.problem.Problem;
 @Repository
 public interface EstimatedTimeRepo extends CrudRepository<Problem,String>{
 
-	@Query(value="select p.timeRecommendation"+
+	@Query(value="select p"+
 			" from Problem p"+
 			" where probId in (:probIdList)")
-	List<Integer> getEstimatedTime(@Param("probIdList") List<Integer> probIdList);
+	List<Problem> getEstimatedTime(@Param("probIdList") List<Integer> probIdList);
 }

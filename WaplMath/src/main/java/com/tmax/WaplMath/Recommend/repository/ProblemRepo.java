@@ -62,8 +62,11 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	public List<Problem> NfindProbListByChapter(@Param("chapterId") String chapterId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 	//21.07.01 card generator v2
-	@Query("select p from Problem p where p.problemType.curriculumId like concat(:currId, '%') and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
-	public List<Problem> findProbListByCurrId(@Param("currId") String currId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+	@Query("select count(p) from Problem p where p.problemType.curriculumId like concat(:currId, '%') and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
+	public Integer findProbCntInCurrId(@Param("currId") String currId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+  
+	@Query("select count(p) from Problem p where p.typeId=:typeId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))")
+	public Integer findProbCntInType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 	//2021-06-17 Added by Jonghyun Seong. gets Problem List from probIDList
 	@Query("select p from Problem p where p.probId in :probIdList")

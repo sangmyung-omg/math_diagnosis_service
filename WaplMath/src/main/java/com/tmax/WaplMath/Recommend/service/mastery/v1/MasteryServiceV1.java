@@ -7,12 +7,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.problem.ProblemUkRel;
+import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
@@ -57,6 +62,9 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
     @Autowired
     UserKnowledgeRepo userKnowledgeRepository;
 
+
+    @Autowired
+    UserRepo userRepo;
 
 
     //Event publisher
@@ -198,8 +206,18 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     @Override
     public ResultMessageDTO updateMasteryFromLRS(String token) {
-        ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
+
+        //Check userValidity
+        Optional<User> user = userRepo.findById(userID);
+        if(!user.isPresent()){
+            log.error("User invalid {}. Cannot update mastery for unregistered user" , userID);
+            throw new UserNotFoundException();
+        }
+        
+        
+        log.debug("update mastery from LRS {}", userID);
+        ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);        
 
         return this.updateMastery(userID, result.getProbIdList(), result.getCorrectList());
     }

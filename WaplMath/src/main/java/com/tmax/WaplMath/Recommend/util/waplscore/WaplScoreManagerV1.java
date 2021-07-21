@@ -31,26 +31,33 @@ import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 @Slf4j
 @Component
 public class WaplScoreManagerV1 {
+
   //Logging option
   private final Boolean printCardInfo = false; //level 1
   private final Boolean printUkInfo = false; //level 2
   private final Boolean printProbInfo = false; //level 3
 
+
   @Autowired
   @Qualifier("RE-TypeUkRelRepo")
   TypeUkRelRepo typeUkRelRepo;
+
   @Autowired
   @Qualifier("RE-ProblemTypeRepo")
   ProblemTypeRepo problemTypeRepo;
+
   @Autowired
   @Qualifier("RE-CurriculumRepo")
   CurriculumRepo curriculumRepo;
 
+
   public Integer totalUkLength = 0;
+
   public Integer totalProbCnt = 0;
   
+
   public List<WaplScoreProbDTO> generateSectionCardProbList(Set<String> sectionIdSet, String type, Integer probNum) {
-    List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<WaplScoreProbDTO>();
+    List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<>();
     List<String> midSubSectionList = curriculumRepo.findSubSectionListInSectionSet(sectionIdSet);
     Map<String, List<Integer>> subSectionTypeMap = new HashMap<String, List<Integer>>();
     for (String subSection : midSubSectionList)

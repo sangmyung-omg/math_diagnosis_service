@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -172,31 +173,61 @@ public class IScreamEduDataReader {
         Map<String, Mastery> wholeData = getAllUserMasteryData();
 
         //Init output List
-        List<UserKnowledge> output = new ArrayList<>();
+        // List<UserKnowledge> output = new ArrayList<>();
 
         //For all users of iscream edu
-        for(Map.Entry<String, Mastery> entry: wholeData.entrySet()){
-            String userID = entry.getKey();
+        // for(Map.Entry<String, Mastery> entry: wholeData.entrySet()){
+        //     String userID = entry.getKey();
             
-            //For all uks create and push to userknowledge
-            for(Map.Entry<Integer, Float> ukentry : entry.getValue().getMap().entrySet()){
-                //If uk ID is not in the searched ukSet, then continue
-                if(!ukSet.contains(ukentry.getKey())){
-                    continue;
-                }
+        //     //For all uks create and push to userknowledge
+        //     for(Map.Entry<Integer, Float> ukentry : entry.getValue().getMap().entrySet()){
+        //         //If uk ID is not in the searched ukSet, then continue
+        //         if(!ukSet.contains(ukentry.getKey())){
+        //             continue;
+        //         }
 
-                output.add(UserKnowledge.builder()
-                                        .userUuid(userID)
-                                        .ukId(ukentry.getKey())
-                                        .ukMastery(ukentry.getValue())
-                                        .user(User.builder()
-                                                  .userUuid(userID)
-                                                  .grade(getYearOfIScreamUser(userID).toString())
-                                                  .build() )
-                                        .build());
-            }
-        }
+        //         output.add(UserKnowledge.builder()
+        //                                 .userUuid(userID)
+        //                                 .ukId(ukentry.getKey())
+        //                                 .ukMastery(ukentry.getValue())
+        //                                 .user(User.builder()
+        //                                           .userUuid(userID)
+        //                                           .grade(getYearOfIScreamUser(userID).toString())
+        //                                           .build() )
+        //                                 .build());
+        //     }
+        // }
         
+        //Parallel optimization
+        List<UserKnowledge> output = 
+            wholeData.entrySet().stream()
+                                // .parallel()
+                                .flatMap(entry -> {
+                                    String userID = entry.getKey();
+                
+                                    //For all uks create and push to userknowledge
+                                    List<UserKnowledge> subout =
+                                        entry.getValue()
+                                            .getMap()
+                                            .entrySet()
+                                            .stream()
+                                            // .parallel()
+                                            .filter(ukentry -> ukSet.contains(ukentry.getKey()))
+                                            .map(ukentry -> UserKnowledge.builder()
+                                                                .userUuid(userID)
+                                                                .ukId(ukentry.getKey())
+                                                                .ukMastery(ukentry.getValue())
+                                                                .user(User.builder()
+                                                                            .userUuid(userID)
+                                                                            .grade(getYearOfIScreamUser(userID).toString())
+                                                                            .build() )
+                                                                .build()
+                                            )
+                                            .collect(Collectors.toList());
+                                    
+                                    return subout.stream();
+                                })
+                                .collect(Collectors.toList());
 
         return output;
     }

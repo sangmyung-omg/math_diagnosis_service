@@ -215,11 +215,20 @@ public class LRSAPIManager {
   }
 
   /**
+   * Legacy diagnosis only statement getter
+   * @param userID
+   * @return
+   */
+  public List<LRSStatementResultDTO> getUserStatementDiagnosis(String userID) {
+    return getUserStatement(userID, Arrays.asList("submit", "start"), Arrays.asList("diagnosis"));
+  }
+
+  /**
    * 
    * @param userID
    * @return
    */
-  public List<LRSStatementResultDTO> getUserStatement(String userID) {
+  public List<LRSStatementResultDTO> getUserStatement(String userID, List<String> actionTypeList, List<String> sourceType) {
     //Create a http timeout handler
     HttpClient httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000).responseTimeout(Duration.ofMillis(5000))
       .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
@@ -232,8 +241,8 @@ public class LRSAPIManager {
 
     //Build the body
     LRSStatementRequestDTO body = LRSStatementRequestDTO.builder()
-                              .actionTypeList(Arrays.asList("submit", "start"))
-                              .sourceTypeList(Arrays.asList("diagnosis"))
+                              .actionTypeList(actionTypeList)
+                              .sourceTypeList(sourceType)
                               .userIdList(Arrays.asList(userID))
                               .build();
 

@@ -2,6 +2,7 @@ package com.tmax.WaplMath.Recommend.service.schedule.v2;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
@@ -20,6 +21,31 @@ import lombok.extern.slf4j.Slf4j;
  * @author Sangheon_lee
  * @since 2021-06-30
  */
+
+/*
+* ┌────────────────┐
+* │                │
+* │     <START>    │
+* │                │
+* └────────┬───────┘
+*          │
+*          │
+* ┌────────▼───────┐      ┌───────────────────────────┐
+* │                │      │                           │
+* │     Check      ├─────►│         Generate          │
+* │ USER KNOWLEDGE │      │   Schedule Configuration  │
+* │                │      │                           │
+* └────────────────┘      └─────────────┬─────────────┘
+*                                       │
+*                                       │
+*                         ┌─────────────▼─────────────┐
+*                         │                           │
+*                         │         Generate          │
+*                         │      Schedule Cards       │
+*                         │                           │
+*                         └───────────────────────────┘
+*/
+
 @Slf4j
 @Service("ScheduleServiceV2")
 public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
@@ -35,11 +61,12 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
   private UserKnowledgeRepo userKnowledgeRepo;
   
 
-  // 21.07.21. Check user mastery exist
+  // 21.07.21. Throw exception if mastery not exist
   public void checkUserMasteryExist(String userId) {
 
-    if (userKnowledgeRepo.findUserKnowledge(userId).isEmpty()){
-      log.error("User not exist mastery, {} ", userId);
+    if (!userKnowledgeRepo.findExistUserList().contains(userId)){
+      log.error("Not exist mastery for user = {} ", userId);
+      
       throw new RecommendException(RecommendErrorCode.USER_MASTERY_NOT_EXIST_ERROR);
     }
   }
@@ -49,27 +76,42 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
     List<CardDTOV2> cardList = new ArrayList<>();
 
+    // check user mastery exist in USER_KNOWLEDGE
     checkUserMasteryExist(userId);
 
-    scheduleConfigurator.setUserValue(userId);
-    
+    // set schedule configurator
+    scheduleConfigurator.setUserValue(userId);   
+     
+    // get schedule configuration
     ScheduleConfigDTO scheduleConfig;
+    try{
+      if (type.equals("normal"))
+        scheduleConfig = scheduleConfigurator.getNormalScheduleConfig();
 
-    if (type.equals("normal"))
-      scheduleConfig = scheduleConfigurator.getNormalScheduleConfig();
+      else if (type.equals("exam"))
+        scheduleConfig = scheduleConfigurator.getExamScheduleConfig();
 
-    else if (type.equals("exam"))
-      scheduleConfig = scheduleConfigurator.getExamScheduleConfig();
+      else
+        scheduleConfig = scheduleConfigurator.getDummyScheduleConfig();
+    } 
+    catch (Throwable e){
+      throw new RecommendException(RecommendErrorCode.SCHEDULE_CONFIGURATOR_ERROR, StackPrinter.getStackTrace(e));
+    }
 
-    else
-      scheduleConfig = scheduleConfigurator.getDummyScheduleConfig();
-
+    // set card generator
     cardGenerator.setUserValue(userId, 
                                scheduleConfigurator.getSolvedProbIdSet(), 
                                scheduleConfigurator.getExamSubSectionIdSet());
     
-    scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));
+    // generate schedule cards with schedule config
+    try{
+      scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));
+    }
+    catch (Throwable e){
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR, StackPrinter.getStackTrace(e));
+    }
 
+    // if cards empty = no probs to serve
     if (cardList.isEmpty())
       throw new RecommendException(RecommendErrorCode.CARD_GENERATE_NO_CARDS_ERROR);
 

@@ -208,7 +208,9 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	public Map<String, Object> getExtraProblem(String userId, List<Integer> probIdList){
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<Integer> extraProblems = new ArrayList<Integer>();
-		
+		logger.info("> Diagnosis Extra Problem Service Start!");
+		String diagType = "꼼꼼";
+
 		// USER_MASTER 테이블에서 현재까지 배운 단원 정보 조회 & USER_EXAM_SCOPE 테이블에서 다음 시험의 범위 (단원) 조회
 		logger.info("Getting user info......");
 		UserExamScope examScope = userExamScopeRepo.findById(userId).orElseThrow(() -> new NoSuchElementException(userId));
@@ -283,25 +285,14 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		int idx = 0;
 		for (String part : available_chapters.keySet()) {
 			List<String> list = available_chapters.get(part);
-			
-			// 문제들 서치해올 대단원들 SQL 조건 생성  
-			String chapter_condition = "";
-			int i = 0;
+			logger.info("List : " + list.toString());
 			
 			// (한 파트에 대해) 가장 최근 대단원부터 하나씩 loop 돌며, num_list의 해당 개수만큼 쌓이면 break;
-			for (String cid : list) {
-				if (i==0) {
-					chapter_condition += cid;
-					i++;
-				} else {
-					chapter_condition += " OR SUBSTR(dp.basicProblem.problemType.curriculumId, 0, 11) = '" + cid + "'";
-				}
-			}
-			
-			// logger.info(chapter_condition);
 			
 			// 해당 단원의 문제 조회
-			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, "꼼꼼");
+			// List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, diagType);
+			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapterIn(list, diagType);
+			// List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByBasicProblemProblemTypeCurriculumChapterInAndBasicProblemCategory(list, diagType);
 			
 			if (diagList.size() == 0 || diagList == null) {
 				// 예외 처리

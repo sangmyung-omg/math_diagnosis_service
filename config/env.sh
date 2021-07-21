@@ -3,7 +3,7 @@
 if [ -z $HTTP_PORT ]; then export HTTP_PORT="8080"; fi
 sed -i "s&%HTTP_PORT%&${HTTP_PORT}&g" /home/tmax/application.properties
 
-if [ -z $DB_IP ]; then export DB_IP="220.90.208.175"; fi
+if [ -z $DB_IP ]; then export DB_IP="192.168.153.174"; fi
 sed -i "s&%DB_IP%&${DB_IP}&g" /home/tmax/application.properties
 
 if [ -z $DB_PORT ]; then export DB_PORT="8629"; fi

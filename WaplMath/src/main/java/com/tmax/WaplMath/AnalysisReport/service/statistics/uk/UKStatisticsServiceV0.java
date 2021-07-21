@@ -199,6 +199,8 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
         for(Float mas: masteryList){total += mas; count++;}
 
         return total/count;
+        // Float total = masteryList.stream().parallel().reduce(0, (subtotal, element) -> subtotal + element);
+        // return 0.0f;
     }
 
     /**

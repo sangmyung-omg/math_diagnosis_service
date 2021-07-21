@@ -57,7 +57,7 @@ public class StatisticsControllerV2 {
                 break;
             default:
                 log.error("Invalid type: " + type);
-                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, "Invalid type: " + type);             
+                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, "Invalid type: " + type);
         }
         
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -66,14 +66,15 @@ public class StatisticsControllerV2 {
     @GetMapping("/scorestats")
     public ResponseEntity<Object> getScoreStats(@RequestHeader("token") String token, 
                                                @RequestParam(defaultValue = "", name="exclude") String exclude,
-                                               @RequestParam(defaultValue = "10", name="histogramSize") Integer histogramSize) {
+                                               @RequestParam(defaultValue = "11", name="histogramSize") Integer histogramSize,
+                                               @RequestParam(defaultValue = "101", name="percentileLUTSize") Integer percentileLUTSize) {
         //Parse jwt to get userID
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
         
-        GlobalStatisticDTO result = scoreSvc.getScoreStats(userID, excludeSet, Math.min(histogramSize, 1000));
+        GlobalStatisticDTO result = scoreSvc.getScoreStats(userID, excludeSet, Math.min(histogramSize, 1000), Math.min(percentileLUTSize, 1000));
         
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

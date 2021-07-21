@@ -91,18 +91,29 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
     public CurriculumDataDTO searchWithConditions(String userID, String searchTerm, String typeRange, String mode, String range,
                                                         boolean subSearch, String order, Set<String> excludeSet) {
         //Get all by search terms
-        List<Curriculum> searchResult = new ArrayList<>();
+        // List<Curriculum> searchResult = new ArrayList<>();
 
         //Split searchTerms to list by comma
+        // Set<String> searchSet = Arrays.asList(searchTerm.split(",")).stream().collect(Collectors.toSet());
+        // for(String searchStr : searchSet){
+        //     if(subSearch){
+        //         searchResult.addAll( currInfoRepo.getCurriculumLikeId(searchStr) );
+        //     }
+        //     else {
+        //         searchResult.addAll( currInfoRepo.getFromCurrIdList(Arrays.asList(searchStr)) );
+        //     }
+        // }
+
+        //Parallel opt
         Set<String> searchSet = Arrays.asList(searchTerm.split(",")).stream().collect(Collectors.toSet());
-        for(String searchStr : searchSet){
+        List<Curriculum> searchResult = searchSet.stream().parallel().flatMap(searchStr -> {
             if(subSearch){
-                searchResult.addAll( currInfoRepo.getCurriculumLikeId(searchStr) );
+                return currInfoRepo.getCurriculumLikeId(searchStr).stream();
             }
             else {
-                searchResult.addAll( currInfoRepo.getFromCurrIdList(Arrays.asList(searchStr)) );
+                return currInfoRepo.getFromCurrIdList(Arrays.asList(searchStr)).stream();
             }
-        }
+        }).collect(Collectors.toList());
 
         //Filter by type range
         if(!typeRange.isEmpty()){
@@ -160,27 +171,51 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
             castSet.addAll( Arrays.asList(castTo.split(",")).stream().collect(Collectors.toSet()) );
 
         //Fill list
-        List<Curriculum> recentCurrList = new ArrayList<>();
-        for(String currID :  recentCurrIDList){
+        // List<Curriculum> recentCurrList = new ArrayList<>();
+        // for(String currID :  recentCurrIDList){
+        //     if(castSet.isEmpty()){
+        //         Optional<Curriculum> curr = currInfoRepo.findById(currID);
+        //         if(curr.isPresent())
+        //             recentCurrList.add( curr.get() );
+        //         continue;
+        //     }
+
+        //     //Select currID ==> the highest of the castTo
+        //     String currIDsel = getHighestCurrID(currID, castSet);
+            
+        //     if(castSet.contains("chapter"))
+        //         recentCurrList.addAll( currInfoRepo.getChaptersLikeId(currIDsel) );
+            
+        //     if(castSet.contains("section"))
+        //         recentCurrList.addAll( currInfoRepo.getSectionsLikeId(currIDsel) );
+            
+        //     if(castSet.contains("subsection"))
+        //         recentCurrList.addAll( currInfoRepo.getSubSectionLikeId(currIDsel) );
+        // }
+
+        //Parallel optimization
+        List<Curriculum> recentCurrList = recentCurrIDList.stream()
+                                                        //   .parallel()
+                                                          .flatMap(currID -> {
             if(castSet.isEmpty()){
                 Optional<Curriculum> curr = currInfoRepo.findById(currID);
                 if(curr.isPresent())
-                    recentCurrList.add( curr.get() );
-                continue;
+                    return Arrays.asList(curr.get()).stream();
             }
 
             //Select currID ==> the highest of the castTo
             String currIDsel = getHighestCurrID(currID, castSet);
-            
             if(castSet.contains("chapter"))
-                recentCurrList.addAll( currInfoRepo.getChaptersLikeId(currIDsel) );
+                return currInfoRepo.getChaptersLikeId(currIDsel).stream();
             
             if(castSet.contains("section"))
-                recentCurrList.addAll( currInfoRepo.getSectionsLikeId(currIDsel) );
+                return currInfoRepo.getSectionsLikeId(currIDsel).stream();
             
             if(castSet.contains("subsection"))
-                recentCurrList.addAll( currInfoRepo.getSubSectionLikeId(currIDsel) );
-        }
+                return currInfoRepo.getSubSectionLikeId(currIDsel).stream();
+        
+            return null;
+        }).collect(Collectors.toList());
 
         // //Filter by type range
         // if(!typeRange.isEmpty()){

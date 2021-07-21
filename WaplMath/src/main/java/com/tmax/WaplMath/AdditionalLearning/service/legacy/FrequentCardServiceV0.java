@@ -27,6 +27,7 @@ import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserFrequentProbRe
 import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserSectionMasteryRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserSubSectionMasteryRepo;
 import com.tmax.WaplMath.AdditionalLearning.repository.legacy.UserTargetExamScopeRepo;
+import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
@@ -412,16 +413,19 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		for(int i =0; i<probIdList.size();i++) {
 			probList.add(probIdList.get(i).getProblemId());
 		}
-		
-		List<Integer> estimatedTimeList = EstimatedTimeRepo.getEstimatedTime(probList);
-		
+
+		List<Problem> estimatedTimeList = EstimatedTimeRepo.getEstimatedTime(probList);
+
 		for(int i = 0 ; i<estimatedTimeList.size() ; i++) {
-			
-			if(estimatedTimeList.get(i)!=0 && estimatedTimeList!=null)
-				estimatedTime += estimatedTimeList.get(i);
-			else
+
+			if(estimatedTimeList.get(i).getTimeRecommendation()!=null) {
+				if(estimatedTimeList.get(i).getTimeRecommendation()!=0)
+					estimatedTime += estimatedTimeList.get(i).getTimeRecommendation();
+				else
+					estimatedTime += 180;
+			}else {
 				estimatedTime += 180;
-			
+			}
 		}
 		
 		

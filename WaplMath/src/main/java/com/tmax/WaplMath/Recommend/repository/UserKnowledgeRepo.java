@@ -16,8 +16,8 @@ import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKnowledgeKey> {
 
   // 21.07.21 find by userId
-  @Query("select know from UserKnowledge know where know.userUuid = :userID")
-  public List<UserKnowledge> findUserKnowledge(@Param("userID") String userID);
+  @Query("select distinct know.userUuid from UserKnowledge know")
+  public Set<String> findExistUserList();
   
 	//	@Query("SELECT ukd FROM UserKnowledgeDAO ukd INNER JOIN UkDAO ud ON ukd.ukUuid = ud.ukUuid WHERE ukd.userUuid = ?1 AND SUBSTR(ud.curriculumId, 1, 11) = ?2 ORDER BY ud.curriculumId asc")
 	@Query("SELECT ukd FROM UserKnowledge ukd WHERE ukd.userUuid = ?1 AND SUBSTR(ukd.uk.curriculumId, 1, 11) = ?2 ORDER BY ukd.uk.curriculumId asc")
@@ -37,8 +37,7 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
 		+ "where (coalesce(:solvedTypeIdList, null) is null or typeId in (:solvedTypeIdList)) "
 		+ "and (coalesce(:suppleTypeIdList, null) is null or typeId not in (:suppleTypeIdList)) "
 		+ "and mastery <= :threshold order by mastery asc", nativeQuery = true)
-	List<TypeMasteryDTO> findLowTypeMasteryList(@Param("userId") String userId, @Param("solvedTypeIdList") List<Integer> solvedTypeIdList,
-		@Param("suppleTypeIdList") List<Integer> suppleTypeIdList, @Param("threshold") Float LOW_MASTERY_THRESHOLD);
+	List<TypeMasteryDTO> findLowTypeMasteryList(@Param("userId") String userId, @Param("solvedTypeIdList") List<Integer> solvedTypeIdList, @Param("suppleTypeIdList") List<Integer> suppleTypeIdList, @Param("threshold") Float LOW_MASTERY_THRESHOLD);
 
 	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur where ukl.userUuid = :userId and tur.ukId = ukl.ukId and tur.typeId = :typeId group by tur.typeId")
 	TypeMasteryDTO findTypeMastery(@Param("userId") String userId, @Param("typeId") Integer typeId);
@@ -64,16 +63,20 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
 	@Query("select avg(ukl.ukMastery) as mastery from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdSet, null) is null or ukl.uk.curriculumId in (:subSectionIdSet))")
 	CurrMasteryDTO findExamMastery(@Param("userId") String userId, @Param("subSectionIdSet") Set<String> subSectionIdSet);
 
-	//21.07.01 card generator v2
-	@Query("select ukl.uk.curriculumId as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.subSection as currName from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId like concat(:sectionId, '%') group by ukl.uk.curriculumId, ukl.uk.curriculum.subSection order by mastery asc")
-	List<CurrMasteryDTO> findMasteryListInSectionOrderByMastery(@Param("userId") String userId, @Param("sectionId") String sectionId);
 
-	@Query("select substr(ukl.uk.curriculumId, 1, 14) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.section as currName from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId like concat(:chapterId, '%') group by substr(ukl.uk.curriculumId, 1, 14), ukl.uk.curriculum.section order by mastery asc")
-	List<CurrMasteryDTO> findMasteryListInChapterOrderByMastery(@Param("userId") String userId, @Param("chapterId") String chapterId);
+	//21.07.01 card generator v2
+	@Query("select ukl.uk.curriculumId as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.subSection as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdSet, null) is null or ukl.uk.curriculumId in (:subSectionIdSet)) and ukl.uk.curriculumId like concat(:sectionId, '%') group by ukl.uk.curriculumId, ukl.uk.curriculum.subSection order by mastery asc")
+	List<CurrMasteryDTO> findMasteryListInSectionOrderByMastery(@Param("userId") String userId, @Param("sectionId") String sectionId,
+  @Param("subSectionIdSet") Set<String> subSectionIdSet);
+
+	@Query("select substr(ukl.uk.curriculumId, 1, 14) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.section as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdSet, null) is null or ukl.uk.curriculumId in (:subSectionIdSet)) and ukl.uk.curriculumId like concat(:chapterId, '%') group by substr(ukl.uk.curriculumId, 1, 14), ukl.uk.curriculum.section order by mastery asc")
+	List<CurrMasteryDTO> findMasteryListInChapterOrderByMastery(@Param("userId") String userId, @Param("chapterId") String chapterId,
+  @Param("subSectionIdSet") Set<String> subSectionIdSet);
 
 	@Query("select substr(ukl.uk.curriculumId, 1, 11) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.chapter as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdSet, null) is null or ukl.uk.curriculumId in (:subSectionIdSet)) group by substr(ukl.uk.curriculumId, 1, 11), ukl.uk.curriculum.chapter order by mastery asc")
 	List<CurrMasteryDTO> findMasteryListInSubSectionSetOrderByMastery(@Param("userId") String userId,
 		@Param("subSectionIdSet") Set<String> subSectionIdSet);
+
 
 	@Query("select ukl.uk.curriculumId as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.subSection as currName from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId =:subSectionId group by ukl.uk.curriculumId, ukl.uk.curriculum.subSection")
 	CurrMasteryDTO findMasteryBySubSection(@Param("userId") String userId, @Param("subSectionId") String subSectionId);
@@ -83,6 +86,7 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
 
 	@Query("select substr(ukl.uk.curriculumId, 1, 11) as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.chapter as currName from UserKnowledge ukl where ukl.userUuid = :userId and ukl.uk.curriculumId like concat(:chapterId, '%') group by substr(ukl.uk.curriculumId, 1, 11), ukl.uk.curriculum.chapter")
 	CurrMasteryDTO findMasteryByChapter(@Param("userId") String userId, @Param("chapterId") String chapterId);
+
 
 	@Query(value = "select typeId, mastery from " + "( select avg(ukl.uk_mastery) mastery, tur.type_id typeId "
 		+ "from user_knowledge ukl, uk_master um, type_uk_rel tur " + "where um.uk_id = tur.uk_id " + "and ukl.uk_id = um.uk_id "

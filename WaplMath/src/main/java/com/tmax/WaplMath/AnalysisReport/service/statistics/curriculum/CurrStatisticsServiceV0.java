@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.gson.Gson;
@@ -32,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -60,6 +63,13 @@ class MasteryStat {
     public float getScore(){return this.score;}
 }
 
+@Data
+@AllArgsConstructor
+class CurrData {
+    private String currID;
+    private Float average;
+}
+
 @Slf4j
 @Service("CurrStatisticsServiceV0")
 public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
@@ -84,7 +94,7 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
     @Override
     public void updateStatistics() {
         //Get all curriculums
-        Iterable<Curriculum> currList = curriculumInfoRepo.findAll();
+        List<Curriculum> currList = (List<Curriculum>)curriculumInfoRepo.findAll();
 
         //Create hashset
         Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
@@ -93,7 +103,9 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         //For all curriculum
-        for(Curriculum curr: currList){
+        currList.stream()
+                // .parallel()
+                .forEach(curr ->{
             //Get related UK lists.
             List<UserKnowledge> uknowList = userKnowledgeRepo.getAllByLikelyCurrID(curr.getCurriculumId());
 
@@ -104,12 +116,14 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
 
             //If no uknow is selected, then continue. Further steps are useless
             if(uknowList == null || uknowList.size() == 0)
-                continue;
+                return;
 
             //Create map <userid, masterystat> and userGradeMap
             Map<String, MasteryStat> masteryMap = new HashMap<>();
             Map<String, Integer> userGradeMap = new HashMap<>();
-            for(UserKnowledge uknow: uknowList){
+            uknowList.stream()
+                    //  .parallel()
+                     .forEach(uknow -> {
                 String userID = uknow.getUserUuid();
 
                 //If there is no key (not initialized)
@@ -122,22 +136,23 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
 
                 //Build grade map
                 if(userGradeMap.containsKey(userID)){
-                    continue;
+                    return;
                 }
                 userGradeMap.put(userID, Integer.valueOf( uknow.getUser().getGrade()) );
-            }
+            });
 
             //Get total updateSet            
             updateSet.addAll(getAllUserUpdateSet(curr.getCurriculumId(), masteryMap, now));
 
             //Get from grade 1~3
             IntStream.range(1, 4)
+                    //  .parallel()
                      .forEach(grade -> updateSet.addAll( getSpecificGradeUpdateSet(curr.getCurriculumId(), 
                                                                                    masteryMap, 
                                                                                    userGradeMap, 
                                                                                    grade, 
                                                                                    now)));
-        }
+        });
 
         //save hash set to stat db
         log.info("Saving: " + updateSet.size());
@@ -159,10 +174,17 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
 
         //Create a List with mastery average then sort it --> create sorted list
-        List<Float> sortedMasteryList = new ArrayList<>();
-        for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
-            sortedMasteryList.add((float)entry.getValue().getAverage());
-        }
+        
+        //List<Float> sortedMasteryList = new ArrayList<>();
+        // for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
+        //     sortedMasteryList.add((float)entry.getValue().getAverage());
+        // }
+        
+        //Parallel optimization
+        List<Float> sortedMasteryList = masteryMap.entrySet().stream()
+                                                //   .parallel()
+                                                  .map(entry -> (float)entry.getValue().getAverage())
+                                                  .collect(Collectors.toList());
         Collections.sort(sortedMasteryList); //sort
 
 
@@ -207,12 +229,20 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
 
         //Create a List with mastery average then sort it --> create sorted list
-        List<Float> sortedMasteryList = new ArrayList<>();
-        for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
-            //If the grade of user matches
-            if(userGradeMap.get(entry.getKey()) == grade)
-                sortedMasteryList.add((float)entry.getValue().getAverage());
-        }
+        
+        //List<Float> sortedMasteryList = new ArrayList<>();
+        // for(Map.Entry<String, MasteryStat> entry: masteryMap.entrySet()){
+        //     //If the grade of user matches
+        //     if(userGradeMap.get(entry.getKey()) == grade)
+        //         sortedMasteryList.add((float)entry.getValue().getAverage());
+        // }
+        
+        //Parallel optimization
+        List<Float> sortedMasteryList = masteryMap.entrySet().stream()
+                //   .parallel()
+                  .filter(entry -> userGradeMap.get(entry.getKey()) == grade)
+                  .map(entry -> (float)entry.getValue().getAverage())
+                  .collect(Collectors.toList());
         Collections.sort(sortedMasteryList); //sort
 
 
@@ -267,88 +297,52 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         currIdList.forEach(currId -> idList.add(new StatsAnalyticsCurrKey(currId, statName)));
 
         //Query
-        List<StatsAnalyticsCurr> resultList = (List<StatsAnalyticsCurr>) statisticCurrRepo.findAllById(idList);
+        List<Statistics> resultList = ((List<StatsAnalyticsCurr>) statisticCurrRepo.findAllById(idList))
+                                                .stream().map(StatsAnalyticsCurr::toStatistics).collect(Collectors.toList());
 
         //If Result is null, return null
         if(resultList.size() == 0){ return null;  }
 
-        //Create and return Statistics merged statistics
-        //Merge the data. If any of the type is not float or int, throw error
         List<Float> averagedList = new ArrayList<>();
-        for(StatsAnalyticsCurr result : resultList){
-            //Get type of var
-            Statistics.Type type = Statistics.Type.getFromValue(result.getType());
+        //Get stream array size from first element
+        Statistics firstElem = resultList.get(0);
+        boolean isFloatList = firstElem.getType() == Statistics.Type.FLOAT_LIST;
 
-            //IF not float list nor float
-            if(Statistics.Type.FLOAT_LIST != type &&  Statistics.Type.FLOAT != type){
-                log.warn("Invalid data type. Skipping." + result.toString());
-                continue;
+        if(isFloatList){
+            //Create List<List<Float>> to save matrix
+            List<List<Float>> floatListArray = resultList.stream().parallel()
+                                                         .map(Statistics::getAsFloatList).collect(Collectors.toList());
+            int arraySize = firstElem.getAsFloatList().size();
+            averagedList = IntStream.range(0, arraySize).parallel().mapToObj(idx -> {
+                //Add all and average
+                double total = floatListArray.stream().parallel().mapToDouble(floatList -> floatList.get(idx))
+                                                        .reduce(0.0, Double::sum);
+                return (float)total / resultList.size();
+            }).collect(Collectors.toList());
+
+            try{
+                Collections.sort(averagedList);
             }
-            
-
-            //Case --> float list
-            if(type == Statistics.Type.FLOAT_LIST){
-                //Convert data to List<Float>
-                Type flistType = new TypeToken<List<Float>>(){}.getType();
-                List<Float> sortedList = null;
-                try{
-                    sortedList = new Gson().fromJson(result.getData(), flistType);
-                }
-                catch(Throwable e){
-                    throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, 
-                                                       String.format("Statistics data of %s does not match type %s. Check statistics of the DB.", result.getName(), result.getType()));
-                }
-
-                //For sorted List, add the averaged data to the averagedList
-                float max = 0.0f;
-                float min = 1.0f;
-                int idx = 0;
-                for(Float item: sortedList){
-                    //If the List size is not populated yet
-                    if(averagedList.size() < idx + 1){
-                        averagedList.add(0.0f);
-                    }
-
-                    //Assume current size to uniform to all resultList
-                    averagedList.set(idx, averagedList.get(idx) +(item / resultList.size()) );
-
-                    if(item < min)
-                        min = item;
-
-                    if(item > max)
-                        max = item;
-
-                    idx++;
-                }
-
-                // log.info(String.format("Stat log of [%s]. min:%f, max:%f", result.getCurrId(), min, max));
-            }
-            else if(type == Statistics.Type.FLOAT){
-                Float value = null;
-                try{
-                    value = Float.valueOf(result.getData());
-                }
-                catch(Throwable e){
-                    throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, 
-                                                       String.format("Statistics data of %s does not match type %s. Check statistics of the DB.", result.getName(), result.getType()));
-                }
-
-                if(averagedList.size() == 0)
-                    averagedList.add(0, 0.0f);
-
-                averagedList.set(0, averagedList.get(0) + (value / resultList.size()));
+            catch(Throwable e){
+                log.debug(averagedList.toString());
             }
         }
-        Collections.sort(averagedList);
+        else {
+            Float total = 0.0f;
+            for(Statistics result: resultList){total += result.getAsFloat();}
+
+            averagedList.add(total / resultList.size() );
+        }
+        
 
         //NOTE: getting type from the first element might cause bugs
 
-        if(Statistics.Type.getFromValue(resultList.get(0).getType()) == Statistics.Type.FLOAT_LIST)
-            return new Statistics(statName, Statistics.Type.getFromValue(resultList.get(0).getType()), averagedList.toString());
+        if(isFloatList)
+            return new Statistics(statName, Statistics.Type.FLOAT_LIST, averagedList.toString());
         else
             return Statistics.builder()
                              .name(statName)
-                             .type(Statistics.Type.getFromValue(resultList.get(0).getType()))
+                             .type(Statistics.Type.FLOAT)
                              .data(averagedList.get(0).toString())
                              .build();
     }
@@ -366,27 +360,58 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
 
     @Override
     public Map<String, Float> getCurriculumMasteryOfUser(String userID) {
+        // //Prepare output object
+        // Map<String, Float> output = new HashMap<>();
+
+        // //Get all curriculums
+        // Iterable<Curriculum> currList = curriculumInfoRepo.findAll();
+
+        // //For all curriculum
+        // for(Curriculum curr: currList){
+        //     //Get related UK lists.
+        //     List<UserKnowledge> uknowList = userKnowledgeRepo.getByUserIDLikelyCurrID(userID, curr.getCurriculumId());
+
+        //     //Class to help mastery stat calc
+        //     MasteryStat stat = new MasteryStat();
+        //     uknowList.forEach(uknow -> {
+        //         Float mastery = uknow.getUkMastery();
+        //         stat.addScore(mastery);
+        //     });
+
+        //     //Add the average value to output map
+        //     output.put(curr.getCurriculumId(), stat.getAverage());
+        // }
+
+        // return output;
+
         //Prepare output object
-        Map<String, Float> output = new HashMap<>();
+        // Map<String, Float> output = new HashMap<>();
 
         //Get all curriculums
-        Iterable<Curriculum> currList = curriculumInfoRepo.findAll();
+        List<Curriculum> currList = (List<Curriculum>)curriculumInfoRepo.findAll();
 
         //For all curriculum
-        for(Curriculum curr: currList){
-            //Get related UK lists.
-            List<UserKnowledge> uknowList = userKnowledgeRepo.getByUserIDLikelyCurrID(userID, curr.getCurriculumId());
+        Map<String, Float> output = 
+            currList.stream()
+                    .parallel()
+                    .map(curr -> {
+                        //Get related UK lists.
+                        List<UserKnowledge> uknowList = userKnowledgeRepo.getByUserIDLikelyCurrID(userID, curr.getCurriculumId());
 
-            //Class to help mastery stat calc
-            MasteryStat stat = new MasteryStat();
-            uknowList.forEach(uknow -> {
-                Float mastery = uknow.getUkMastery();
-                stat.addScore(mastery);
-            });
+                        //Class to help mastery stat calc
+                        MasteryStat stat = new MasteryStat();
+                        uknowList.stream()
+                                //  .parallel()
+                                 .forEach(uknow -> {
+                            Float mastery = uknow.getUkMastery();
+                            stat.addScore(mastery);
+                        });
 
-            //Add the average value to output map
-            output.put(curr.getCurriculumId(), stat.getAverage());
-        }
+                        //Add the average value to output map
+                        // output.put(curr.getCurriculumId(), stat.getAverage());
+                        return new CurrData(curr.getCurriculumId(), stat.getAverage());
+                    })
+                    .collect(Collectors.toMap(CurrData::getCurrID, CurrData::getAverage));
 
         return output;
     }

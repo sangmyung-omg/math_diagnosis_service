@@ -40,14 +40,8 @@ public class StatisticsEventListener {
         //Get user ID
         String userID = event.getUserID();
 
-        Map<String, Float> map = currStatSvc.getCurriculumMasteryOfUser(userID);
-        String jsonStr = new Gson().toJson(map);
-
         log.debug("Updating user_mastery_stats for user: " + userID);
         userStatSvc.updateSpecificUser(userID);
-        
-        log.debug("Updating curr_mastery for user: " + userID);
-        userStatSvc.updateCustomUserStat(userID, "curr_mastery", Statistics.Type.JSON, jsonStr);
 
         log.debug("Updated all stats for user: " + userID);
     }

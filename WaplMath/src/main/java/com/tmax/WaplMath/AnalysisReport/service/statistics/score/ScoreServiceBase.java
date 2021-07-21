@@ -13,6 +13,7 @@ public interface ScoreServiceBase {
     public PersonalScoreDTO getTargetScore(String userID, Set<String> excludeSet);
 
     public GlobalStatisticDTO getScoreStats(String userID, Set<String> excludeSet, int histogramSize);
+    public GlobalStatisticDTO getScoreStats(String userID, Set<String> excludeSet, int histogramSize, int percentileLUTSize);
 
 
     //TEMP
