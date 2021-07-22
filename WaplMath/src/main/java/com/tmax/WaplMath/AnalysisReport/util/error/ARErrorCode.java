@@ -30,6 +30,8 @@ public enum ARErrorCode implements ErrorCodeBase {
 
     INVALID_STATISTICS_ERROR("0012", "Invalid statistics data"),
 
+    WAPL_SCORE_TRITON_DATA_ERROR("0013", "Invalid waplscore infer response from triton server. please check triton model status."),
+
     //The lower bound error code;
     UNKNOWN_ERROR("ERR-AR-999", "Unknown error");
 

@@ -25,10 +25,10 @@ import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;

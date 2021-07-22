@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.service.statistics;
+package com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore;
 
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 

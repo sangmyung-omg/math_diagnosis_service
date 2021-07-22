@@ -84,19 +84,14 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
      
     // get schedule configuration
     ScheduleConfigDTO scheduleConfig;
-    try{
-      if (type.equals("normal"))
-        scheduleConfig = scheduleConfigurator.getNormalScheduleConfig();
+    if (type.equals("normal"))
+      scheduleConfig = scheduleConfigurator.getNormalScheduleConfig();
 
-      else if (type.equals("exam"))
-        scheduleConfig = scheduleConfigurator.getExamScheduleConfig();
+    else if (type.equals("exam"))
+      scheduleConfig = scheduleConfigurator.getExamScheduleConfig();
 
-      else
-        scheduleConfig = scheduleConfigurator.getDummyScheduleConfig();
-    } 
-    catch (Throwable e){
-      throw new RecommendException(RecommendErrorCode.SCHEDULE_CONFIGURATOR_ERROR, StackPrinter.getStackTrace(e));
-    }
+    else
+      scheduleConfig = scheduleConfigurator.getDummyScheduleConfig();
 
     // set card generator
     cardGenerator.setUserValue(userId, 
@@ -104,12 +99,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
                                scheduleConfigurator.getExamSubSectionIdSet());
     
     // generate schedule cards with schedule config
-    try{
-      scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));
-    }
-    catch (Throwable e){
-      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_ERROR, StackPrinter.getStackTrace(e));
-    }
+    scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));
 
     // if cards empty = no probs to serve
     if (cardList.isEmpty())

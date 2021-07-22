@@ -10,7 +10,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.result.DiagnosisResultV1DTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.record.RecordServiceBase;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceV0;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.summary.SummaryServiceBase;
 
 import org.springframework.beans.factory.annotation.Autowired;

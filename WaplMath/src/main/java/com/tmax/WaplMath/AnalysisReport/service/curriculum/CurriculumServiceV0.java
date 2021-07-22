@@ -195,7 +195,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
 
         //Parallel optimization
         List<Curriculum> recentCurrList = recentCurrIDList.stream()
-                                                        //   .parallel()
+                                                          .parallel()
                                                           .flatMap(currID -> {
             if(castSet.isEmpty()){
                 Optional<Curriculum> curr = currInfoRepo.findById(currID);
@@ -214,7 +214,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
             if(castSet.contains("subsection"))
                 return currInfoRepo.getSubSectionLikeId(currIDsel).stream();
         
-            return null;
+            return new ArrayList<Curriculum>().stream();
         }).collect(Collectors.toList());
 
         // //Filter by type range
@@ -468,7 +468,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         Float score = masteryMap.get(currID);
         Float percentile = ukStatSvc.getPercentile(score, scoreLUT);
 
-        return PersonalScoreDTO.builder().score(score).percentile(percentile).build();
+        return PersonalScoreDTO.builder().score(100 * score).percentile(100 * percentile).build();
     }
 
     private PersonalScoreDTO getWaplScore(String userID, String grade, String currID, List<Float> scoreLUT, Set<Integer> ukIDList){
@@ -485,10 +485,16 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         Type type = new TypeToken<List<Map<String, Float>>>(){}.getType();
         List<Map<String, Float>> masteryMapList = new Gson().fromJson(waplMasteryStat.getData(), type);
 
+        //check mastery
+        if(masteryMapList.size() == 0){
+            log.error("WAPL score mastery is invalid for {}. Type regeneration." , userID);
+            return null;
+        }
+
         //For all ukIDList add score
         int count = 0;
         float total = 0.0f;
-        Map<String, Float> map = masteryMapList.get(0);
+        Map<String, Float> map = masteryMapList.get(masteryMapList.size() - 1); // get last map
         for(Integer ukID : ukIDList){
             if(map.containsKey(ukID.toString())){
                 total += map.get(ukID.toString());
@@ -498,7 +504,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         Float score = total/count;
         Float percentile = ukStatSvc.getPercentile(score, scoreLUT);
 
-        return PersonalScoreDTO.builder().score(score).percentile(percentile).build();
+        return PersonalScoreDTO.builder().score(100 * score).percentile(100 * percentile).build();
     }
 
     private GlobalStatisticDTO getStats(String currID){

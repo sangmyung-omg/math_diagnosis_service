@@ -20,10 +20,10 @@ import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurricu
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.problem.ProblemCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;

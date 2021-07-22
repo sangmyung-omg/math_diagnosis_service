@@ -2,7 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.controller.score;
 
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.WaplScoreServiceBaseV0;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;

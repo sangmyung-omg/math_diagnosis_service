@@ -1,5 +1,8 @@
 package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 
+import java.util.Set;
+
+import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 
 public interface UserStatisticsServiceBase {
@@ -8,6 +11,7 @@ public interface UserStatisticsServiceBase {
      * @param userID
      */
     public void updateSpecificUser(String userID);
+    public Set<StatsAnalyticsUser> updateSpecificUser(String userID, boolean updateDB);
 
     public void updateAllUsers();
 

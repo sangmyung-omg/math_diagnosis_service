@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.AnalysisReport.service.statistics;
+package com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore;
 
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
@@ -11,6 +11,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
@@ -25,23 +26,13 @@ import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepo;
 import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-
-@Data
-@AllArgsConstructor
-class ScoreMastery {
-    private Float score;
-    private String masteryJson;
-}
-
+@Slf4j
 @Service("AR-WaplScoreServiceV0")
 public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     @Autowired
@@ -77,8 +68,6 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     @Autowired
     private ExamScopeUtil examScopeUtil;
 
-    Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
     @Override
     public WAPLScoreDTO getWaplScore(String userID) {
 
@@ -88,11 +77,11 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         //If none found. get new score
         Float waplScore = 0.0f;
         if(existingScore == null){
-            logger.info("Generating new WAPL Score");
+            log.info("Generating new WAPL Score for user {}", userID);
             waplScore = generateWaplScore(userID).getScore();
         }
         else {
-            logger.info("Using existing wapl score:" + existingScore.toString());
+            log.info("Using existing wapl score: {} : {}", userID, existingScore.toString());
             waplScore = Float.valueOf(existingScore.getData());
         }
         
@@ -155,7 +144,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
             jsonData = waplMasteryStat.getData();
         }
         else {
-            logger.info(String.format("WAPL Score mastery for user %s not found. Invoking waplscore gen", userID));
+            log.warn("WAPL Score mastery for user {} not found. Invoking waplscore gen", userID);
             jsonData = generateWaplScore(userID).getMasteryJson();
         }
         
@@ -182,10 +171,11 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
     /**
      * Generate new waplscore
-     * @param userID
+     * @param userID userID of user to calc wapl score
+     * @param saveToDB option to save stat data direct to database
      * @return
      */
-    public ScoreMastery generateWaplScore(String userID){
+    public WaplScoreData generateWaplScore(String userID, boolean saveToDB){
         //Get the target data from the appripriate DB
         User userInfo = userInfoRepo.getUserInfoByUUID(userID);
 
@@ -206,7 +196,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
 
         //Get list
-        logger.info("Data: " + targetexam + currentCurrID + diffDay);
+        log.info("Data: " + targetexam + currentCurrID + diffDay);
         WaplScoreProbListDTO probList = waplScoreManager.getWaplScoreProbList(targetexam, currentCurrID, (int)diffDay);
 
 
@@ -219,11 +209,18 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
 
         //Calculate score (uk average)
-        Map<Integer, Float> firstMap = ukMasteryMapSeq.get(0);
+        if(ukMasteryMapSeq.size() == 0){
+            log.error("Invalid WAPL score mastery. Check triton response. {}", userID);
+            throw new GenericInternalException(ARErrorCode.WAPL_SCORE_TRITON_DATA_ERROR,
+                                               String.format("triton input data = [%s, %s]", probList.getProbList(), embeddingData));
+        }
+
+        //Get last map
+        Map<Integer, Float> lastMap = ukMasteryMapSeq.get(ukMasteryMapSeq.size() - 1);
         
         float score = (float)0.0f;
         int count = 0;
-        for(Map.Entry<Integer, Float> entry : firstMap.entrySet()){
+        for(Map.Entry<Integer, Float> entry : lastMap.entrySet()){
             score += entry.getValue();
             count++;
         }
@@ -236,18 +233,27 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         Statistics examScoreStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_EXAMSCOPE_SCORE);
         if(examScoreStat != null){
             Float examScore = examScoreStat.getAsFloat();
-            if(waplScore < examScore)
+            if(waplScore < examScore){
+                log.warn("Wapl Score calibration for {}", userID);
                 waplScore = (float)Math.min(1.0, examScore * 1.01);
+            }
         }
-        userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
 
         //Convert mastery map to Json with Gson
         String masteryJson = new Gson().toJson(ukMasteryMapSeq);
-        userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY, Statistics.Type.JSON, masteryJson);
+
+        if(saveToDB){
+            userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
+            userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY, Statistics.Type.JSON, masteryJson);
+        }
 
         //Log
-        logger.info("Save to wapl score to table for user: " + userID);
+        log.info("Save to wapl score to table for user: " + userID);
 
-        return new ScoreMastery(waplScore,masteryJson);
+        return new WaplScoreData(waplScore,masteryJson);
+    }
+
+    public WaplScoreData generateWaplScore(String userID){
+        return generateWaplScore(userID, true);
     }
 }

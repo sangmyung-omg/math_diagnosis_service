@@ -7,13 +7,12 @@ import java.util.stream.Collectors;
 
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
-import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.model.user.UserExamScope;
@@ -45,18 +44,15 @@ public class ExamScopeUtil {
             List<String> excludeList = examScope.getExceptSubSectionIdList() != null ? 
                                     Arrays.asList(examScope.getExceptSubSectionIdList().split(", ")) : 
                                     Arrays.asList(" ");
-            currList = curriculumInfoRepo.getCurriculumInRange(examScope.getStartSubSectionId(), examScope.getEndSubSectionId(), excludeList);
-
-
-            
+            currList = curriculumInfoRepo.getCurriculumInRange(examScope.getStartSubSectionId(), examScope.getEndSubSectionId(), excludeList);          
         }
         else {
-            log.warn("Exam scope doesn't exist for user [" + userID + "]. Creating pseudo-list from curriculum info.");
+            log.warn("Exam scope doesn't exist for user [{}]. Creating pseudo-list from curriculum info.", userID);
 
             Optional<User> userInfo = userRepo.findById(userID);
 
             if(!userInfo.isPresent()){
-                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, String.format("User id [%s] is not valid. Check if user is properly submited to server", userID));
+                throw new UserNotFoundException();
             }
 
             //Get current curriculum ID
@@ -67,6 +63,6 @@ public class ExamScopeUtil {
         }
 
 
-        return currList.stream().map(item -> item.getCurriculumId()).collect(Collectors.toList());
+        return currList.stream().map(Curriculum::getCurriculumId).collect(Collectors.toList());
     }
 }

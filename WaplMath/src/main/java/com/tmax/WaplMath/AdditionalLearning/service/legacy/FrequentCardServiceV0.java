@@ -118,7 +118,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		//input 문제에 해당하는 소단원에 대한 평균 이해도 ==> 이해도 낮은 소단원에 대한 빈출문제 출제할 것
 		//타겟시험범위 내 소단원만 도출
 		List<UserSubSectionMastery> subsectionList = UserSubSecMasteryRepo.getSubSectionAndMastery(start,end,userId,probIdList);
-		log.info("\n소단원과 평균 이해도 리스트 : " + subsectionList);
+		//log.info("\n소단원과 평균 이해도 리스트 : " + subsectionList);
 		
 		for(int i = 0 ; i<subsectionList.size() ; i++) {
 			recentSubsectionIdList.add(subsectionList.get(i).getCurriculumId());
@@ -180,7 +180,15 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			if(notEleDiagnosisSubsectionList.size()!=0) {
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,notEleDiagnosisSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-				log.info("\n진단고사 내 중등 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				
+				Set<String> curriculumIdlist = new HashSet<String>();
+				for(FreqProbCurriDTO dto : todayProbList) {
+					String str = dto.getCurriculumId();
+					curriculumIdlist.add(str);
+				}
+				log.info("\nDiagnosis Subsection with frequent problem  : " + curriculumIdlist);
+				
+				log.info("\nFrequent problem count in Diagnosis Subsection : " + todayProbList.size());
 			
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,notEleDiagnosisSubsectionList,5));
 			}
@@ -191,7 +199,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 					
 					List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 					List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-					log.info("\n(진단고사를 봤는데-모두 초등 소단원 or 한 문제도 풀지 않음,)오늘의학습카드 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+					//log.info("\n(진단고사를 봤는데-모두 초등 소단원 or 한 문제도 풀지 않음,)오늘의학습카드 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
 					
 					//진단고사 소단원 대체할 오늘의학습카드 내 소단원
 					recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
@@ -208,11 +216,19 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		{
 			//최근 공부한 소단원이 있다면
 			if(subsectionList.size()!=0) {
-				
+				log.info("\nThere is recent learning subsection");
 				
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-				log.info("\n(최근 공부한 소단원이 존재할 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				
+				
+				Set<String> tCurriculumIdlist = new HashSet<String>();
+				for(FreqProbCurriDTO dto : todayProbList) {
+					String str = dto.getCurriculumId();
+					tCurriculumIdlist.add(str);
+				}
+				log.info("\nDiagnosis Subsection with frequent problem  : " + tCurriculumIdlist);
+				log.info("\nFrequent problem count in Diagnosis Subsection : " + todayProbList.size());
 				
 				//오늘 소단원
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,1));
@@ -227,14 +243,24 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 				forNotProvided.addAll(solvedProbIdList);
 				forNotProvided.add(todayProvidedProbId);
 
-				//
+				//최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트
 				List<UserFrequentProblem> recentProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(forNotProvided,subsectionList);
 				List<FreqProbCurriDTO> recentProbList = entityToDto(recentProbList_m);
-				log.info("\n최근 공부한 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + recentProbList);
 				
+				//최근 공부한 소단원에 대한 출제한 적 있는 빈출 문제 리스트
 				List<UserFrequentProblem> providedRecentProbList_m = UserFreqProbRepo.getFrequentProvidedProblem(solvedProbIdList,subsectionList);
 				List<FreqProbCurriDTO> providedRecentProbList = entityToDto(providedRecentProbList_m);
-				log.info("\n최근 공부한 소단원에 대한 출제한 적 있는 빈출 문제 리스트 : " + providedRecentProbList);
+				
+				Set<String> rCurriculumIdlist = new HashSet<String>();
+				List<FreqProbCurriDTO> dtolist = new ArrayList<FreqProbCurriDTO>();
+				dtolist.addAll(recentProbList);
+				dtolist.addAll(providedRecentProbList);
+				for(FreqProbCurriDTO dto : dtolist) {
+					String str = dto.getCurriculumId();
+					tCurriculumIdlist.add(str);
+				}
+				log.info("\nRecent 14 days Subsection with frequent problem  : " + rCurriculumIdlist);
+				log.info("\nFrequent problem count in Recent 14 days Subsection : " + providedRecentProbList.size());
 				
 				
 				//최근소단원 - 출제X
@@ -246,6 +272,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 				//최소 3문제를 확보하지 못한다면 과거 14일 기준 가장 예전에 배운 소단원보다 더 오래된 소단원들에서 빈출문제 선정 
 				if(recommendFreqProbIdList.size()<3) {
 					
+					log.info("\n Recommend frequent problem count < 3");
 					//
 					for(int i= 0; i<recommendFreqProbIdList.size();i++) {
 						forNotProvided.add(recommendFreqProbIdList.get(i).getProblemId());
@@ -259,6 +286,8 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 					List<FreqProbCurriDTO> probList = entityToDto(probList_m);
 					recommendFreqProbIdList.addAll(SortingAndRecommend(probList,AnothersubsectionList,3-recommendFreqProbIdList.size()));
 					
+					
+					
 					if(recommendFreqProbIdList.size()<3) {
 						List<UserFrequentProblem> providedProbList_m = UserFreqProbRepo.getFrequentProvidedProblem(solvedProbIdList,AnothersubsectionList);
 						List<FreqProbCurriDTO> providedProbList = entityToDto(providedProbList_m);
@@ -269,17 +298,25 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			
 			//최근 공부한 소단원이 없다면 --> 오늘의학습카드 내 소단원에서 문제 개수 채우기
 			else{
+				log.info("\nThere is no recent learning subsection");
 				
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
-				log.info("\n(최근 공부한 소단원이 존재하지 않을 때,)오늘 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
+				
+				Set<String> tCurriculumIdlist = new HashSet<String>();
+				for(FreqProbCurriDTO dto : todayProbList) {
+					String str = dto.getCurriculumId();
+					tCurriculumIdlist.add(str);
+				}
+				log.info("\nDiagnosis Subsection with frequent problem  : " + tCurriculumIdlist);
+				log.info("\nFrequent problem count in Diagnosis Subsection : " + todayProbList.size());
 				
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,todayCardSubsectionList,5));
 			}
 			
 		}
 		
-		log.info("\n최종 추천 빈출 문제 리스트 : " + recommendFreqProbIdList);
+		log.info("\nFinal frequent Problem List : " + recommendFreqProbIdList);
 		
 		return recommendFreqProbIdList;
 	};
@@ -327,7 +364,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			recommendFreqProbIdList.add(freqProb);
 			
 		}
-		log.info("\n추천하고자 하는 빈출 문제 리스트 : " + recommendFreqProbIdList);
+		//log.info("\n추천하고자 하는 빈출 문제 리스트 : " + recommendFreqProbIdList);
 		
 			
 		return recommendFreqProbIdList;
@@ -360,12 +397,11 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		
 		//타겟시험범위시작 ~ 최근(14일)동안 공부했던 가장 오래전 소단원   내의 소단원과 평균 이해도 ==> 이해도 낮은 소단원에 대한 빈출문제 출제할 것
 		List<UserSubSectionMastery> AnotherSubsectionList = UserSubSecMasteryRepo.getAnotherSubSectionAndMastery(start,end,userId,subsectionList);
-		log.info("\n타겟시험범위시작 ~ 최근(14일)동안 공부했던 가장 오래전 소단원 -> 소단원과 평균 이해도 리스트 : " + AnotherSubsectionList);
 		
 		for(int i = 0 ; i<AnotherSubsectionList.size() ; i++) {
 			AnotherSubsectionIdList.add(AnotherSubsectionList.get(i).getCurriculumId());
 		}
-		
+		log.info("\nAnother subsection List : " + AnotherSubsectionIdList);
 		return AnotherSubsectionIdList;
 	};
 	
@@ -485,19 +521,29 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 
 		try {
 			diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
-			log.info("\n진단고사에서 풀었던 probId 리스트 : " + diagnosisProbIdList);
+			log.info("\nDiagnosis probId List : " + diagnosisProbIdList);
 			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
+			log.info("\nDiagnosis Subsection List : " + diagnosisSubsectionList);
+			
 			
 			todayCardProbIdList.addAll(this.getLRSProblemIdList(userId, tomorrow, today, sourceTypeListTodayCards));
-			log.info("\n오늘의 학습 카드에서 풀었던 probId 리스트 : " + todayCardProbIdList);
+			log.info("\nTodaycards probId List : " + todayCardProbIdList);
 			todayCardSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, todayCardProbIdList);
+			log.info("\nTodaycards Subsection List : " + todayCardSubsectionList);
+			
 			
 			recentSolvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, Fromday, sourceTypeListTodayCards));
-			log.info("\n과거 14일동안 풀었던 probId 리스트 : " + recentSolvedProbIdList);
+			log.info("\nRecent 14 days probId List : " + recentSolvedProbIdList);
 			recentSectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, recentSolvedProbIdList);
+			log.info("\nRecent 14 days Subsection List : " + recentSectionList);
+			
+			if((!diagnosisProbIdList.isEmpty()&&diagnosisSubsectionList.isEmpty())||(!todayCardProbIdList.isEmpty()&&todayCardSubsectionList.isEmpty())||(!recentSolvedProbIdList.isEmpty()&&recentSectionList.isEmpty())) {
+				FrequentCard.setResultMessage("The problem exists, but the subsection does not exist. Check user mastery.");
+				return FrequentCard;
+			}
 			
 			solvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, null, sourceTypeListAll)); 
-			log.info("\n그동안 풀었던 probId 리스트 : " + solvedProbIdList);
+			log.info("\nSolved probId count : " + solvedProbIdList.size());
 			
 			
 			//다른건 문제리스트가 없을 수 있어도, 오늘의 카드 문제리스트가 없을 수는 없음

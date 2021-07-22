@@ -194,7 +194,13 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
         Type type = new TypeToken<List<Map<String, Float>>>(){}.getType();
         List<Map<String, Float>> masteryMapList = new Gson().fromJson(waplMasteryStat.getData(), type);
         
-        Float score = 100 * masteryMapList.get(0).get(uk.getUkId().toString());
+        //mastery map size error
+        if(masteryMapList.size() == 0){
+            log.error("WAPL score mastery is invalid for {}. Type regeneration." , userID);
+            return null;
+        }            
+
+        Float score = 100 * masteryMapList.get(masteryMapList.size() - 1).get(uk.getUkId().toString());
 
         //Get sortedMastery TODO. make this percentile LUT format + apply grade
         Statistics sortedListStat = ukStatSvc.getUKStatistics(uk.getUkId(), UKStatisticsServiceBase.STAT_MASTERY_SORTED);

@@ -25,6 +25,8 @@ import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreData;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.user.User;
@@ -79,6 +81,8 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     @Autowired
     private ProblemRepo probRepo;
 
+    @Autowired
+    private WaplScoreServiceV0 waplScoreSvc;
 
     /*
     *      ┌─────────────┐
@@ -103,12 +107,12 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     *      └──────────────────────────┘
     */
     @Override
-    public void updateSpecificUser(String userID) {
+    public Set<StatsAnalyticsUser> updateSpecificUser(String userID, boolean updateDB) {
         //Check if User is vali
         Optional<User> user = userRepository.findById(userID);
         if(!user.isPresent()){
             log.error("User {} is not valid. skipping stat.", userID);
-            return;
+            return null;
         }
 
         //Create set for DB update
@@ -131,16 +135,26 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
         //Test parallel streamer
         //Create set for DB update
-        Set<StatsAnalyticsUser> updateSet = IntStream.range(0, 4)
+        Set<StatsAnalyticsUser> updateSet = IntStream.range(0, 5)
                                                     .parallel()
                                                     .mapToObj(idx -> parallelRunner(userID, now, idx))
                                                     .flatMap(set -> set.stream())
                                                     .collect(Collectors.toSet());
 
         //Save to DB
-        log.info("Saving for user: {}, # in set = {}", userID, updateSet.size());
-        statisticUserRepo.saveAll(updateSet);
-        log.info("Saved. " + userID);
+        if(updateDB){
+            log.info("Saving for user: {}, # in set = {}", userID, updateSet.size());
+            statisticUserRepo.saveAll(updateSet);
+            log.info("Saved. " + userID);
+            return null;
+        }
+
+        return updateSet;
+    }
+
+    @Override
+    public void updateSpecificUser(String userID) {
+        updateSpecificUser(userID, true);
     }
 
     //Indexed stat selector for parallel processing
@@ -160,15 +174,54 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             case 3:
                 output = getLRSStatistics(userID, ts);
                 break;
+            case 4:
+                output = getWaplScoreStats(userID, ts);
+                break;
             default:
-                output = null;
+                output = new HashSet<>();
         }
 
         return output;
     }
 
+    private Set<StatsAnalyticsUser> getWaplScoreStats(String userID, Timestamp ts){
+        //Check if wapl score and mastery exists
+        if(hasUserStatistics(userID, STAT_WAPL_SCORE) && hasUserStatistics(userID, STAT_WAPL_SCORE_MASTERY)){
+            log.debug("Using exising wapl stats. [{}]", userID);
+            return new HashSet<>();
+        }
+
+        log.debug("Creating new waplscore stats for user: " + userID);
+
+        //Create set for DB update
+        Set<StatsAnalyticsUser> updateSet = new HashSet<>();
+
+        WaplScoreData data = waplScoreSvc.generateWaplScore(userID, false);
+
+        //Create stat statements and add to set
+        //waplscore
+        updateSet.add(StatsAnalyticsUser.builder()
+                                        .userId(userID)
+                                        .name(STAT_WAPL_SCORE)
+                                        .type(Statistics.Type.FLOAT.getValue())
+                                        .data(data.getScore().toString())
+                                        .lastUpdate(ts)
+                                        .build()
+                                         );
+        //waplscore mastery data
+        updateSet.add(StatsAnalyticsUser.builder()
+                                        .userId(userID)
+                                        .name(STAT_WAPL_SCORE_MASTERY)
+                                        .type(Statistics.Type.FLOAT.getValue())
+                                        .data(data.getMasteryJson())
+                                        .lastUpdate(ts)
+                                        .build()
+                                        );
+        return updateSet;
+    }
+
     private Set<StatsAnalyticsUser> getUKGlobalStats(String userID, Timestamp ts){
-        log.info("Creating global uk stats for user: " + userID);
+        log.debug("Creating global uk stats for user: " + userID);
 
         //Get user's knowledge list.
         List<UserKnowledge> knowledgeList = userKnowledgeRepo.getByUserUuid(userID);
@@ -187,7 +240,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         // knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
 
         //Parallel stream
-        List<Float> masteryList = knowledgeList.stream().parallel().map(uknow -> uknow.getUkMastery()).collect(Collectors.toList());
+        List<Float> masteryList = knowledgeList.stream().parallel().map(UserKnowledge::getUkMastery).collect(Collectors.toList());
 
 
         //Calc each UK statistics and push to set
@@ -207,7 +260,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     }
 
     private Set<StatsAnalyticsUser> getPerCurriculumStats(String userID, Timestamp ts) {
-        log.info("Creating curriculum stats for user: " + userID);
+        log.debug("Creating curriculum stats for user: " + userID);
 
         //Create set for DB update
         Set<StatsAnalyticsUser> output = new HashSet<>();
@@ -230,7 +283,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     }
 
     private Set<StatsAnalyticsUser> getExamScopeStats(String userID, Timestamp ts){
-        log.info("Creating examscope stats stats for user: " + userID);
+        log.debug("Creating examscope stats stats for user: " + userID);
 
         //Create set for DB update
         Set<StatsAnalyticsUser> output = new HashSet<>();
@@ -242,8 +295,12 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         //Get userknowledge list with currList scope
         List<UserKnowledge> knowledgeList = userKnowledgeRepo.getByUserUuidScoped(userID, currIDList);
 
-        List<Float> masteryList = new ArrayList<>();
-        knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
+        // List<Float> masteryList = new ArrayList<>();
+        // knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
+        List<Float> masteryList = knowledgeList.stream()
+                                                .parallel()
+                                                .map(UserKnowledge::getUkMastery)
+                                                .collect(Collectors.toList());
 
         output.add(statsToAnalyticsUser(userID, 
                                             new Statistics(STAT_EXAMSCOPE_SCORE, Statistics.Type.FLOAT, ukStatSvc.getMean(masteryList).toString()), 
@@ -257,12 +314,28 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         log.info("Updating Statistics of all users");
 
         //Get all user list
-        Iterable<User> userList = userRepository.findAll();
+        List<User> userList = (List<User>)userRepository.findAll();
+
+        Set<StatsAnalyticsUser> updateSet = new HashSet<>();
 
         for(User user : userList){
             log.info(String.format("Updating user [%s] (%s)",user.getUserUuid(), user.getName()));
-            updateSpecificUser(user.getUserUuid());
+
+            //Get user update set
+            Set<StatsAnalyticsUser> userUpdateSet = updateSpecificUser(user.getUserUuid(), false);
+
+            if(userUpdateSet == null){
+                log.error("Cannot create update set for user [{}] ({})", user.getUserUuid(), user.getName());
+                continue;
+            }
+
+            updateSet.addAll(userUpdateSet);
         }
+
+        //Update to DB
+        log.info("Saving user stats for {} users.", updateSet.size());
+        statisticUserRepo.saveAll(updateSet);
+        log.info("Saved successfully.");
     }
 
     @Override
