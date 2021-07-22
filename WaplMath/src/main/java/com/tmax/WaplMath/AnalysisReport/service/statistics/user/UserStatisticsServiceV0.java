@@ -404,7 +404,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
         //Get LRS statement list for user
         List<String> actionTypeList = Arrays.asList("submit", "start");
-        List<String> sourceTypeList = Arrays.asList("diagnosis", "type_question", "supple_question", "section_test_question","chapter_test_question",
+        List<String> sourceTypeList = Arrays.asList("diagnosis", "diagnosis_simple", "type_question", "supple_question", "section_test_question","chapter_test_question",
                                                     "addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question",
                                                     "retry_question","wrong_answer_question","starred_question");
 
