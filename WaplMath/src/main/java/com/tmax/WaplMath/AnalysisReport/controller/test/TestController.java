@@ -13,6 +13,7 @@ import java.util.Optional;
 // import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
+import com.tmax.WaplMath.AnalysisReport.event.statistics.StatisticsEventPublisher;
 // import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
 // import com.tmax.WaplMath.AnalysisReport.model.knowledge.UserKnowledgeJoined;
 // import com.tmax.WaplMath.AnalysisReport.model.problem.ProblemCurriculum;
@@ -175,6 +176,18 @@ public class TestController {
                                                     "retry_question","wrong_answer_question","starred_question");
         List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
         return new ResponseEntity<>(statementList, HttpStatus.OK);
+    }
+
+    @Autowired
+    StatisticsEventPublisher publisher;
+
+    @GetMapping("/forcewaplscore")
+    ResponseEntity<Object> genWaplScore(@RequestParam("userID") String userID, @RequestParam("debugkey") String debugkey) {
+        if(debugkey.equals("debugtest")){
+            publisher.publishWaplScoreGenEvent(userID, true);
+        }
+
+        return new ResponseEntity<>("done", HttpStatus.OK);
     }
     
     @Autowired

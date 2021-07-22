@@ -3,7 +3,6 @@ package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -447,7 +446,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             Integer probID = Integer.valueOf(statement.getSourceId());
 
             //Get curr ID of problem
-            recentCurrSet.add(curriculumInfoRepo.getProblemByCurriculumID(probID));
+            recentCurrSet.add(curriculumInfoRepo.getCurrIdByProbId(probID));
 
             //Get correct histogram
             if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){

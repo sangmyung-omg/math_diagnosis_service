@@ -8,8 +8,6 @@ import java.util.Set;
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.curriculum.CurriculumDataDTO;
 import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,14 +109,15 @@ public class CurriculumControllerV2 {
                                                         @RequestParam(name="exclude", defaultValue = "") String exclude,
                                                         @RequestParam(name="count", defaultValue =  "1000") Integer count,
                                                         @RequestParam(name="castto", defaultValue = "") String castTo,
-                                                        @RequestParam(name="order", defaultValue = "id") String order) {
+                                                        @RequestParam(name="order", defaultValue = "id") String order,
+                                                        @RequestParam(name="currIdFilter", defaultValue = "") String currIdFilter) {
         //Parse jwt to get userID
         String userID  = JWTUtil.getJWTPayloadField(token, "userID");               
 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));                                                    
         
-        CurriculumDataDTO result = currSvc.searchRecent(userID, count, castTo, order, excludeSet);
+        CurriculumDataDTO result = currSvc.searchRecent(userID, count, castTo, order, currIdFilter, excludeSet);
 
         return new ResponseEntity<>(result,HttpStatus.OK);
     }

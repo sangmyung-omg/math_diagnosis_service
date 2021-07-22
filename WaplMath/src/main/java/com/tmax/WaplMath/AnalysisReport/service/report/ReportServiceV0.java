@@ -2,6 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.service.report;
 
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import com.tmax.WaplMath.AnalysisReport.dto.curriculum.CurriculumDataDTO;
@@ -14,6 +15,7 @@ import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Common.repository.curriculum.CurriculumRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,9 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
     @Autowired
     CurriculumRepo currRepo;
 
+    @Autowired
+    ExamScopeUtil examScopeUtil;
+
     @Override
     public ReportDataDTO getReport(String userID, Set<String> excludeSet) {
         //Get basic score data
@@ -50,7 +55,18 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
         if(!excludeSet.contains("currData")){
             //List<String> currIDList = getRecentCurrIDList(userID, 10);
             //currData = currSvc.getByIdList(userID, currIDList, excludeSet);
-            currData = currSvc.searchRecent(userID, 1000, "chapter", "", excludeSet);
+            // currData = currSvc.searchRecent(userID, 1000, "chapter", "", excludeSet);
+
+            //Get target currID list
+            List<String> targetCurrIDList = examScopeUtil.getCurrIdListOfScope(userID);
+
+            //Cast all data to chapter ID
+            Set<String> targetChapterIdList = targetCurrIDList.stream()
+                                                              .map(id -> currSvc.castCurriculumID(id, "chapter"))
+                                                              .collect(Collectors.toSet());
+
+            //Get currData
+            currData = currSvc.getByIdList(userID, new ArrayList<>(targetChapterIdList), excludeSet);
         }
         
         return ReportDataDTO.builder()

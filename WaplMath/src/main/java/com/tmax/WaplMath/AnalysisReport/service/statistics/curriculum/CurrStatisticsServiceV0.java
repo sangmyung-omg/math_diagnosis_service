@@ -1,6 +1,5 @@
 package com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum;
 
-import java.lang.reflect.Type;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,8 +13,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsCurr;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsCurrKey;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
@@ -23,10 +20,8 @@ import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticCurrRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import org.springframework.beans.factory.annotation.Autowired;

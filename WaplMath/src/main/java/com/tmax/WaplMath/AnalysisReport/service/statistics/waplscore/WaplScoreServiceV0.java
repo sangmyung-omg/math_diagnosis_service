@@ -235,7 +235,12 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
             Float examScore = examScoreStat.getAsFloat();
             if(waplScore < examScore){
                 log.warn("Wapl Score calibration for {}", userID);
-                waplScore = (float)Math.min(1.0, examScore * 1.01);
+                // waplScore = (float)Math.min(1.0, examScore * 1.01);
+                
+                float diff = 100.0f - examScore;
+                waplScore = examScore + (float)Math.random()*diff;
+
+                log.warn("Calibrated to {} for {}", waplScore, userID);
             }
         }
 

@@ -25,4 +25,12 @@ public class StatisticsEventPublisher {
         log.info("Publish mastery change event for user: " + userID);
         applicationEventPublisher.publishEvent(new StatisticsUpdateRequestEvent(userID));
     }
+
+    /**
+     * Wapl score gen event to invoke waplscore gen or regeneration
+     */
+    public void publishWaplScoreGenEvent(final String userID, final boolean isForceUpdate){
+        log.info("publish wapl score gen event {} {}", userID, isForceUpdate);
+        applicationEventPublisher.publishEvent(new WaplScoreGenEvent(userID, isForceUpdate));
+    }
 }

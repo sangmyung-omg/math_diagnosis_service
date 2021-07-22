@@ -56,5 +56,5 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
 
     //2021-07-15 get currID of problemID
     @Query("select pt.curriculumId from Problem prob INNER JOIN ProblemType pt on prob.problemType = pt.typeId where prob.probId=:probID")
-    public String getProblemByCurriculumID(@Param("probID") Integer probID);
+    public String getCurrIdByProbId(@Param("probID") Integer probID);
 }

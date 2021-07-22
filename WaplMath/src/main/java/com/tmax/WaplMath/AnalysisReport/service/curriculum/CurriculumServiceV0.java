@@ -151,6 +151,11 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
 
     @Override
     public CurriculumDataDTO searchRecent(String userID, Integer count, String castTo, String order, Set<String> excludeSet) {
+        return searchRecent(userID, count, castTo, order, "", excludeSet);
+    }
+
+    @Override
+    public CurriculumDataDTO searchRecent(String userID, Integer count, String castTo, String order, String idFilter, Set<String> excludeSet) {
         //Get recent Curr List from stat table
         Statistics recentCurrStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_RECENT_CURR_ID_LIST);
         if(recentCurrStat == null){
@@ -161,8 +166,16 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
 
         List<String> recentCurrIDList = recentCurrStat.getAsStringList();
 
+        //Filter the currIDList
+        if(!idFilter.isEmpty()){
+            recentCurrIDList = new ArrayList<>(recentCurrIDList.stream()
+                                                               .filter(id -> id.startsWith(idFilter))
+                                                               .collect(Collectors.toSet()) 
+                                                               );
+        }
+
         //Cut resultIDList by count
-        recentCurrIDList = recentCurrIDList.subList(0, Math.min(Math.max(0, count), recentCurrIDList.size()));
+        // recentCurrIDList = recentCurrIDList.subList(0, Math.min(Math.max(0, count), recentCurrIDList.size()));
 
         //Fill currList depending on typeRange
         //split typerange to Set
@@ -170,64 +183,89 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         if(castTo != null && !castTo.isEmpty())
             castSet.addAll( Arrays.asList(castTo.split(",")).stream().collect(Collectors.toSet()) );
 
-        //Fill list
-        // List<Curriculum> recentCurrList = new ArrayList<>();
-        // for(String currID :  recentCurrIDList){
+        List<String> searchCurrIDList = recentCurrIDList.stream()
+                                                        .flatMap(id -> {
+                                                            //None castset case
+                                                            if(castSet.isEmpty()){
+                                                                return Arrays.asList(id).stream();
+                                                            }
+
+                                                            Set<String> currIDSet = new HashSet<>();
+                                                            int length = id.length();
+
+                                                            //Cast set cases
+                                                            if(castSet.contains("chapter") && length >= 11)
+                                                                currIDSet.add(castCurriculumID(id, "chapter"));
+
+                                                            if(castSet.contains("section") && length >= 14)
+                                                                currIDSet.add(castCurriculumID(id, "section"));
+
+                                                            if(castSet.contains("subsection") && length >= 17)
+                                                                currIDSet.add(castCurriculumID(id, "subsection"));
+
+                                                            return currIDSet.stream();
+                                                        })
+                                                        .collect(Collectors.toList());
+
+
+        //cut list to given count --> then collect List
+        List<Curriculum> recentCurrList = searchCurrIDList.subList(0, Math.min(Math.max(0, count), searchCurrIDList.size()))
+                                                          .stream()
+                                                          .parallel()
+                                                          .flatMap(id -> {
+                                                            if(castSet.isEmpty()){
+                                                                Optional<Curriculum> curr = currInfoRepo.findById(id);
+                                                                if(curr.isPresent())
+                                                                    return Arrays.asList(curr.get()).stream();
+                                                            }
+
+                                                            //Select currID ==> the highest of the castTo
+                                                            String currIDsel = getHighestCurrID(id, castSet);
+                                                            if(castSet.contains("chapter"))
+                                                                return currInfoRepo.getChaptersLikeId(currIDsel).stream();
+                                                            
+                                                            if(castSet.contains("section"))
+                                                                return currInfoRepo.getSectionsLikeId(currIDsel).stream();
+                                                            
+                                                            if(castSet.contains("subsection"))
+                                                                return currInfoRepo.getSubSectionLikeId(currIDsel).stream();
+                                                        
+                                                            return new ArrayList<Curriculum>().stream();
+                                                          })
+                                                          .collect(Collectors.toList());
+                                                          
+
+        //Parallel optimization
+        // List<Curriculum> recentCurrList = recentCurrIDList.stream()
+        //                                                   .parallel()
+        //                                                   .flatMap(currID -> {
         //     if(castSet.isEmpty()){
         //         Optional<Curriculum> curr = currInfoRepo.findById(currID);
         //         if(curr.isPresent())
-        //             recentCurrList.add( curr.get() );
-        //         continue;
+        //             return Arrays.asList(curr.get()).stream();
         //     }
 
         //     //Select currID ==> the highest of the castTo
         //     String currIDsel = getHighestCurrID(currID, castSet);
-            
         //     if(castSet.contains("chapter"))
-        //         recentCurrList.addAll( currInfoRepo.getChaptersLikeId(currIDsel) );
+        //         return currInfoRepo.getChaptersLikeId(currIDsel).stream();
             
         //     if(castSet.contains("section"))
-        //         recentCurrList.addAll( currInfoRepo.getSectionsLikeId(currIDsel) );
+        //         return currInfoRepo.getSectionsLikeId(currIDsel).stream();
             
         //     if(castSet.contains("subsection"))
-        //         recentCurrList.addAll( currInfoRepo.getSubSectionLikeId(currIDsel) );
-        // }
-
-        //Parallel optimization
-        List<Curriculum> recentCurrList = recentCurrIDList.stream()
-                                                          .parallel()
-                                                          .flatMap(currID -> {
-            if(castSet.isEmpty()){
-                Optional<Curriculum> curr = currInfoRepo.findById(currID);
-                if(curr.isPresent())
-                    return Arrays.asList(curr.get()).stream();
-            }
-
-            //Select currID ==> the highest of the castTo
-            String currIDsel = getHighestCurrID(currID, castSet);
-            if(castSet.contains("chapter"))
-                return currInfoRepo.getChaptersLikeId(currIDsel).stream();
-            
-            if(castSet.contains("section"))
-                return currInfoRepo.getSectionsLikeId(currIDsel).stream();
-            
-            if(castSet.contains("subsection"))
-                return currInfoRepo.getSubSectionLikeId(currIDsel).stream();
+        //         return currInfoRepo.getSubSectionLikeId(currIDsel).stream();
         
-            return new ArrayList<Curriculum>().stream();
-        }).collect(Collectors.toList());
+        //     return new ArrayList<Curriculum>().stream();
+        // }).collect(Collectors.toList());
+        
 
-        // //Filter by type range
-        // if(!typeRange.isEmpty()){
-        //     Set<String> typeSet = Arrays.asList(typeRange.split(",")).stream().collect(Collectors.toSet());
-        //     recentCurrList = filterTypeCurriculumList(recentCurrList, typeSet);
-        // }
 
         //Return list
         return buildFromCurriculum(userID, getUserInfo(userID).getGrade(), recentCurrList, excludeSet);
     }
 
-    private String castCurriculumID(String inputID, String type){
+    public String castCurriculumID(String inputID, String type){
         Integer orilen = inputID.length();
         if(type.equals("chapter"))
             return inputID.substring(0, Math.min(orilen,11));

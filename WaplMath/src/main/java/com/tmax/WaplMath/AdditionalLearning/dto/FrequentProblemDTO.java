@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class FrequentProblemDTO {
-	private int problemId;
+	private Integer problemId;
+	private Integer timeRecommendation;
 	//private String section;
 	//private float sectionMastery;
 }

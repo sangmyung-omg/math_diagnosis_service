@@ -22,11 +22,27 @@ public class SectionServiceV0 implements SectionServiceBaseV0{
 	@Qualifier("AddLearn-SectionRepo")
 	SectionRepo sectionRepo;
 	
+	
 	@Override
-	public List<String> getSubsectionListByProblem(String userId, Set<Integer> probIdList, String scopeStart, String scopeEnd) {
+	public List<String> getSubsectionListByProblem(String userId, Set<Integer> probIdList) {
+		
+		List<String> subSectionList = new ArrayList<String>();
+		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbId(userId,probIdList);
+		
+		for(String str : subSectionAndMastery) {
+			subSectionList.add(str.split(",")[0]);
+			//subSectionList.add(str);
+		}
+		
+		return subSectionList;
+	}
+	
+	
+	@Override
+	public List<String> getSubsectionListByProblemWithScope(String userId, Set<Integer> probIdList, String scopeStart, String scopeEnd) {
 		List<String> subSectionList = new ArrayList<String>();
 		
-		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbId(userId,probIdList, scopeStart, scopeEnd);
+		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbIdWithScope(userId,probIdList, scopeStart, scopeEnd);
 		
 		for(String str : subSectionAndMastery) {
 			subSectionList.add(str.split(",")[0]);
@@ -38,15 +54,37 @@ public class SectionServiceV0 implements SectionServiceBaseV0{
 	
 
 	@Override
-	public List<String> getSubsectionListByScope(String userId, String scopeStart, String scopeEnd) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<String> getSubsectionListByCurriScope(String userId, String scopeStart, String scopeEnd) {
+		List<String> subSectionList = new ArrayList<String>();
+		
+		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByCurriScope(userId, scopeStart, scopeEnd);
+		
+		for(String str : subSectionAndMastery) {
+			subSectionList.add(str.split(",")[0]);
+			//subSectionList.add(str);
+		}
+		
+		return subSectionList;
 	}
 
 	@Override
-	public List<SubsectionMasteryDTO> getSubsectionMasteryListByProblem(String userId, List<Integer> probIdList) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<SubsectionMasteryDTO> getSubsectionMasteryListByProblem(String userId, Set<Integer> probIdList) {
+		
+		List<SubsectionMasteryDTO> subSectionList = new ArrayList<SubsectionMasteryDTO>();
+		
+		List<String> subSectionAndMastery =  sectionRepo.getSubsectionAndMasteryByProbId(userId,probIdList);
+		
+		for(String str : subSectionAndMastery) {
+			SubsectionMasteryDTO dto = new SubsectionMasteryDTO();
+			dto.setSubsection(str.split(",")[0]);
+			dto.setMastery(Float.parseFloat(str.split(",")[1]));
+			subSectionList.add(dto);
+		}
+		
+		return subSectionList;
 	}
+
+
+
 
 }

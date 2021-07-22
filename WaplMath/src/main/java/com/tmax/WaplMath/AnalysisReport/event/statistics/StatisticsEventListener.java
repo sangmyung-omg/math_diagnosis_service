@@ -1,12 +1,9 @@
 package com.tmax.WaplMath.AnalysisReport.event.statistics;
 
-import java.util.Map;
-
-import com.google.gson.Gson;
-import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryChangeEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,4 +90,12 @@ public class StatisticsEventListener {
         log.info("======= Nightly statistics update DONE ========");   
     }
 
+    @Autowired
+    WaplScoreServiceV0 waplScoreSvc;
+
+    @EventListener
+    public void generateWaplScoreListener(WaplScoreGenEvent event){
+        log.info("Gen waplscore {} force = {}", event.getUserID(), event.isForceGen());
+        waplScoreSvc.generateWaplScore(event.getUserID(), event.isForceGen());
+    }
 }

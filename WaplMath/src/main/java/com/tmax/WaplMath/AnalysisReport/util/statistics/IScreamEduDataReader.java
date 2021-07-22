@@ -280,7 +280,7 @@ public class IScreamEduDataReader {
         Path path = null;
         String filepathSuffix = "statistics/user_uk_all.json";
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
-        catch (FileNotFoundException e) {log.warn("File not found internally: "+ filepathSuffix);}
+        catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
         try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
         catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
@@ -338,7 +338,7 @@ public class IScreamEduDataReader {
         Path path = null;
         String filepathSuffix = "statistics/uk_user_data.json";
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
-        catch (FileNotFoundException e) {log.warn("File not found internally: "+ filepathSuffix);}
+        catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
         try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
         catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}

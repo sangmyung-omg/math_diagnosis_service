@@ -223,7 +223,7 @@ public class ChapterServiceV0 implements ChapterServiceBase{
         Path path = null;
         String filepathSuffix = "statistics/uk_" + i + "_percentile.json";
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();} 
-        catch (FileNotFoundException e) {log.warn("File not found internally: "+ filepathSuffix);}
+        catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
         try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
         catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}

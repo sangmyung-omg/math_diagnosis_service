@@ -13,5 +13,7 @@ public interface CurriculumServiceBase {
        
 
     public CurriculumDataDTO searchByYear(String userID, String schoolType, String year, String typeRange, String order, Set<String> excludeSet);
+
     public CurriculumDataDTO searchRecent(String userID, Integer count, String castTo, String order, Set<String> excludeSet);
+    public CurriculumDataDTO searchRecent(String userID, Integer count, String castTo, String order, String idFilter,Set<String> excludeSet);
 }

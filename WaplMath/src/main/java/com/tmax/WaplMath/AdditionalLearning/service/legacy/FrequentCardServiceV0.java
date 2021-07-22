@@ -181,15 +181,16 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,notEleDiagnosisSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
 				
+				
 				Set<String> curriculumIdlist = new HashSet<String>();
 				for(FreqProbCurriDTO dto : todayProbList) {
 					String str = dto.getCurriculumId();
 					curriculumIdlist.add(str);
 				}
 				log.info("\nDiagnosis Subsection with frequent problem  : " + curriculumIdlist);
-				
 				log.info("\nFrequent problem count in Diagnosis Subsection : " + todayProbList.size());
-			
+				
+				
 				recommendFreqProbIdList.addAll(SortingAndRecommend(todayProbList,notEleDiagnosisSubsectionList,5));
 			}
 			//진단고사에서 학습한 소단원이 존재하지 않는 경우 --> 기획적으로 존재하지 않음
@@ -281,10 +282,19 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 					List<String> AnothersubsectionList = new ArrayList<String>();
 					AnothersubsectionList.addAll(getAnotherSubsectionMasteryOfUser(userId,subsectionList));
 					
-					//
+					
 					List<UserFrequentProblem> probList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(forNotProvided,AnothersubsectionList);
 					List<FreqProbCurriDTO> probList = entityToDto(probList_m);
-					recommendFreqProbIdList.addAll(SortingAndRecommend(probList,AnothersubsectionList,3-recommendFreqProbIdList.size()));
+					
+//					Set<String> CurriculumIdlist = new HashSet<String>();
+//					for(FreqProbCurriDTO dto : probList) {
+//						String str = dto.getCurriculumId();
+//						CurriculumIdlist.add(str);
+//					}
+//					log.info("\nAnother Subsection with frequent problem  : " + CurriculumIdlist);
+//					log.info("\nFrequent problem count in Another Subsection : " + probList.size());
+//					
+//					recommendFreqProbIdList.addAll(SortingAndRecommend(probList,AnothersubsectionList,3-recommendFreqProbIdList.size()));
 					
 					
 					
@@ -507,9 +517,9 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 //		String Fromday = LocalDate.now().minusDays(14).format(formatter);
 		
 	
-		String today = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-		String tomorrow = ZonedDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-		String Fromday = ZonedDateTime.now().minusDays(14).format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+		String today = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		String tomorrow = ZonedDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		String Fromday = ZonedDateTime.now().minusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
 		
 		List<String> sourceTypeListDiagnosis = new ArrayList<String>(
@@ -520,11 +530,13 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 				Arrays.asList("type_question","supple_question","section_test_question","chapter_test_question","addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question","frequent_question")); // 모든 source type(진단고사 제외)
 
 		try {
+			
+			if(isFirstFreq) {
 			diagnosisProbIdList.addAll(this.getLRSProblemIdList(userId, null, null, sourceTypeListDiagnosis)); 
 			log.info("\nDiagnosis probId List : " + diagnosisProbIdList);
 			diagnosisSubsectionList = getSubsectionMasteryOfUser(userId, isFirstFreq, diagnosisProbIdList);
 			log.info("\nDiagnosis Subsection List : " + diagnosisSubsectionList);
-			
+			}
 			
 			todayCardProbIdList.addAll(this.getLRSProblemIdList(userId, tomorrow, today, sourceTypeListTodayCards));
 			log.info("\nTodaycards probId List : " + todayCardProbIdList);
@@ -541,6 +553,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 				FrequentCard.setResultMessage("The problem exists, but the subsection does not exist. Check user mastery.");
 				return FrequentCard;
 			}
+			
 			
 			solvedProbIdList.addAll(this.getLRSProblemIdList(userId, today, null, sourceTypeListAll)); 
 			log.info("\nSolved probId count : " + solvedProbIdList.size());

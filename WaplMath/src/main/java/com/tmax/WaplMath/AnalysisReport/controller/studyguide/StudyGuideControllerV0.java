@@ -28,7 +28,7 @@ import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 public class StudyGuideControllerV0 {
 
     @Autowired
-    @Qualifier("StudyGuideServiceV0")
+    @Qualifier("AR-StudyGuideServiceV1")
     StudyGuideServiceBase studySvc;
     
     @GetMapping("/studyguide")
