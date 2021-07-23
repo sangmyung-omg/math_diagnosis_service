@@ -178,6 +178,7 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			
 			//진단고사에서 학습한 소단원이 존재하는 경우
 			if(notEleDiagnosisSubsectionList.size()!=0) {
+				log.info("\nRecommend frequent card for diagnosis - diagnosis subsection. User ID : " + userId);
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,notEleDiagnosisSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
 				
@@ -197,7 +198,8 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 			else {
 				
 				try {
-					
+					log.info("\nRecommend frequent card for diagnosis - nTodaycards subsection. User ID : " + userId);
+					log.info("\nAll diagnosis problems are elementary curriculum.");
 					List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 					List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);
 					//log.info("\n(진단고사를 봤는데-모두 초등 소단원 or 한 문제도 풀지 않음,)오늘의학습카드 내 소단원에 대한 출제한 적 없는 빈출 문제 리스트 : " + todayProbList);
@@ -215,9 +217,9 @@ public class FrequentCardServiceV0 implements FrequentCardServiceBaseV0{
 		//2. 그 이후
 		else 
 		{
+			log.info("\nRecommend frequent card - Learned subsection. User ID : " + userId);
 			//최근 공부한 소단원이 있다면
 			if(subsectionList.size()!=0) {
-				log.info("\nThere is recent learning subsection");
 				
 				List<UserFrequentProblem> todayProbList_m = UserFreqProbRepo.getFrequentNotProvidedProblem(solvedProbIdList,todayCardSubsectionList);
 				List<FreqProbCurriDTO> todayProbList = entityToDto(todayProbList_m);

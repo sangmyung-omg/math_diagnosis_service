@@ -45,18 +45,14 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
     public ReportDataDTO getReport(String userID, Set<String> excludeSet) {
         //Get basic score data
         PersonalScoreDTO score = excludeSet.contains("score") ? null :  scoreSvc.getUserScore(userID, excludeSet);
-        PersonalScoreDTO waplscore = excludeSet.contains("waplscore") ? null :  scoreSvc.getUserScore(userID, excludeSet);
-        PersonalScoreDTO targetscore = excludeSet.contains("targetscore") ? null :  scoreSvc.getUserScore(userID, excludeSet);
+        PersonalScoreDTO waplscore = excludeSet.contains("waplscore") ? null :  scoreSvc.getWaplScore(userID, excludeSet);
+        PersonalScoreDTO targetscore = excludeSet.contains("targetscore") ? null :  scoreSvc.getTargetScore(userID, excludeSet);
         GlobalStatisticDTO stats = excludeSet.contains("stats") ? null :  scoreSvc.getScoreStats(userID, excludeSet, 100);
 
 
         // CurriculumDataDTO currData = currSvc.getByIdList(userID, currIDList, excludeSet);
         CurriculumDataDTO currData = null;
         if(!excludeSet.contains("currData")){
-            //List<String> currIDList = getRecentCurrIDList(userID, 10);
-            //currData = currSvc.getByIdList(userID, currIDList, excludeSet);
-            // currData = currSvc.searchRecent(userID, 1000, "chapter", "", excludeSet);
-
             //Get target currID list
             List<String> targetCurrIDList = examScopeUtil.getCurrIdListOfScope(userID);
 
@@ -82,8 +78,8 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
     public ReportDataLiteDTO getReportLite(String userID, Set<String> excludeSet) {
         //Get basic score data
         PersonalScoreDTO score = excludeSet.contains("score") ? null :  scoreSvc.getUserScore(userID, excludeSet);
-        PersonalScoreDTO waplscore = excludeSet.contains("waplscore") ? null :  scoreSvc.getUserScore(userID, excludeSet);
-        PersonalScoreDTO targetscore = excludeSet.contains("targetscore") ? null :  scoreSvc.getUserScore(userID, excludeSet);
+        PersonalScoreDTO waplscore = excludeSet.contains("waplscore") ? null :  scoreSvc.getWaplScore(userID, excludeSet);
+        PersonalScoreDTO targetscore = excludeSet.contains("targetscore") ? null :  scoreSvc.getTargetScore(userID, excludeSet);
         GlobalStatisticDTO stats = excludeSet.contains("stats") ? null :  scoreSvc.getScoreStats(userID, excludeSet, 100);
 
 

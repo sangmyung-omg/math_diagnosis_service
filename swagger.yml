@@ -193,11 +193,11 @@ paths:
         "500":
           description: "오류 발생 시"
           $ref: "#/components/responses/500-Generic" 
-  /frequent:
+  /additionallearning/v1/frequent{isFirstFrequent}:
     get:
       tags:
         - Additional Learning
-      summary: "빈출카드 추천"
+      summary: "빈출카드 추천 v1"
       description: "완벽학습에서 빈출 카드 제공"
       parameters:
         - $ref: "#/components/parameters/UserToken"
@@ -656,8 +656,11 @@ components:
             $ref: "#/components/schemas/FreqProblems"
           example:
             - problemId: 1
+              timeRecommendation: 0
             - problemId: 2
+              timeRecommendation: 0
             - problemId: 3
+              timeRecommendation: 0
         subsectionSetList:
           type: array
           description: "추천된 빈출문제가 속해있는 소단원들과 이해도"
@@ -673,11 +676,16 @@ components:
       type: object
       required:
           - "problemId"
+          - "timeRecommendation"
       properties:
         problemId:
           type: number
           example: 1
           description: "카드를 구성하는 빈출문제 ID"
+        timeRecommendation:
+          type: number
+          example: 1
+          description: "빈출문제의 적정 풀이시간(sec)"
     FreqSubsectionMastery:
       type: object
       required:

@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.Recommend.controller.exception;
 
 import com.tmax.WaplMath.Common.dto.GenericErrorDTO;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 
@@ -16,6 +17,13 @@ public class RecommendControllerAdvice {
     @ExceptionHandler(RecommendException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public GenericErrorDTO handleInternalError(RecommendException exception){
+        log.error("Return Exception: [{}] {}", exception.getErrorCode(), exception.getMessage());
+        return new GenericErrorDTO(exception.getErrorCode(), exception.getMessage());
+    }
+
+    @ExceptionHandler(GenericInternalException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public GenericErrorDTO handleGenericInternalError(GenericInternalException exception){
         log.error("Return Exception: [{}] {}", exception.getErrorCode(), exception.getMessage());
         return new GenericErrorDTO(exception.getErrorCode(), exception.getMessage());
     }

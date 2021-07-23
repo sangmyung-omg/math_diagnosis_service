@@ -10,6 +10,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataLiteDTO;
 import com.tmax.WaplMath.AnalysisReport.service.report.ReportServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.LRSStatementEmptyException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
 
@@ -47,22 +48,11 @@ public class ReportControllerV2 {
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
 
-        //Step 1: update mastery
-        try {
-            masterySvc.updateMasteryFromLRS(token);
-        }
-        catch (Throwable e){
-            throw new GenericInternalException(ARErrorCode.GENERIC_ERROR, "Update mastery error." + StackPrinter.getStackTrace(e));
-        }
+        //Step 1: update mastery -> if error, the masterySvc will throw it itself
+        masterySvc.updateMasteryFromLRS(token);
 
         //Step 2:
-        ReportDataDTO output = null;
-        try {
-            output = reportSvc.getReport(userID, excludeSet);
-        }
-        catch (Throwable e){
-            throw new GenericInternalException(ARErrorCode.RESULT_SERVICE_ERROR, StackPrinter.getStackTrace(e));
-        }
+        ReportDataDTO output = reportSvc.getReport(userID, excludeSet);
 
         return new ResponseEntity<>(output, HttpStatus.OK);
     }

@@ -87,7 +87,7 @@ public class StudyGuideServiceV1 implements StudyGuideServiceBase{
                 diagnosisSecIdSet.add(currSvc.castCurriculumID(currID, "section"));
             }
             catch (Throwable e){
-                log.warn("Source ID is null. {}", userID);
+                log.warn("Source ID is null or invalid. user {}. {}", userID, statement.toString() );
             }
         }
 

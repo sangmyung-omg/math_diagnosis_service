@@ -532,10 +532,10 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                               .build();
     }
 
-    // FULL_SCOPE_EXAM 카드 제공
+    // SECTION_EXAM 카드가 모두 충족이 안될 때 FULL_SCOPE_EXAM 카드 제공
     if(totalDays <= sectionIdSet.size()) {
       log.info("\tTotal {} days, {} sections --> FULL_SCOPE_EXAM card.", totalDays, sectionIdSet.size());
-      Integer fullScopeCardProbNum = (int) Math.ceil((double) MAX_CARD_PROB_NUM / sectionIdSet.size());
+      Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / sectionIdSet.size());
 
       for (String sectionId: sectionIdSet) {
         log.info("FULL_SCOPE_EXAM card (Sections : {}, Probs : {}) ", sectionId, fullScopeCardProbNum);
@@ -603,7 +603,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     }
 
     // FULL_SCOPE_EXAM 카드 제공
-    Integer fullScopeCardProbNum = (int) Math.ceil((double) MAX_CARD_PROB_NUM / sectionIdSet.size());
+    Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / sectionIdSet.size());
 
     for	(String sectionId: sectionIdSet) {
       log.info("FULL_SCOPE_EXAM card in remain days (Sections : {}, Probs : {}) ", sectionId, fullScopeCardProbNum);

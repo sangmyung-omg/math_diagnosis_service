@@ -447,8 +447,10 @@ public class ChapterServiceV1 implements ChapterServiceBase{
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
         catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
-        try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
-        catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
+        if(path == null){ //external file read
+            try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+            catch (FileNotFoundException e) {log.error("File also not found externally.: "+ filepathSuffix);}
+        }
 
         FileReader reader = null;
         try {

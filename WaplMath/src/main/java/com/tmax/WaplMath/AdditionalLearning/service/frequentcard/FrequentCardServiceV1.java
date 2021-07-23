@@ -95,7 +95,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 		
 		/*CASE1. 진단고사 직후 첫 접근*/
 		if(isFirstFrequent) {
-			
+			log.info("\nRecommend frequent card for diagnosis. User ID : " + userId);
 			//진단고사에서 학습한 문제 id 리스트 
 			Set<Integer> diagnosisSolvedProbIdList = new HashSet<Integer>();
 
@@ -154,6 +154,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			else {
 				
 				if(diagAllEle) {
+					
 					log.info("\nAll diagnosis problems are elementary curriculum.");
 					//오늘의학습카드에서 학습한 문제 id 리스트
 					Set<Integer> todaycardSolvedProbIdList = new HashSet<Integer>();
@@ -199,7 +200,8 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 		
 		/*CASE2. 일반적인 접근*/
 		else {
-		
+			
+			log.info("\nRecommend frequent card - Learned subsection. User ID : " + userId);
 			//오늘의학습카드에서 학습한 문제 id 리스트
 			Set<Integer> todaycardSolvedProbIdList = new HashSet<Integer>();
 			
@@ -307,7 +309,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 
 				
 				if(todaycardFreqProbCurriList.size()+allRecentFreqProbCurriList.size()+AnotherFreqProbCurriList.size()==0) {
-					throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned todaycards subsection.");
+					throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned subsection.");
 				}
 			}
 			

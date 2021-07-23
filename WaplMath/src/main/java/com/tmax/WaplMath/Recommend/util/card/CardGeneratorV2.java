@@ -292,6 +292,12 @@ public class CardGeneratorV2 extends CardConstants {
     Map<String, Integer> currentCurrProbNumMap = new HashMap<>();
     Map<String, Integer> totalCurrProbNumMap = new HashMap<>();
 
+    // Throw exception if no probs in superCurr
+    if (!superCurr.name().equals("exam") && 
+        problemRepo.findProbCntInCurrId(superCurr.getCurrId(), this.solvedProbIdSet) == 0)
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_NO_PROBS_ERROR, 
+                                    String.format("%s {%s}", card.getCardType(), superCurr.getCurrId()));
+
     switch (superCurr.name()) {
       case "section":
         freqOrderedCurrIdList = problemTypeRepo.findSubSectionIdListInSectionOrderByFreq(superCurr.getCurrId());
@@ -411,6 +417,12 @@ public class CardGeneratorV2 extends CardConstants {
     
     Map<String, Integer> currTypeNumMap = new HashMap<>();
 
+    // Throw exception if no probs in superCurr
+    if (!superCurr.name().equals("exam") && 
+        problemRepo.findProbCntInCurrId(superCurr.getCurrId(), this.solvedProbIdSet) == 0)
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_NO_PROBS_ERROR, 
+                                    String.format("%s {%s}", card.getCardType(), superCurr.getCurrId()));
+
     switch (superCurr.name()) {
       case "section":
         currMasteryList = 
@@ -478,7 +490,7 @@ public class CardGeneratorV2 extends CardConstants {
           totalCurrProbNumMap.put(currId, totalCurrProbNum);
 
           // 한 문제 더 들어갈 문제가 있다
-          if (totalCurrProbNum > currProbNum) {
+          if (currProbNum < totalCurrProbNum) {
             currentCurrProbNumMap.put(currId, currProbNum + 1);
             cardDetailJson.addProperty(currName, mastery * 100.0f);
             probCnt += 1;
@@ -501,7 +513,7 @@ public class CardGeneratorV2 extends CardConstants {
       if (currMasteryList.size() == fullCurrIdSet.size())
         probPerType += 1;
     }
-
+    
     // 커리큘럼 순서대로 카드 내 단원 문제들 배치
     CurrType curr;
     for (String currId : curriculumRepo.sortByCurrSeq(currentCurrProbNumMap.keySet())) {
@@ -699,9 +711,9 @@ public class CardGeneratorV2 extends CardConstants {
                                   
     // 유형 내 문제들 리턴
     List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
-    if (typeProbList.isEmpty()){
-      return new CardDTOV2();
-    } 
+    if (typeProbList.isEmpty())
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_NO_PROBS_ERROR, 
+                                    String.format("%s {typeId=%s}", TYPE_CARD_TYPESTR, typeId));
     else {
       DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 
@@ -835,6 +847,7 @@ public class CardGeneratorV2 extends CardConstants {
     currType.setCurrId(curriculumId);
 
     addCurrProblemWithMastery(examCard, currType, probNum);
+
     return examCard;
   }
   

@@ -36,6 +36,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -59,6 +60,48 @@ public class LRSAPIManager {
   RestTemplate restTemplate;
 
   public GetStatementInfoDTO input;
+
+  //Enums for statement
+  //SourceType
+  public enum SourceType {
+    DIAGNOSIS("diagnosis"),
+    DIAGNOSIS_SIMPLE("diagnosis_simple"),
+    TYPE_QUESTION("type_question"), 
+    SUPPLE_QUESTION("supple_question"), 
+    SECTION_TEST_QUESTION("section_test_question"),
+    CHAPTER_TEST_QUESTION("chapter_test_question"),
+    ADDTL_SUPPLE_QUESTION("addtl_supple_question"),
+    SECTION_EXAM_QUESTION("section_exam_question"),
+    FULL_SCOPE_EXAM_QUESTION("full_scope_exam_question"),
+    TRIAL_EXAM_QUESTION("trial_exam_question"),
+    RETRY_QUESTION("retry_question"),
+    WRONG_ANSWER_QUESTION("wrong_answer_question"),
+    STARRED_QUESTION("starred_question");
+
+    @Getter
+    private String value;
+
+    private SourceType(String value){
+      this.value = value;
+    }
+
+    public static List<String> getAllDiagnosis(){
+      return null;
+    }
+  }
+
+  //ActionType
+  public enum ActionType {
+    SUBMIT("submit"),
+    START("start");
+
+    @Getter
+    private String value;
+
+    private ActionType(String value){
+      this.value = value;
+    }
+  }
 
   @Autowired
   public LRSAPIManager(@Value("${waplmath.recommend.lrs.host}") String host) {
@@ -259,4 +302,6 @@ public class LRSAPIManager {
     return result;
   }
 
+
+  
 }

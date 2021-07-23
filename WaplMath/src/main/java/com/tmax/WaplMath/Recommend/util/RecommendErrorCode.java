@@ -22,8 +22,9 @@ public enum RecommendErrorCode implements ErrorCodeBase {
     NUMBER_PARSE_ERROR("0009", "Error while parsing number. "),
 
     SCHEDULE_CONFIGURATOR_ERROR("1001","Schedule configurator returned error. "),
-    CARD_GENERATOR_ERROR("1002","Card generator returned error. "),
-    
+    CARD_GENERATOR_ERROR("1002","Card generator returned error. "),    
+    CARD_GENERATOR_NO_PROBS_ERROR("1003","No problems to generate card. Probably in 2nd semester range. Error card type = "),
+
     CARD_GENERATE_NO_CARDS_ERROR("7777","No cards were created. User seems to have solved all the problems. ");
 
     static final String ERROR_CODE_PREFIX = "ERR-REC-";

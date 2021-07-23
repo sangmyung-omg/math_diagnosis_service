@@ -38,5 +38,6 @@ public interface UserStatisticsServiceBase {
     public static final String STAT_WAPL_SCORE = "waplscore";
     public static final String STAT_WAPL_SCORE_MASTERY = "waplscore_mastery";    
 
-    public static final String STAT_RECENT_CURR_ID_LIST = "recent_curr_list";  
+    public static final String STAT_RECENT_CURR_ID_LIST = "recent_curr_list";
+    public static final String STAT_RECENT_DIAGNOSIS_CURR_ID_LIST = "recent_diag_curr_list";
 }

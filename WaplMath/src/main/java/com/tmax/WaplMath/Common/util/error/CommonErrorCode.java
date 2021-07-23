@@ -8,7 +8,9 @@ import lombok.Getter;
 
 public enum CommonErrorCode implements ErrorCodeBase {
     GENERIC_ERROR("0001", "Generic error has occurred."),
-    USER_NOT_EXIST("0002", "Given user does not exist."),
+    USER_NOT_EXIST("0002", "Given user does not exist. Please check if user is properly submitted through /userbasicinfo"), 
+
+    LRS_STATEMENT_EMPTY("0003", "No LRS Statement found. Please check if user's info is properly submitted to LRS."),
 
 
     //The lower bound error code;

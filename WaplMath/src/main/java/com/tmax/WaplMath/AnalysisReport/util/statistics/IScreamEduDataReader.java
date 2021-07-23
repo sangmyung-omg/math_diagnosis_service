@@ -100,7 +100,6 @@ public class IScreamEduDataReader {
     @Qualifier("RE-UkRepo")
     private UkRepo ukRepository;
 
-    @Value("${external-config.url}")
     private String externalConfigURL;
 
 
@@ -121,7 +120,7 @@ public class IScreamEduDataReader {
     }
 
 
-    @Value("${statistics.config.use_iscream_data}")
+    // @Value("${statistics.config.use_iscream_data}")
     private boolean useIScreamData;
 
     public enum Mode {
@@ -132,6 +131,24 @@ public class IScreamEduDataReader {
 
         private Mode(String value){
             this.value = value;
+        }
+    }
+
+
+    public IScreamEduDataReader(@Value("${statistics.config.use_iscream_data}") boolean useIScreamData,
+                                @Value("${external-config.url}") String externalConfigURL) {
+        
+        this.externalConfigURL = externalConfigURL;
+        this.useIScreamData = useIScreamData;
+        
+        if(useIScreamData){
+            log.info("Using I-scream data");
+
+            log.info("Preload all UK data");
+            this.getAllUKData();
+
+            log.info("Preload all User mastery data");
+            this.getAllUserMasteryData();
         }
     }
 
@@ -282,8 +299,10 @@ public class IScreamEduDataReader {
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
         catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
-        try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
-        catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
+        if(path == null){ //external file read
+            try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+            catch (FileNotFoundException e) {log.error("File also not found externally.: "+ filepathSuffix);}
+        }
         
 
         FileReader reader = null;
@@ -340,8 +359,10 @@ public class IScreamEduDataReader {
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
         catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
-        try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
-        catch (FileNotFoundException e) {log.error("File alno not found externally.: "+ filepathSuffix);}
+        if(path == null){ //external file read
+            try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+            catch (FileNotFoundException e) {log.error("File also not found externally.: "+ filepathSuffix);}
+        }
 
         FileReader reader = null;
         try {

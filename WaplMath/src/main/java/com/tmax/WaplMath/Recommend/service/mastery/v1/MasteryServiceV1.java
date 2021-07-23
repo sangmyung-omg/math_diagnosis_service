@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.tmax.WaplMath.Common.exception.LRSStatementEmptyException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
@@ -91,9 +92,9 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
             throw new RecommendException(RecommendErrorCode.DATA_MISMATCH_ERROR,  "List size does not match");
         }
         
-        //Pass condition check (any of the two lists' size == 0 or size doesn't match)
+        //Pass condition check (any of the two lists' size == 0 or size doesn't match) => throw. must abort all other tasks
         if(probIdList.size() == 0 || correctList.size() == 0){
-            return new ResultMessageDTO("Nothing to update");
+            throw new LRSStatementEmptyException();
         }
 
         //Convert probIdList to IntList

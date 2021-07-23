@@ -312,18 +312,20 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
 
     private Comparator<CurriculumDataDetailDTO> getCurrDataComparator(String type){
         if(type.equals("mastery")){
-
+            //Return default comparator (sequence compare)
+            return new Comparator<CurriculumDataDetailDTO>() {
+                @Override
+                public int compare(CurriculumDataDetailDTO o1, CurriculumDataDetailDTO o2) {
+                    return o1.getScore().getScore().compareTo(o2.getScore().getScore());
+                }
+            };
         }
 
         //Return default comparator (sequence compare)
         return new Comparator<CurriculumDataDetailDTO>() {
             @Override
             public int compare(CurriculumDataDetailDTO o1, CurriculumDataDetailDTO o2) {
-                if(o1.getBasic().getSeq() < o2.getBasic().getSeq())
-                    return -1;
-                else if (o1.getBasic().getSeq() > o2.getBasic().getSeq())
-                    return 1;
-                return 0;
+                return o1.getBasic().getSeq().compareTo(o2.getBasic().getSeq());
             }
         };
     }

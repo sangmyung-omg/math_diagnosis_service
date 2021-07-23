@@ -40,13 +40,8 @@ public class UpdatedResultControllerV1 {
     ResponseEntity<Object> putUpdatedResult(@RequestHeader("token") String token){
         String userID = JWTUtil.getJWTPayloadField(token, "userID");
 
-        //Step 1: update mastery
-        try {
-            masterySvc.updateMasteryFromLRS(token);
-        }
-        catch (Throwable e){
-            throw new GenericInternalException(ARErrorCode.GENERIC_ERROR, StackPrinter.getStackTrace(e));
-        }
+        //Step 1: update mastery => throw in mastery svc
+        masterySvc.updateMasteryFromLRS(token);
 
         //Step 2:
         DiagnosisResultV1DTO output = null;

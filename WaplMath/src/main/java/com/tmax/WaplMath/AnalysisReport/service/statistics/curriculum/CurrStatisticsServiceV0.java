@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsCurr;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsCurrKey;
@@ -91,63 +92,124 @@ public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
         //Get all curriculums
         List<Curriculum> currList = (List<Curriculum>)curriculumInfoRepo.findAll();
 
-        //Create hashset
-        Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
-
         //Prepare the updateSet for current curriculum and map it from the mastery map
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        
+        // //Create hashset
+        // Set<StatsAnalyticsCurr> updateSet = new HashSet<>();
+        // //For all curriculum
+        // currList.stream()
+        //         // .parallel()
+        //         .forEach(curr ->{
+        //     //Get related UK lists.
+        //     List<UserKnowledge> uknowList = userKnowledgeRepo.getAllByLikelyCurrID(curr.getCurriculumId());
 
-        //For all curriculum
-        currList.stream()
-                // .parallel()
-                .forEach(curr ->{
-            //Get related UK lists.
-            List<UserKnowledge> uknowList = userKnowledgeRepo.getAllByLikelyCurrID(curr.getCurriculumId());
-
-            //Add i-scream edu data
-            if(iScreamEduDataReader.useIScreamData())
-                uknowList.addAll(iScreamEduDataReader.getByLikelyCurriculumID(curr.getCurriculumId()));
+        //     //Add i-scream edu data
+        //     if(iScreamEduDataReader.useIScreamData())
+        //         uknowList.addAll(iScreamEduDataReader.getByLikelyCurriculumID(curr.getCurriculumId()));
 
 
-            //If no uknow is selected, then continue. Further steps are useless
-            if(uknowList == null || uknowList.size() == 0)
-                return;
+        //     //If no uknow is selected, then continue. Further steps are useless
+        //     if(uknowList == null || uknowList.size() == 0)
+        //         return;
 
-            //Create map <userid, masterystat> and userGradeMap
-            Map<String, MasteryStat> masteryMap = new HashMap<>();
-            Map<String, Integer> userGradeMap = new HashMap<>();
-            uknowList.stream()
-                    //  .parallel()
-                     .forEach(uknow -> {
-                String userID = uknow.getUserUuid();
+        //     //Create map <userid, masterystat> and userGradeMap
+        //     Map<String, MasteryStat> masteryMap = new HashMap<>();
+        //     Map<String, Integer> userGradeMap = new HashMap<>();
+        //     uknowList.stream()
+        //             //  .parallel()
+        //              .forEach(uknow -> {
+        //         String userID = uknow.getUserUuid();
 
-                //If there is no key (not initialized)
-                if(!masteryMap.containsKey(userID)){
-                    masteryMap.put(userID, new MasteryStat());
-                }
+        //         //If there is no key (not initialized)
+        //         if(!masteryMap.containsKey(userID)){
+        //             masteryMap.put(userID, new MasteryStat());
+        //         }
 
-                //Add all mastery to stat per user
-                masteryMap.get(userID).addScore(uknow.getUkMastery());
+        //         //Add all mastery to stat per user
+        //         masteryMap.get(userID).addScore(uknow.getUkMastery());
 
-                //Build grade map
-                if(userGradeMap.containsKey(userID)){
-                    return;
-                }
-                userGradeMap.put(userID, Integer.valueOf( uknow.getUser().getGrade()) );
-            });
+        //         //Build grade map
+        //         if(userGradeMap.containsKey(userID)){
+        //             return;
+        //         }
+        //         userGradeMap.put(userID, Integer.valueOf( uknow.getUser().getGrade()) );
+        //     });
 
-            //Get total updateSet            
-            updateSet.addAll(getAllUserUpdateSet(curr.getCurriculumId(), masteryMap, now));
+        //     //Get total updateSet            
+        //     updateSet.addAll(getAllUserUpdateSet(curr.getCurriculumId(), masteryMap, now));
 
-            //Get from grade 1~3
-            IntStream.range(1, 4)
-                    //  .parallel()
-                     .forEach(grade -> updateSet.addAll( getSpecificGradeUpdateSet(curr.getCurriculumId(), 
-                                                                                   masteryMap, 
-                                                                                   userGradeMap, 
-                                                                                   grade, 
-                                                                                   now)));
-        });
+        //     //Get from grade 1~3
+        //     IntStream.range(1, 4)
+        //             //  .parallel()
+        //              .forEach(grade -> updateSet.addAll( getSpecificGradeUpdateSet(curr.getCurriculumId(), 
+        //                                                                            masteryMap, 
+        //                                                                            userGradeMap, 
+        //                                                                            grade, 
+        //                                                                            now)));
+        // });
+
+        //Create hashset
+        Set<StatsAnalyticsCurr> updateSet = 
+            currList.stream()
+                    .parallel()
+                    .flatMap(curr ->{
+                        //currID
+                        String currID = curr.getCurriculumId();
+
+                        //Get related UK lists.
+                        List<UserKnowledge> uknowList = userKnowledgeRepo.getAllByLikelyCurrID(currID);
+
+                        //Add i-scream edu data
+                        if(iScreamEduDataReader.useIScreamData())
+                            uknowList.addAll(iScreamEduDataReader.getByLikelyCurriculumID(currID));
+
+
+                        //If no uknow is selected, then continue. Further steps are useless
+                        if(uknowList == null || uknowList.size() == 0)
+                            return Stream.empty();
+
+                        //Create map <userid, masterystat> and userGradeMap
+                        Map<String, MasteryStat> masteryMap = new HashMap<>();
+                        Map<String, Integer> userGradeMap = new HashMap<>();
+                        uknowList.stream()
+                                //  .parallel()
+                                .forEach(uknow -> {
+                            String userID = uknow.getUserUuid();
+
+                            //If there is no key (not initialized)
+                            if(!masteryMap.containsKey(userID)){
+                                masteryMap.put(userID, new MasteryStat());
+                            }
+
+                            //Add all mastery to stat per user
+                            masteryMap.get(userID).addScore(uknow.getUkMastery());
+
+                            //Build grade map
+                            if(userGradeMap.containsKey(userID)){
+                                return;
+                            }
+                            userGradeMap.put(userID, Integer.valueOf( uknow.getUser().getGrade()) );
+                        });
+
+
+                        //Create loop Set
+                        Set<StatsAnalyticsCurr> allUserSet = getAllUserUpdateSet(currID, masteryMap, now);
+
+                        //Get from grade 1~3
+                        Set<StatsAnalyticsCurr> gradeUserSet =  
+                                IntStream.range(1, 4)
+                                        .parallel()
+                                        .mapToObj(grade -> getSpecificGradeUpdateSet(currID, masteryMap, userGradeMap, grade, now))
+                                        .flatMap(set -> set.stream())
+                                        .collect(Collectors.toSet());
+                        
+                        //Merge and return stream
+                        allUserSet.addAll(gradeUserSet);
+                        
+                        return allUserSet.stream();
+                    })
+                    .collect(Collectors.toSet());
 
         //save hash set to stat db
         log.info("Saving: " + updateSet.size());
