@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUk;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUkKey;
@@ -15,15 +17,16 @@ import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticUKRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
+import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.uk.Uk;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 
 class MasteryStat {
     private Float score = 0.0f;
@@ -50,7 +53,7 @@ class MasteryStat {
     public float getScore(){return this.score;}
 }
 
-
+@Slf4j
 @Service("UKStatisticsServiceV0")
 public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
     
@@ -68,8 +71,6 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
 
     @Autowired
     private IScreamEduDataReader iScreamEduDataReader;
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Override
     public Statistics getUKStatistics(Integer ukID, String statname) {
@@ -119,46 +120,109 @@ public class UKStatisticsServiceV0 implements UKStatisticsServiceBase{
         //Get current timestamp(for uniform update time)
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
-        //Prepare update set
-        Set<StatsAnalyticsUk> updateSet = new HashSet<>();
+        // //Prepare update set
+        // Set<StatsAnalyticsUk> updateSet = new HashSet<>();
 
-        //For each uk. --> UK based loop
-        for(Uk uk: ukList) {
-            //Get the knowledge list for each uk
-            List<UserKnowledge> userKnowledgeList = userKnowledgeRepo.getByUkId(uk.getUkId());
+        // //For each uk. --> UK based loop
+        // for(Uk uk: ukList) {
+        //     //Get the knowledge list for each uk
+        //     List<UserKnowledge> userKnowledgeList = userKnowledgeRepo.getByUkId(uk.getUkId());
 
-            //Merge I-scream edu data
-            if(iScreamEduDataReader.useIScreamData())
-                userKnowledgeList.addAll(iScreamEduDataReader.getByUkID(uk.getUkId()));
+        //     //Merge I-scream edu data
+        //     if(iScreamEduDataReader.useIScreamData())
+        //         userKnowledgeList.addAll(iScreamEduDataReader.getByUkID(uk.getUkId()));
             
-            if(userKnowledgeList != null && userKnowledgeList.size() > 0){
-                //List to save mastery data
-                List<Float> masteryList = new ArrayList<>();
-                userKnowledgeList.forEach(uknow->masteryList.add(uknow.getUkMastery()));
+        //     if(userKnowledgeList != null && userKnowledgeList.size() > 0){
+        //         //List to save mastery data
+        //         List<Float> masteryList = new ArrayList<>();
+        //         userKnowledgeList.forEach(uknow->masteryList.add(uknow.getUkMastery()));
 
 
-                //Create various statistics data (Clob string) and add to update Set     
-                //mean
-                updateSet.add(statToAnalyticsUk(uk.getUkId(), 
-                                                new Statistics(STAT_MASTERY_MEAN, Statistics.Type.FLOAT, getMean(masteryList).toString() ), 
-                                                now));
+        //         //Create various statistics data (Clob string) and add to update Set     
+        //         //mean
+        //         updateSet.add(statToAnalyticsUk(uk.getUkId(), 
+        //                                         new Statistics(STAT_MASTERY_MEAN, Statistics.Type.FLOAT, getMean(masteryList).toString() ), 
+        //                                         now));
 
-                //sorted list (for percentile calc)
-                updateSet.add(statToAnalyticsUk(uk.getUkId(), 
-                                                new Statistics(STAT_MASTERY_SORTED, Statistics.Type.FLOAT_LIST, getSorted(masteryList).toString() ), 
-                                                now));
+        //         //sorted list (for percentile calc)
+        //         updateSet.add(statToAnalyticsUk(uk.getUkId(), 
+        //                                         new Statistics(STAT_MASTERY_SORTED, Statistics.Type.FLOAT_LIST, getSorted(masteryList).toString() ), 
+        //                                         now));
 
-                //standard deviation
-                updateSet.add(statToAnalyticsUk(uk.getUkId(), 
-                                                new Statistics(STAT_MASTERY_STD, Statistics.Type.FLOAT, getSTD(masteryList).toString() ), 
-                                                now));
-            }
-        }
+        //         //standard deviation
+        //         updateSet.add(statToAnalyticsUk(uk.getUkId(), 
+        //                                         new Statistics(STAT_MASTERY_STD, Statistics.Type.FLOAT, getSTD(masteryList).toString() ), 
+        //                                         now));
+        //     }
+        // }
+
+        //Prepare update set
+        Set<StatsAnalyticsUk> updateSet = 
+                ukList.stream()
+                    .parallel()
+                    .flatMap(uk -> {
+                        //ukID
+                        Integer ukID = uk.getUkId();
+
+                        if(ukID == null)
+                            return Stream.empty();
+
+
+                        //Get the knowledge list for each uk
+                        List<UserKnowledge> userKnowledgeList = userKnowledgeRepo.getByUkId(ukID);
+
+                        //Merge I-scream edu data
+                        if(iScreamEduDataReader.useIScreamData())
+                            userKnowledgeList.addAll(iScreamEduDataReader.getByUkID(ukID));
+                        
+                        if(userKnowledgeList != null && userKnowledgeList.size() > 0){
+                            //Loop update set
+                            Set<StatsAnalyticsUk> loopUpdateSet = new HashSet<>();
+
+                            //List to save mastery data
+                            List<Float> masteryList = userKnowledgeList.stream()
+                                                                        .parallel()
+                                                                        .map(UserKnowledge::getUkMastery)
+                                                                        .collect(Collectors.toList());
+                                                                        // .forEach(uknow->masteryList.add(uknow.getUkMastery()));
+
+
+                            //Create various statistics data (Clob string) and add to update Set     
+                            List<Float> sortedList = getSorted(masteryList);
+
+                            //mean
+                            loopUpdateSet.add(statToAnalyticsUk(uk.getUkId(), 
+                                                            new Statistics(STAT_MASTERY_MEAN, Statistics.Type.FLOAT, getMean(masteryList).toString() ), 
+                                                            now));
+
+                            //sorted list (for percentile calc)
+                            loopUpdateSet.add(statToAnalyticsUk(uk.getUkId(), 
+                                                            new Statistics(STAT_MASTERY_SORTED, Statistics.Type.FLOAT_LIST, sortedList.toString() ), 
+                                                            now));
+
+                            //standard deviation
+                            loopUpdateSet.add(statToAnalyticsUk(uk.getUkId(), 
+                                                            new Statistics(STAT_MASTERY_STD, Statistics.Type.FLOAT, getSTD(masteryList).toString() ), 
+                                                            now));
+
+                            //standard deviation
+                            loopUpdateSet.add(statToAnalyticsUk(uk.getUkId(), 
+                                                            new Statistics(STAT_MASTERY_PERCENTILE_LUT, Statistics.Type.FLOAT_LIST, StatisticsUtil.createPercentileLUT(sortedList, 1000).toString() ), 
+                                                            now));
+
+                            //Return the complete loop set
+                            return loopUpdateSet.stream();
+                        }
+
+                        //terminal case
+                        return Stream.empty();
+                    })
+                    .collect(Collectors.toSet());
 
         //Update the stat set to DB
-        logger.info("Saving sets: " + updateSet.size());
+        log.info("Saving sets: " + updateSet.size());
         statisticUKRepo.saveAll(updateSet);
-        logger.info("Saved set");
+        log.info("Saved set");
         
 
         return 0;

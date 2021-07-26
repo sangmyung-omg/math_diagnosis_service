@@ -173,7 +173,7 @@ public class IScreamEduDataReader {
      * @return
      */
     public List<UserKnowledge> getByCurriculumID(String currID, Mode mode){
-        log.info(String.format("Creating Iscream-stat for [%s] in mode Curri-(%s)",currID, mode.getValue()));
+        log.debug(String.format("Creating Iscream-stat for [%s] in mode Curri-(%s)",currID, mode.getValue()));
         
         //Get uk List of requested curriculum id
         Set<Integer> ukSet = new HashSet<>();
@@ -258,7 +258,7 @@ public class IScreamEduDataReader {
     }
 
     public List<UserKnowledge> getByUkID(Integer ukID){
-        log.info(String.format("Creating Iscream-stat for [%d] in uk search mode", ukID));
+        log.debug(String.format("Creating Iscream-stat for [%d] in uk search mode", ukID));
 
         //Get the whole data and make it into UserKnowlegdeList
         Map<Integer, UserData> ukData = getAllUKData();
@@ -281,7 +281,7 @@ public class IScreamEduDataReader {
             }
         }
         else {
-            log.warn(String.format("UKID[%s] not found in i-scream data", ukID));
+            log.debug("UKID [{}] not found in i-scream data", ukID);
         }
         
 

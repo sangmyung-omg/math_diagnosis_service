@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Slf4j
 @Component("StatisticsEventListener")
@@ -73,21 +74,31 @@ public class StatisticsEventListener {
         }
     }
 
-
-
-    //TEMP. FIXME: scheduled statistics updater. every midnight
     @Scheduled(cron="0 0 0 * * *")
-    public void updateAllStatistics(){
-        log.info("======= Nightly statistics update START ========");
+    @SchedulerLock(name="Stat_Update_Curriculum", lockAtLeastFor = "PT5M")
+    public void updateCurriculumStats(){
+        log.info("======= Nightly Curr statistics update START ========");
         log.info("Curriculum");
         currStatSvc.updateStatistics();
+        log.info("======= Nightly statistics update DONE ========");   
+    }
 
-        log.info("UK");
-        ukStatSvc.updateAllStatistics();
-
+    @Scheduled(cron="0 0 0 * * *")
+    @SchedulerLock(name="Stat_Update_User", lockAtLeastFor = "PT5M")
+    public void updateUserStats(){
+        log.info("======= Nightly User statistics update START ========");
         log.info("User");
         userStatSvc.updateAllUsers();     
-        log.info("======= Nightly statistics update DONE ========");   
+        log.info("======= Nightly User statistics update DONE ========");   
+    }
+
+    @Scheduled(cron="0 0 0 * * *")
+    @SchedulerLock(name="Stat_Update_UK", lockAtLeastFor = "PT5M")
+    public void updateUkStats(){
+        log.info("======= Nightly UK statistics update START ========");
+        log.info("UK");
+        ukStatSvc.updateAllStatistics();    
+        log.info("======= Nightly UK statistics update DONE ========");   
     }
 
     @Autowired
