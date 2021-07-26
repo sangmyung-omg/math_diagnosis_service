@@ -87,12 +87,14 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     String examDueDate = input.getExamDueDate();
     
     // parse date format
-    try{
-      user.setExamStartDate(getTimestamp(examStartDate));
-      user.setExamDueDate(getTimestamp(examDueDate));
-    } catch(Exception e){
-      output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
-      return output;
+    if (examStartDate != null && examDueDate != null) {
+      try {
+        user.setExamStartDate(getTimestamp(examStartDate));
+        user.setExamDueDate(getTimestamp(examDueDate));
+      } catch (Exception e) {
+        output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
+        return output;
+      }
     }
 
     // update user_master tb
@@ -102,7 +104,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     UserExamScope userExamScope =
         userExamScopeRepo.findById(userId).orElseThrow(() -> new UserNotFoundException());
     userExamScope.setUserUuid(userId);
-    Boolean isExamScopeChanged = false;
+    boolean isExamScopeChanged = false;
     
     // parse input
     String startSubSectionId = input.getStartSubSectionId();
@@ -111,8 +113,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     
     if (startSubSectionId != null && endSubSectionId != null) {
       log.info("startSubSectionId:" + startSubSectionId + ", endSubSectionId:" + endSubSectionId);
-      if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId) && 
-          userExamScope.getEndSubSectionId().equals(endSubSectionId)))
+      if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId)
+          && userExamScope.getEndSubSectionId().equals(endSubSectionId)))
         isExamScopeChanged = true;
       userExamScope.setStartSubSectionId(startSubSectionId);
       userExamScope.setEndSubSectionId(endSubSectionId);
@@ -120,10 +122,12 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     // excepted sub section is not null
     if (exceptSubSectionIdList != null) {
       log.info("exceptSubSectionIdList:" + exceptSubSectionIdList);
-      String exceptSubSectionIdStr = exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
+      String exceptSubSectionIdStr =
+          exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
       if (userExamScope.getExceptSubSectionIdList() == null && !exceptSubSectionIdStr.equals(""))
         isExamScopeChanged = true;
-      else if (userExamScope.getExceptSubSectionIdList() != null && !userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
+      else if (userExamScope.getExceptSubSectionIdList() != null
+          && !userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
         isExamScopeChanged = true;
       userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
     }

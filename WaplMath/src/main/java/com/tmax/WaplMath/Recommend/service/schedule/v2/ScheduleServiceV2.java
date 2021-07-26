@@ -79,8 +79,8 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
     // check user mastery exist in USER_KNOWLEDGE
     checkUserMasteryExist(userId);
 
-    // set schedule configurator
-    scheduleConfigurator.setUserValue(userId);   
+    // initialize schedule configurator
+    scheduleConfigurator.initConfigurator(userId);   
      
     // get schedule configuration
     ScheduleConfigDTO scheduleConfig;
@@ -94,9 +94,9 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
       scheduleConfig = scheduleConfigurator.getDummyScheduleConfig();
 
     // set card generator
-    cardGenerator.setUserValue(userId, 
-                               scheduleConfigurator.getSolvedProbIdSet(), 
-                               scheduleConfigurator.getExamSubSectionIdSet());
+    cardGenerator.initGenerator(userId, 
+                                scheduleConfigurator.getSolvedProbIdSet(), 
+                                scheduleConfigurator.getExamSubSectionIdSet());
     
     // generate schedule cards with schedule config
     scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));

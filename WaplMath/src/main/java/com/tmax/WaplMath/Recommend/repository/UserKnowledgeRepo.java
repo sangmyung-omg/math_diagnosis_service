@@ -42,9 +42,6 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
 	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur where ukl.userUuid = :userId and tur.ukId = ukl.ukId and tur.typeId = :typeId group by tur.typeId")
 	TypeMasteryDTO findTypeMastery(@Param("userId") String userId, @Param("typeId") Integer typeId);
 
-	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur where ukl.userUuid = :userId and tur.ukId = ukl.ukId and (coalesce(:typeIdList, null) is null or tur.typeId in (:typeIdList)) group by tur.typeId order by mastery asc")
-	List<TypeMasteryDTO> findTypeMasteryList(@Param("userId") String userId, @Param("typeIdList") List<Integer> typeIdList);
-
 	@Query("select ukl.uk.curriculumId as currId, avg(ukl.ukMastery) as mastery, ukl.uk.curriculum.subSection as currName from UserKnowledge ukl where ukl.userUuid = :userId and (coalesce(:subSectionIdList, null) is null or ukl.uk.curriculumId in (:subSectionIdList)) group by ukl.uk.curriculumId, ukl.uk.curriculum.subSection order by mastery asc")
 	List<CurrMasteryDTO> findSubSectionMasteryList(@Param("userId") String userId, @Param("subSectionIdList") List<String> subSectionIdList);
 
@@ -94,17 +91,16 @@ public interface UserKnowledgeRepo extends CrudRepository<UserKnowledge, UserKno
 		+ "and mastery <= :threshold order by mastery asc", nativeQuery = true)
 	List<TypeMasteryDTO> findNLowTypeMasteryList(@Param("userId") String userId, @Param("typeIdList") List<Integer> typeIdList, @Param("threshold") Float LOW_MASTERY_THRESHOLD);
 
-	@Query(value = "select typeId, mastery from " + "( select avg(ukl.uk_mastery) mastery, tur.type_id typeId "
-		+ "from user_knowledge ukl, uk_master um, type_uk_rel tur " + "where um.uk_id = tur.uk_id " + "and ukl.uk_id = um.uk_id "
-		+ "and ukl.user_uuid = :userId " + "group by tur.type_id ) " + "where (coalesce(:typeIdList, null) is null or typeId in (:typeIdList)) "
-		+ "and rownum <= :numSample " + "order by mastery asc", nativeQuery = true)
-	List<TypeMasteryDTO> findBottomTypeMasteryList(@Param("userId") String userId, @Param("typeIdList") List<Integer> typeIdList, @Param("numSample") Integer numSample);
 	
+	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur where ukl.userUuid = :userId and tur.ukId = ukl.ukId and (coalesce(:typeIdList, null) is null or tur.typeId in (:typeIdList)) group by tur.typeId order by mastery asc")
+	List<TypeMasteryDTO> findTypeMasteryList(@Param("userId") String userId, @Param("typeIdList") List<Integer> typeIdList);
+
+
 	@Query("select tur.typeId as typeId, avg(ukl.ukMastery) as mastery from UserKnowledge ukl, TypeUkRel tur, Curriculum scm, Curriculum ecm "
 		+ "where ukl.userUuid = :userId and ukl.ukId = tur.ukId "
 		+ "and scm.curriculumId = :startSubSectionId and tur.problemType.curriculum.curriculumSequence >= scm.curriculumSequence "
 		+ "and ecm.curriculumId = :endSubSectionId and tur.problemType.curriculum.curriculumSequence <= ecm.curriculumSequence "
-		+ "group by tur.typeId")
+		+ "group by tur.typeId order by mastery")
 	List<TypeMasteryDTO> findTypeMasteryListBetween(@Param("userId") String userId, @Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId);
 
 

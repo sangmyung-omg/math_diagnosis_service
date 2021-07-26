@@ -69,19 +69,20 @@ public class CardGeneratorV2 extends CardConstants {
   private Set<String> examSubSectionIdSet;
 
 
-  public void setUserValue(String userId, Set<Integer> solvedProbIdSet, Set<String> examSubSectionIdSet){
-    this.userId = userId;
-    this.solvedProbIdSet = solvedProbIdSet;
-    this.examSubSectionIdSet = examSubSectionIdSet;
-  }
-
-
   public enum CurrType {
     section, chapter, exam;
 
     private @Getter @Setter String currId;
 
     private CurrType () {}
+  }
+
+
+  // initialize generator variables
+  public void initGenerator(String userId, Set<Integer> solvedProbIdSet, Set<String> examSubSectionIdSet){
+    this.userId = userId;
+    this.solvedProbIdSet = solvedProbIdSet;
+    this.examSubSectionIdSet = examSubSectionIdSet;
   }
 
 
@@ -292,12 +293,6 @@ public class CardGeneratorV2 extends CardConstants {
     Map<String, Integer> currentCurrProbNumMap = new HashMap<>();
     Map<String, Integer> totalCurrProbNumMap = new HashMap<>();
 
-    // Throw exception if no probs in superCurr
-    if (!superCurr.name().equals("exam") && 
-        problemRepo.findProbCntInCurrId(superCurr.getCurrId(), this.solvedProbIdSet) == 0)
-      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_NO_PROBS_ERROR, 
-                                    String.format("%s {%s}", card.getCardType(), superCurr.getCurrId()));
-
     switch (superCurr.name()) {
       case "section":
         freqOrderedCurrIdList = problemTypeRepo.findSubSectionIdListInSectionOrderByFreq(superCurr.getCurrId());
@@ -416,12 +411,6 @@ public class CardGeneratorV2 extends CardConstants {
     Map<String, Integer> totalCurrProbNumMap = new HashMap<>();
     
     Map<String, Integer> currTypeNumMap = new HashMap<>();
-
-    // Throw exception if no probs in superCurr
-    if (!superCurr.name().equals("exam") && 
-        problemRepo.findProbCntInCurrId(superCurr.getCurrId(), this.solvedProbIdSet) == 0)
-      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_NO_PROBS_ERROR, 
-                                    String.format("%s {%s}", card.getCardType(), superCurr.getCurrId()));
 
     switch (superCurr.name()) {
       case "section":
@@ -711,16 +700,11 @@ public class CardGeneratorV2 extends CardConstants {
                                   
     // 유형 내 문제들 리턴
     List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
-    if (typeProbList.isEmpty())
-      throw new RecommendException(RecommendErrorCode.CARD_GENERATOR_NO_PROBS_ERROR, 
-                                    String.format("%s {typeId=%s}", TYPE_CARD_TYPESTR, typeId));
-    else {
-      DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
+    DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 
-      addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
-      typeCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
-      return typeCard;
-    }
+    addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
+    typeCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
+    return typeCard;
   }
 
 
@@ -810,6 +794,7 @@ public class CardGeneratorV2 extends CardConstants {
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
+
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)

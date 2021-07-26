@@ -72,30 +72,46 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   @Autowired
   ScheduleHistoryManagerV1 historyManager;
 
-
-  private @Setter String userId;
-
+  // user info vars
+  private String userId;
   private String today;
-
   private @Getter Set<Integer> solvedProbIdSet;
-
   private @Getter Set<String> examSubSectionIdSet;
 
+  // return vars
+  private List<CardConfigDTO> cardConfigList;
+  private Set<String> addtlSubSectionIdSet;  
 
-  public void setUserValue(String userId){
-    // set today
+  // intermediate vars
+  private Integer totalProbNum;  // config 내 문제 개수 합 (실력 향상)
+  private List<ProblemType> remainTypeList; // 앞으로 풀 uk들 (실력 향상)
+  private Set<String> validSectionIdSet; // 문제가 있는 중단원 목록 (시험 대비)
+
+
+  // initialize configurator variables
+  public void initConfigurator(String userId){
+    // set today local date
+    this.today = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+                              .plusDays(1)
+                              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    
+    // set user info vars
     this.userId = userId;
-
-    // set local time
-    ZoneId zoneId = ZoneId.of("Asia/Seoul");
-    this.today = ZonedDateTime.now(zoneId).plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-    setUserSolvedProbIdSet(userId);
+    this.solvedProbIdSet = getSolvedProbIdSet(userId);
     this.examSubSectionIdSet = new HashSet<>();
+
+    // set return vars
+    this.cardConfigList = new ArrayList<>();
+    this.addtlSubSectionIdSet = new HashSet<>();
+
+    // set intermediate vars
+    this.totalProbNum = 0;
+    this.remainTypeList = new ArrayList<>();
+    this.validSectionIdSet = new HashSet<>();
   }
 
 
-  public void setUserSolvedProbIdSet(String userId){		
+  public Set<Integer> getSolvedProbIdSet(String userId){		
     // Get solved problem set
     List<String> sourceTypeList =
         new ArrayList<>(Arrays.asList(TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
@@ -104,12 +120,11 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                       CHAPTER_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
                                       TRIAL_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX));
 
-    this.solvedProbIdSet = historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
+    return historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
   }
 
 
   public User getValidUserInfo(String userId) {
-
     // Check whether userId is in USER_MASTER TB
     User userInfo = userRepo.findById(userId)
         .orElseThrow(() -> new RecommendException(RecommendErrorCode.USER_NOT_EXIST_ERROR, userId));
@@ -131,7 +146,6 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
 
   public UserExamScope getValidUserExamInfo(String userId) {
-
     // Check whether userId is in USER_MASTER TB
     UserExamScope userExamInfo = userExamScopeRepo.findById(userId)
         .orElseThrow(() -> new RecommendException(RecommendErrorCode.USER_NOT_EXIST_ERROR, userId));
@@ -153,17 +167,25 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
 
   public void setExamSubSectionIdSet(UserExamScope userExamScopeInfo) {		
-    // sub-section lis in exam
+    // sub-section list in exam
     List<String> examSubSectionIdList = userExamScopeInfo.getExceptSubSectionIdList() != null
 
         ? curriculumRepo.findSubSectionListBetweenExcept(userExamScopeInfo.getStartSubSectionId(),
                                                          userExamScopeInfo.getEndSubSectionId(),
-                                                         Arrays.asList(userExamScopeInfo.getExceptSubSectionIdList().split(", "))) 
+                                                         Arrays.asList(userExamScopeInfo.getExceptSubSectionIdList()
+                                                                                        .split(", "))) 
 
         : curriculumRepo.findSubSectionListBetween(userExamScopeInfo.getStartSubSectionId(),
                                                    userExamScopeInfo.getEndSubSectionId());
 
     this.examSubSectionIdSet = examSubSectionIdList.stream().collect(Collectors.toSet());
+
+    // 문제가 있는 중단원 목록
+    this.validSectionIdSet = this.examSubSectionIdSet.stream()
+                                                     .filter(
+            subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
+                                                     .map(subSection -> subSection.substring(0, 14))
+                                                     .collect(Collectors.toSet());
 
     log.info("Excepted sub section list = {}", userExamScopeInfo.getExceptSubSectionIdList());
     log.info("Total sub section list in exam = {}", this.examSubSectionIdSet);
@@ -171,9 +193,8 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
 
   public List<String> getNormalSubSectionList(String userId) {
-
+    // get user info
     User userInfo = getValidUserInfo(userId);
-
     // 이번 학기 마지막까지
     String endCurriculumId = 
       ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
@@ -183,44 +204,52 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
 
   public String getUserExamKeyword(String userId) {
-
+    // get user info
     User userInfo = getValidUserInfo(userId);
 
     return String.format("%s-%s-%s", userInfo.getGrade(), userInfo.getSemester(), userInfo.getExamType());
   }
 
 
-  public void printTypeMasteryList(List<TypeMasteryDTO> typeMasteryList) {		
-
+  public void printTypeMasteryList(List<TypeMasteryDTO> typeMasteryList) {	
     for (TypeMasteryDTO typeMastery : typeMasteryList)		
       log.info("\tTypeId = {}, mastery = {}", typeMastery.getTypeId(), typeMastery.getMastery());
   }
 
 
-  public ScheduleConfigDTO getNormalScheduleConfig() {
-    
-    // schedule config list
-    List<CardConfigDTO> cardConfigList = new ArrayList<>();
-    Set<String> addtlSubSectionIdSet = new HashSet<>();
-    
-    Integer totalCardProbNum = 0;
+  public ScheduleConfigDTO getScheduleConfig() { 
+    return ScheduleConfigDTO.builder()
+                            .cardConfigList(this.cardConfigList)
+                            .addtlSubSectionIdSet(this.addtlSubSectionIdSet)
+                            .build();
+  }
+
+
+  public boolean checkSectionTestCard() {
 
     // 학년 학기 내 소단원 목록들
     List<String> subSectionIdList = getNormalSubSectionList(userId);
     log.info("Total sub section list = {}", subSectionIdList);
 
-    // 중간평가 판단 - 중단원만 일단
+    // 중간평가 판단 - 중단원들
     Set<String> sectionIdSet = subSectionIdList.stream()
+                                               .filter(
+        subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
                                                .map(subSection -> subSection.substring(0, 14))
                                                .collect(Collectors.toSet());
     log.info("1. Total section list : {}", sectionIdSet);
 
+    // 이미 푼 type들
     List<Integer> completedTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "",
             TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("2. Types already solved : {}", completedTypeIdList);
 
-    List<ProblemType> remainTypeList = problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, completedTypeIdList);
-     // 안푼 중단원들
+    // 안푼 type들
+    this.remainTypeList = subSectionIdList.isEmpty() 
+                        ? new ArrayList<>() 
+                        : problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, completedTypeIdList);
+
+    // 안푼 중단원들
     Set<String> notDoneSectionIdSet = completedTypeIdList.isEmpty() 
                                       ? new HashSet<>(sectionIdSet) 
                                       : remainTypeList.stream()
@@ -228,67 +257,81 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                       .collect(Collectors.toSet());
     log.info("3. Sections not solved : {}", notDoneSectionIdSet);
 
-    sectionIdSet.removeAll(notDoneSectionIdSet); // sectionSet에 완벽히 푼 단원들 저장됨
+    // sectionSet = 완벽히 푼 단원들
+    sectionIdSet.removeAll(notDoneSectionIdSet);
     log.info("4. Sections completely solved through TYPE cards : {}", sectionIdSet);
 
+    // 중간 평가 카드로 푼 중단원들
     Set<String> completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, today, 
             SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("5. Sections already solved through SECTION_TEST cards : {}", completedSectionIdSet);
 
-    sectionIdSet.removeAll(completedSectionIdSet); // sectionSet에 완벽히 푼 단원들 - 이미 푼 중간평가 저장됨
+    // sectionSet = 완벽히 푼 단원들 - 이미 푼 중간평가 단원들
+    sectionIdSet.removeAll(completedSectionIdSet); 
     log.info("6. Candidate sections for the SECTION_TEST card : {}", sectionIdSet);
 
     // 완벽히 푼 단원이 있으면 중간 평가
     if (!sectionIdSet.isEmpty()) {
-
       String sectionId = sectionIdSet.iterator().next();
-      log.info("\tSECTION_TEST card. : {}", sectionId);
+      if (problemRepo.findProbCntInCurrId(sectionId, this.solvedProbIdSet) != 0) {
+        log.info("\tSECTION_TEST card. : {}", sectionId);
 
-      cardConfigList.add(CardConfigDTO.builder()
-                                      .cardType(SECTION_TEST_CARD_TYPESTR)
-                                      .curriculumId(sectionId)
-                                      .build());
+        this.cardConfigList.add(CardConfigDTO.builder()
+                                            .cardType(SECTION_TEST_CARD_TYPESTR)
+                                            .curriculumId(sectionId)
+                                            .build());
 
-      addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
+        this.addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
       
-      return ScheduleConfigDTO.builder()
-                              .cardConfigList(cardConfigList)
-                              .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                              .build();
+        return true;
+      }
     }
+    return false;
+  }
 
-    // 보충 필요한지 판단
+  
+  public boolean checkSuppleCard() {
+
+    // 보충 카드로 푼 유형 리스트
     List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "", 
             SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("7. Type list already solved through SUPPLE cards = {}", suppleTypeIdList);
 
+    // 가장 최근 보충 카드 이후, 유형 카드로서 푼 유형 리스트
     List<Integer> solvedTypeIdList = historyManager.getCompletedTypeIdListAfterSuppleCard(userId, today);
 
+    // 보충 카드에 구성될 유형 후보들
     solvedTypeIdList.removeAll(suppleTypeIdList);
 
     if (!solvedTypeIdList.isEmpty()) {
-      List<TypeMasteryDTO> lowTypeMasteryList 
-          = userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList, MASTERY_LOW_THRESHOLD);
+      // 마스터리가 낮고, 문제가 있는 유형 리스트
+      List<TypeMasteryDTO> lowTypeMasteryList = 
+        userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList, MASTERY_LOW_THRESHOLD)
+            .stream()
+            .filter(typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet) != 0)
+            .collect(Collectors.toList());
 
       log.info("8. Low type mastery list except solved through SUPPLE cards = ");
       printTypeMasteryList(lowTypeMasteryList);
 
-      // 보충 채울만큼 넉넉하면 보충 카드
+      // 보충 채울만큼 많으면 보충 카드 구성
       if (lowTypeMasteryList.size() >= SUPPLE_CARD_TYPE_NUM) {
         log.info("\tSUPPLE card (1).");
 
         List<TypeMasteryDTO> typeMasteryList = lowTypeMasteryList.subList(0, SUPPLE_CARD_TYPE_NUM);
 
-        List<Integer> suppleCardTypeIdList = typeMasteryList.stream().map(e -> e.getTypeId()).collect(Collectors.toList());
+        List<Integer> suppleCardTypeIdList = 
+          typeMasteryList.stream().map(e -> e.getTypeId()).collect(Collectors.toList());
 
-        cardConfigList.add(CardConfigDTO.builder()
-                                        .cardType(SUPPLE_CARD_TYPESTR)
-                                        .typeMasteryList(typeMasteryList)
-                                        .build());
+        this.cardConfigList.add(CardConfigDTO.builder()
+                                             .cardType(SUPPLE_CARD_TYPESTR)
+                                             .typeMasteryList(typeMasteryList)
+                                             .build());
 
-        addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
-        totalCardProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
+        this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+        this.totalProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
 
+        // 한 장 더 채울 수 있으면 보충 카드 구성
         if (lowTypeMasteryList.size() >= SUPPLE_CARD_TYPE_NUM * 2) {
           log.info("\tSUPPLE card (2). ");
 
@@ -296,42 +339,56 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
           suppleCardTypeIdList = typeMasteryList.stream().map(e -> e.getTypeId()).collect(Collectors.toList());
 
-          cardConfigList.add(CardConfigDTO.builder()
-                                          .cardType(SUPPLE_CARD_TYPESTR)
-                                          .typeMasteryList(typeMasteryList)
-                                          .build());
+          this.cardConfigList.add(CardConfigDTO.builder()
+                                               .cardType(SUPPLE_CARD_TYPESTR)
+                                               .typeMasteryList(typeMasteryList)
+                                               .build());
 
-          addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
-          totalCardProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
-        }
+          this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+          this.totalProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
+        }   
+        return true;
       }
 
-      // 많이 풀었는데 보충이 안나타나도 보충 카드
+      // 많이 풀었는데 보충 조건이 안돼도 보충 카드 구성
       else if (solvedTypeIdList.size() >= SUPPLE_CARD_TYPE_THRESHOLD) {
         log.info("\t{} types are high mastery --> SUPPLE card.", SUPPLE_CARD_TYPE_THRESHOLD);
 
-        List<TypeMasteryDTO> typeMasteryList = userKnowledgeRepo.findBottomTypeMasteryList(userId, solvedTypeIdList,
-          SUPPLE_CARD_TYPE_NUM);
+        // 이해도가 낮은 type mastery 가져오기
+        List<TypeMasteryDTO> typeMasteryList = 
+          userKnowledgeRepo.findTypeMasteryList(userId, solvedTypeIdList)
+              .stream()
+              .filter(typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet) != 0)
+              .collect(Collectors.toList())
+              .subList(0, SUPPLE_CARD_TYPE_NUM);
 
         List<Integer> suppleCardTypeIdList = typeMasteryList.stream()
                                                             .map(type -> type.getTypeId())
                                                             .collect(Collectors.toList());
 
-        cardConfigList.add(CardConfigDTO.builder()
-                                        .cardType(SUPPLE_CARD_TYPESTR)
-                                        .typeMasteryList(typeMasteryList)
-                                        .build());
+        this.cardConfigList.add(CardConfigDTO.builder()
+                                             .cardType(SUPPLE_CARD_TYPESTR)
+                                             .typeMasteryList(typeMasteryList)
+                                             .build());
 
-        addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
-        totalCardProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
+        this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+        this.totalProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
+
+        return true;
       }
     }
-    // 나머지 카드들 유형카드로 채우기
-    List<Integer> noProbTypeIdList = new ArrayList<>();
-    // 공부 안한 유형uk가 있으면 유형 카드
-    if (!remainTypeList.isEmpty()) {
+    return false;
+  }
 
-      for (ProblemType type : remainTypeList) {
+
+  public boolean checkTypeCard() {
+
+    // 문제가 없어서 생성하지 못한 type 카드 리스트
+    List<Integer> noProbTypeIdList = new ArrayList<>();
+
+    // 공부 안한 유형uk가 있으면 유형 카드
+    if (!this.remainTypeList.isEmpty()) {
+      for (ProblemType type : this.remainTypeList) {
 
         if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet) == 0) {
           noProbTypeIdList.add(type.getTypeId());
@@ -340,79 +397,274 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
         log.info("TYPE card : {} ", type.getTypeId());
 
-        cardConfigList.add(CardConfigDTO.builder()
-                                        .cardType(TYPE_CARD_TYPESTR)
-                                        .typeId(type.getTypeId())
-                                        .build());
+        this.cardConfigList.add(CardConfigDTO.builder()
+                                             .cardType(TYPE_CARD_TYPESTR)
+                                             .typeId(type.getTypeId())
+                                             .build());
 
-        addtlSubSectionIdSet.add(problemTypeRepo.findById(type.getTypeId())
-                                                .orElse(new ProblemType())
-                                                .getCurriculumId());
+        this.addtlSubSectionIdSet.add(problemTypeRepo.findById(type.getTypeId())
+                                                     .orElse(new ProblemType())
+                                                     .getCurriculumId());
 
-        totalCardProbNum += MAX_TYPE_CARD_PROB_NUM;
+        this.totalProbNum += MAX_TYPE_CARD_PROB_NUM;
 
-        if (totalCardProbNum >= MAX_CARD_PROB_NUM)
-          break;
+        if (totalProbNum >= MAX_CARD_PROB_NUM) {
+          log.info("Types couldn't make cards (no problems) : {} ", noProbTypeIdList);
+          return true;
+        }
       }
-      log.info("Types couldn't make cards (no problems) : {} ", noProbTypeIdList);
     }
-    // 유형도 다풀었는데 문제가 안채워지면 추가 보충카드
-    if (totalCardProbNum < MAX_CARD_PROB_NUM) {
+    log.info("Types couldn't make cards (no problems) : {} ", noProbTypeIdList);
+    return false;
+  }
+
+
+  public boolean checkAddtlSuppleCard() {
+
+    // 유형도 다풀었는데 문제가 안채워지면 추가 보충카드 제공
+    if (this.totalProbNum < MAX_CARD_PROB_NUM) {
+
       String examKeyword = getUserExamKeyword(userId);
 
-      Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - totalCardProbNum) / 2.0);
+      // 현재 시험 범위 내 각 type 마다 2문제씩 (보충 카드가 2문제 라서)
+      Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - totalProbNum) / 2.0);
       log.info("ADDTL_SUPPLE card with {} problems. ", addtiTypeNum);
 
-      List<TypeMasteryDTO> addtiTypeMasteryList 
-            = userKnowledgeRepo.findTypeMasteryListBetween(userId, 
-                                                            ExamScope.examScope.get(examKeyword).get(0),
-                                                            ExamScope.examScope.get(examKeyword).get(1))
-                               .subList(0, addtiTypeNum);
+      // 문제가 존재하는 typeId만 선택
+      List<TypeMasteryDTO> addtiTypeMasteryList = 
+      userKnowledgeRepo.findTypeMasteryListBetween(userId, 
+                        ExamScope.examScope.get(examKeyword).get(0),
+                        ExamScope.examScope.get(examKeyword).get(1))
+                       .stream()
+                       .filter(
+        typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet)!=0)
+                       .collect(Collectors.toList())
+                       .subList(0, addtiTypeNum);
 
-      cardConfigList.add(CardConfigDTO.builder()
-                                      .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
-                                      .typeMasteryList(addtiTypeMasteryList)
-                                      .build());
+      this.cardConfigList.add(CardConfigDTO.builder()
+                                           .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
+                                           .typeMasteryList(addtiTypeMasteryList)
+                                           .build());
 
       List<Integer> addtlSuppleCardTypeIdList = addtiTypeMasteryList.stream()
                                                                     .map(type -> type.getTypeId())
                                                                     .collect(Collectors.toList());
 
-      addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(addtlSuppleCardTypeIdList));
-    }
+      this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(addtlSuppleCardTypeIdList));
 
-    return ScheduleConfigDTO.builder()
-                            .cardConfigList(cardConfigList)
-                            .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                            .build();
+      return true;
+    }
+    return false;
   }
 
 
-  // set to dummy --> 카드 종류별로 return
+  public boolean checkTrialExamCard(Integer totalDays, Integer remainDays) {
+
+    // 모의고사 카드 개수 정하기
+    Integer numTrialExamCards = totalDays <= this.validSectionIdSet.size() + 1 ? 1 : 2;
+    log.info("Num of TRIAL_EXAM cards = {}", numTrialExamCards);
+
+    // 남은 일수가 적을 때, 모의고사 카드 제공
+    if (remainDays <= numTrialExamCards) {
+      String userExamKeyword = getUserExamKeyword(userId);
+      log.info("\tTRIAL_EXAM card : {} ", userExamKeyword);
+
+      this.cardConfigList.add(CardConfigDTO.builder()
+                                           .cardType(TRIAL_EXAM_CARD_TYPESTR)
+                                           .examKeyword(userExamKeyword)
+                                           .build());
+
+      this.addtlSubSectionIdSet.addAll(this.examSubSectionIdSet);
+      
+      return true;
+    }
+    return false;
+  }
+
+  
+  public boolean checkFullScopeExamCard(Integer totalDays, boolean isRemainCard) {
+    
+    // 중단원보다 적은 기간일 때, FULL_SCOPE_EXAM 카드 제공
+    if (totalDays <= this.validSectionIdSet.size()) {
+      log.info("\tTotal {} days, {} sections --> FULL_SCOPE_EXAM card.", totalDays, this.validSectionIdSet.size());
+      Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / this.validSectionIdSet.size());
+
+      for (String sectionId: this.validSectionIdSet) {
+        log.info("FULL_SCOPE_EXAM card (Sections : {}, Probs : {}) ", sectionId, fullScopeCardProbNum);
+
+        this.cardConfigList.add(CardConfigDTO.builder()
+                                             .cardType(FULL_SCOPE_EXAM_CARD_TYPESTR)
+                                             .curriculumId(sectionId)
+                                             .probNum(fullScopeCardProbNum)
+                                             .build());
+      }
+
+      this.addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSectionSet(this.validSectionIdSet));
+  
+      return true;
+    }
+
+    // section exam card 다 풀고 남은 기간 동안 FULL_SCOPE_EXAM 카드 제공
+    if (isRemainCard) {
+      Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / this.validSectionIdSet.size());
+
+      for	(String sectionId: this.validSectionIdSet) {
+        log.info("FULL_SCOPE_EXAM card in remain days (Sections : {}, Probs : {}) ", sectionId, fullScopeCardProbNum);
+        
+        this.cardConfigList.add(CardConfigDTO.builder()
+                                        .cardType(FULL_SCOPE_EXAM_CARD_TYPESTR)
+                                        .curriculumId(sectionId)
+                                        .probNum(fullScopeCardProbNum)
+                                        .build());
+      }
+
+      this.addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSectionSet(this.validSectionIdSet));
+      
+      return true;
+    }
+    return false;
+  }
+
+  
+  public boolean checkSectionExamCard(Integer totalDays) {
+    
+    // SECTION_EXAM 카드 제공되는 개수
+    Integer numTrialExamCards = totalDays <= this.validSectionIdSet.size() + 1 ? 1 : 2;
+    Integer numSectionExamCards = Math.floorDiv(totalDays - numTrialExamCards, this.validSectionIdSet.size());
+
+    // section exam cards per section
+    Map<String, Integer> sectionExamCardsNum = new HashMap<>();    
+    this.validSectionIdSet.forEach(sectionId -> sectionExamCardsNum.put(sectionId, numSectionExamCards));
+    log.info("2. Number of SECTION_EXAM cards per section : {} ", sectionExamCardsNum);
+
+    // already completed section exam cards per section
+    Map<String, Integer> completedSectionExamCardsNum = historyManager.getCompletedSectionNum(
+        userId, today, SECTION_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
+    log.info("3. Number of SECTION_EXAM cards already solved : {} ", completedSectionExamCardsNum);
+
+    // sectionExamCardsNum = sectionExamCardsNum - completedSectionExamCardsNum
+    for (Map.Entry<String, Integer> entry : sectionExamCardsNum.entrySet()) {
+      if (completedSectionExamCardsNum.containsKey(entry.getKey())) {
+        Integer remainCardCnt = entry.getValue() - completedSectionExamCardsNum.get(entry.getKey());
+
+        if (remainCardCnt <= 0)
+          sectionExamCardsNum.remove(entry.getKey());
+        else
+          sectionExamCardsNum.put(entry.getKey(), remainCardCnt);
+      }
+    }
+    log.info("4. Number of SECTION_EXAM cards to be offered in future : {} ", sectionExamCardsNum);
+
+    // if sectionExamCardsNum valid --> SECTION_EXAM_CARD
+    if (!sectionExamCardsNum.keySet().isEmpty()) {
+      String sectionId = curriculumRepo.sortByCurrSeq(sectionExamCardsNum.keySet()).get(0);
+      log.info("SECTION_EXAM card (Section : {})", sectionId);
+
+      this.cardConfigList.add(CardConfigDTO.builder()
+                                           .cardType(SECTION_EXAM_CARD_TYPESTR)
+                                           .curriculumId(sectionId)
+                                           .probNum(MAX_CARD_PROB_NUM)
+                                           .build());
+
+      this.addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
+      
+      return true;
+    }
+    return false;
+  }
+
+
+
+  // 실력 향상 카드 config 리턴 : require user basic info (userId/grade/semester)
+  public ScheduleConfigDTO getNormalScheduleConfig() {
+    
+    // check section test card available
+    if (checkSectionTestCard())
+      return getScheduleConfig();
+
+                              
+    // check supple card available
+    checkSuppleCard();
+
+    
+    // check type card available
+    if (checkTypeCard())
+      return getScheduleConfig();
+                        
+
+    // check addtl supple card available
+    checkAddtlSuppleCard();    
+    return getScheduleConfig();
+  }
+
+
+
+  // 시험 대비 카드 config 리턴 : require user exam info (start/due date)
+  public ScheduleConfigDTO getExamScheduleConfig() {
+
+    // get user exam info
+    UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
+    setExamSubSectionIdSet(userExamScopeInfo);
+
+    if (this.validSectionIdSet.isEmpty())
+      throw new RecommendException(RecommendErrorCode.NO_PROBS_ERROR, "EXAM_SCHEDULE_CONFIGS");
+
+    // check days to prepare exam
+    Integer totalDays = (int) userExamScopeInfo.getUser().getExamStartDate().toLocalDateTime()
+        .until(userExamScopeInfo.getUser().getExamDueDate().toLocalDateTime(), ChronoUnit.DAYS);
+        
+    Integer remainDays = (int) LocalDateTime.now()
+        .until(userExamScopeInfo.getUser().getExamDueDate().toLocalDateTime(), ChronoUnit.DAYS);
+        
+    log.info("Total exam preparation days = {}, remain days = {}", totalDays, remainDays);
+    log.info("1. Sections in exam : {} ", this.validSectionIdSet);
+
+
+    // check trial exam card available
+    if (checkTrialExamCard(totalDays, remainDays))
+      return getScheduleConfig();
+    
+
+    // check full scope exam card available
+    if (checkFullScopeExamCard(totalDays, false))
+      return getScheduleConfig();
+
+
+    // check section exam card available
+    if (checkSectionExamCard(totalDays))
+      return getScheduleConfig();
+    
+    
+    // check full scope exam card available
+    checkFullScopeExamCard(totalDays, true);
+    return getScheduleConfig();
+  }
+
+  
+
+  // set to dummy --> 실력향상 카드 + 모의고사 카드 1장씩 return
   public ScheduleConfigDTO getDummyScheduleConfig() {
 
-    // schedule config list
-    List<CardConfigDTO> cardConfigList = new ArrayList<>();
-    Set<String> addtlSubSectionIdSet = new HashSet<>();
-
-    UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
+    String examKeyword = getUserExamKeyword(userId);
 
     // get section id, remain type list
     String sectionId = getValidUserInfo(userId).getCurrentCurriculumId().substring(0, 14);
     List<ProblemType> typeList = problemTypeRepo.NfindRemainTypeIdList(getNormalSubSectionList(userId), null);
 
+
     // 유형카드 : 첫 번째 유형
     Integer typeId = typeList.get(0).getTypeId();		
     log.info("TYPE card : {}", typeId);
 
-    cardConfigList.add(CardConfigDTO.builder()
-                                    .cardType(TYPE_CARD_TYPESTR)
-                                    .typeId(typeId)
-                                    .build());
+    this.cardConfigList.add(CardConfigDTO.builder()
+                                         .cardType(TYPE_CARD_TYPESTR)
+                                         .typeId(typeId)
+                                         .build());
 
-    addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId)
-                                            .orElse(new ProblemType())
-                                            .getCurriculumId());
+    this.addtlSubSectionIdSet.add(problemTypeRepo.findById(typeId)
+                                                 .orElse(new ProblemType())
+                                                 .getCurriculumId());
+
 
     // 보충 카드 : 둘, 셋, 네번째 유형에 대해
     List<Integer> solvedTypeIdList = new ArrayList<>(Arrays.asList(typeList.get(1).getTypeId(), 
@@ -429,197 +681,62 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                            .map(type -> type.getTypeId())
                                                            .collect(Collectors.toList());
 
-    cardConfigList.add(CardConfigDTO.builder()
-                                    .cardType(SUPPLE_CARD_TYPESTR)
-                                    .typeMasteryList(lowMasteryTypeList)
-                                    .build());
+    this.cardConfigList.add(CardConfigDTO.builder()
+                                         .cardType(SUPPLE_CARD_TYPESTR)
+                                         .typeMasteryList(lowMasteryTypeList)
+                                         .build());
 
-    addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
+    this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
     
+
     // 중간 평가 카드 : 현재 중단원
     log.info("SECTION_TEST card : {}", sectionId);
 
-    cardConfigList.add(CardConfigDTO.builder()
-                                    .cardType(SECTION_TEST_CARD_TYPESTR)
-                                    .curriculumId(sectionId)
-                                    .build());
+    this.cardConfigList.add(CardConfigDTO.builder()
+                                         .cardType(SECTION_TEST_CARD_TYPESTR)
+                                         .curriculumId(sectionId)
+                                         .build());
 
-    addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
+    this.addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
+
 
     // 추가 보충 카드
     Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - 4) / 2.0);
     log.info("ADDTL_SUPPLE card with {} problems. ", addtiTypeNum);
-
+    
     List<TypeMasteryDTO> addtiTypeMasteryList = 
-      userKnowledgeRepo.findTypeMasteryListBetween(userId,
-              userExamScopeInfo.getStartSubSectionId(), userExamScopeInfo.getEndSubSectionId())
-                       .subList(0, addtiTypeNum);
+    userKnowledgeRepo.findTypeMasteryListBetween(userId, 
+                      ExamScope.examScope.get(examKeyword).get(0),
+                      ExamScope.examScope.get(examKeyword).get(1))
+                     .stream()
+                     .filter(
+      typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet)!=0)
+                     .collect(Collectors.toList())
+                     .subList(0, addtiTypeNum);
 
     List<Integer> addtlSuppleCardTypeIdList = addtiTypeMasteryList.stream()
                                                                   .map(type -> type.getTypeId())
                                                                   .collect(Collectors.toList());
     
-    cardConfigList.add(CardConfigDTO.builder()
-                                    .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
-                                    .typeMasteryList(addtiTypeMasteryList)
-                                    .build());
+    this.cardConfigList.add(CardConfigDTO.builder()
+                                         .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
+                                         .typeMasteryList(addtiTypeMasteryList)
+                                         .build());
 
-    addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(addtlSuppleCardTypeIdList));
+    this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(addtlSuppleCardTypeIdList));
+
 
     // 모의고사 카드
-    String userExamKeyword = getUserExamKeyword(userId);
-    log.info("TRIAL_EXAM card : {} ", userExamKeyword);
+    log.info("TRIAL_EXAM card : {} ", examKeyword);
 
-    cardConfigList.add(CardConfigDTO.builder()
-                                    .cardType(TRIAL_EXAM_CARD_TYPESTR)
-                                    .examKeyword(userExamKeyword)
-                                    .build());
+    this.cardConfigList.add(CardConfigDTO.builder()
+                                         .cardType(TRIAL_EXAM_CARD_TYPESTR)
+                                         .examKeyword(examKeyword)
+                                         .build());
 
-    addtlSubSectionIdSet.addAll(this.examSubSectionIdSet);
-
-    return ScheduleConfigDTO.builder()
-                            .cardConfigList(cardConfigList)
-                            .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                            .build();
-  }
+    this.addtlSubSectionIdSet.addAll(this.examSubSectionIdSet);
 
 
-  public ScheduleConfigDTO getExamScheduleConfig() {
-
-    // schedule config list
-    List<CardConfigDTO> cardConfigList = new ArrayList<>();
-    Set<String> addtlSubSectionIdSet = new HashSet<>();
-
-    // get user exam info
-    UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
-    setExamSubSectionIdSet(userExamScopeInfo);
-
-    // check days to prepare exam
-    Integer totalDays = (int) userExamScopeInfo.getUser().getExamStartDate().toLocalDateTime()
-        .until(userExamScopeInfo.getUser().getExamDueDate().toLocalDateTime(), ChronoUnit.DAYS);
-        
-    Integer remainDays = (int) LocalDateTime.now()
-        .until(userExamScopeInfo.getUser().getExamDueDate().toLocalDateTime(), ChronoUnit.DAYS);
-        
-    log.info("Total exam preparation days = {}, remain days = {}", totalDays, remainDays);
-
-    // 시험 범위 중단원
-    Set<String> sectionIdSet = this.examSubSectionIdSet.stream()
-                                                       .map(subSection -> subSection.substring(0, 14))
-                                                       .collect(Collectors.toSet());
-    log.info("1. Sections in exam : {} ", sectionIdSet);
-
-    // Decide num of trial exam cards
-    Integer numTrialExamCards = totalDays <= sectionIdSet.size() + 1 ? 1 : 2;
-    log.info("Num of TRIAL_EXAM cards = {}", numTrialExamCards);
-
-    // 남은 일수가 적을 때 모의고사 카드 제공
-    if(remainDays <= numTrialExamCards) {
-
-      String userExamKeyword = getUserExamKeyword(userId);
-      log.info("\tTRIAL_EXAM card : {} ", userExamKeyword);
-
-      cardConfigList.add(CardConfigDTO.builder()
-                                      .cardType(TRIAL_EXAM_CARD_TYPESTR)
-                                      .examKeyword(userExamKeyword)
-                                      .build());
-
-      addtlSubSectionIdSet.addAll(this.examSubSectionIdSet);
-      
-      return ScheduleConfigDTO.builder()
-                              .cardConfigList(cardConfigList)
-                              .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                              .build();
-    }
-
-    // SECTION_EXAM 카드가 모두 충족이 안될 때 FULL_SCOPE_EXAM 카드 제공
-    if(totalDays <= sectionIdSet.size()) {
-      log.info("\tTotal {} days, {} sections --> FULL_SCOPE_EXAM card.", totalDays, sectionIdSet.size());
-      Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / sectionIdSet.size());
-
-      for (String sectionId: sectionIdSet) {
-        log.info("FULL_SCOPE_EXAM card (Sections : {}, Probs : {}) ", sectionId, fullScopeCardProbNum);
-
-        cardConfigList.add(CardConfigDTO.builder()
-                                        .cardType(FULL_SCOPE_EXAM_CARD_TYPESTR)
-                                        .curriculumId(sectionId)
-                                        .probNum(fullScopeCardProbNum)
-                                        .build());
-      }
-
-      addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSectionSet(sectionIdSet));
-  
-      return ScheduleConfigDTO.builder()
-                              .cardConfigList(cardConfigList)
-                              .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                              .build();
-    }
-
-    // SECTION_EXAM 카드 제공되는 개수
-    Integer numSectionExamCards = Math.floorDiv(totalDays - numTrialExamCards, sectionIdSet.size());
-
-    Map<String, Integer> sectionExamCardsNum = new HashMap<>();
-    
-    sectionIdSet.forEach(sectionId -> sectionExamCardsNum.put(sectionId, numSectionExamCards));
-
-    log.info("2. Number of SECTION_EXAM cards per section : {} ", sectionExamCardsNum);
-
-    Map<String, Integer> completedSectionExamCardsNum = historyManager.getCompletedSectionNum(
-        userId, today, SECTION_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
-
-    log.info("3. Number of SECTION_EXAM cards already solved : {} ", completedSectionExamCardsNum);
-
-    for (Map.Entry<String, Integer> entry : sectionExamCardsNum.entrySet()) {
-      if (completedSectionExamCardsNum.containsKey(entry.getKey())) {
-        Integer remainCardCnt = entry.getValue() - completedSectionExamCardsNum.get(entry.getKey());
-
-        if (remainCardCnt <= 0)
-          sectionExamCardsNum.remove(entry.getKey());
-
-        else
-          sectionExamCardsNum.put(entry.getKey(), remainCardCnt);
-      }
-    }
-
-    log.info("4. Number of SECTION_EXAM cards to be offered in future : {} ", sectionExamCardsNum);
-
-    if (!sectionExamCardsNum.keySet().isEmpty()) {
-      // SECTION_EXAM 카드 제공
-      String sectionId = curriculumRepo.sortByCurrSeq(sectionExamCardsNum.keySet()).get(0);
-      log.info("SECTION_EXAM card (Section : {})", sectionId);
-
-      cardConfigList.add(CardConfigDTO.builder()
-                                      .cardType(SECTION_EXAM_CARD_TYPESTR)
-                                      .curriculumId(sectionId)
-                                      .probNum(MAX_CARD_PROB_NUM)
-                                      .build());
-
-      addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
-      
-      return ScheduleConfigDTO.builder()
-                              .cardConfigList(cardConfigList)
-                              .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                              .build();
-    }
-
-    // FULL_SCOPE_EXAM 카드 제공
-    Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / sectionIdSet.size());
-
-    for	(String sectionId: sectionIdSet) {
-      log.info("FULL_SCOPE_EXAM card in remain days (Sections : {}, Probs : {}) ", sectionId, fullScopeCardProbNum);
-      
-      cardConfigList.add(CardConfigDTO.builder()
-                                      .cardType(FULL_SCOPE_EXAM_CARD_TYPESTR)
-                                      .curriculumId(sectionId)
-                                      .probNum(fullScopeCardProbNum)
-                                      .build());
-    }
-
-    addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSectionSet(sectionIdSet));
-    
-    return ScheduleConfigDTO.builder()
-                            .cardConfigList(cardConfigList)
-                            .addtlSubSectionIdSet(addtlSubSectionIdSet)
-                            .build();
+    return getScheduleConfig();
   }
 }
