@@ -15,6 +15,9 @@ sed -i "s&%DB_USER%&${DB_USER}&g" /home/tmax/application.properties
 if [ -z $DB_PASSWD ]; then export DB_PASSWD="tibero"; fi
 sed -i "s&%DB_PASSWD%&${DB_PASSWD}&g" /home/tmax/application.properties
 
+if [ -z $LOG_LEVEL ]; then export LOG_LEVEL="DEBUG"; fi
+sed -i "s&%LOG_LEVEL%&${LOG_LEVEL}&g" /home/tmax/application.properties
+
 if [ -z $TRITON_HOST ]; then export TRITON_HOST="http://192.168.159.62:28000"; fi
 sed -i "s&%TRITON_HOST%&${TRITON_HOST}&g" /home/tmax/triton.properties
 

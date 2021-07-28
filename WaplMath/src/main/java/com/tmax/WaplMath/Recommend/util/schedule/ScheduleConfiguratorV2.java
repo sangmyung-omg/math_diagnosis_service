@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -139,7 +138,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                         userInfo.getCurrentCurriculumId());
 
       throw new RecommendException(RecommendErrorCode.USER_INFO_NULL_ERROR, 
-                                   "Call /userbasicinfo PUT service first. ");
+                                   "Call /userbasicinfo PUT service first. " + userId);
     }
     return userInfo;
   }
@@ -160,7 +159,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                              userExamInfo.getEndSubSectionId());
 
       throw new RecommendException(RecommendErrorCode.USER_INFO_NULL_ERROR, 
-                                   "Call /userexaminfo PUT service first. ");
+                                   "Call /userexaminfo PUT service first. " + userId);
     }
     return userExamInfo;
   }

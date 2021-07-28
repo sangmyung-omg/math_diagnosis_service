@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE configuration>
-<configuration>
+<configuration scan="true" scanPeriod="10 seconds">
 	<!-- Custom context listener -->
 	<contextListener class="com.tmax.WaplMath.Common.util.context.LogBackContextListener"/>
-
-
+  <!-- root log level-->
+  <springProperty scope="context" name="SERVICE_LOG_LEVEL" source="logging.level.service"/>
 	<!-- log file root path -->
 	<property name="LOG_PATH" value="./logs/" />
 	<!-- log file name -->
@@ -164,21 +164,6 @@
 		</appender>
 	</springProfile>
 	
-	<!-- Recommend logger -->
-	<springProfile name="prod">
-		<logger name="com.tmax.WaplMath.Recommend" level="DEBUG" additivity="true">
-				<appender-ref ref="FILE_RECOMMEND"/>
-		</logger>
-		<!-- AnalysisReport logger -->
-		<logger name="com.tmax.WaplMath.AnalysisReport" level="DEBUG" additivity="true">
-				<appender-ref ref="FILE_AR"/>
-		</logger>
-		<!-- AdditionalLearning logger -->
-		<logger name="com.tmax.WaplMath.AdditionalLearning" level="DEBUG" additivity="true">
-				<appender-ref ref="FILE_AL"/>
-		</logger>
-	</springProfile>
-
 	<!-- 기본 log level을 설정한다. -->
 	<root level="INFO">
 		<springProfile name="default, dev, prod">
@@ -186,8 +171,6 @@
 		</springProfile>
 		<springProfile name="prod">
 			<appender-ref ref="FILE_ALL" />
-		</springProfile>
-		<springProfile name="prod">
 			<appender-ref ref="ERROR" />
 		</springProfile>
 		
@@ -195,4 +178,31 @@
 			<appender-ref ref="LOGSTASH" />
 		</springProfile> -->
 	</root>
+
+  <!-- WaplMath logger stdout -->
+  <springProfile name="default, dev, prod">
+    <logger name="com.tmax.WaplMath" level="${SERVICE_LOG_LEVEL}" additivity="false">
+      <appender-ref ref="STDOUT" />
+    </logger>
+  </springProfile>
+
+	<springProfile name="prod">
+	  <!-- Recommend logger -->
+    <logger name="com.tmax.WaplMath" level="${SERVICE_LOG_LEVEL}" additivity="false">
+			<appender-ref ref="FILE_ALL" />
+			<appender-ref ref="ERROR" />
+    </logger>
+	  <!-- Recommend logger -->
+		<logger name="com.tmax.WaplMath.Recommend" level="${SERVICE_LOG_LEVEL}" additivity="true">
+			<appender-ref ref="FILE_RECOMMEND"/>
+		</logger>
+		<!-- AnalysisReport logger -->
+		<logger name="com.tmax.WaplMath.AnalysisReport" level="${SERVICE_LOG_LEVEL}" additivity="true">
+			<appender-ref ref="FILE_AR"/>
+		</logger>
+		<!-- AdditionalLearning logger -->
+		<logger name="com.tmax.WaplMath.AdditionalLearning" level="${SERVICE_LOG_LEVEL}" additivity="true">
+			<appender-ref ref="FILE_AL"/>
+		</logger>
+	</springProfile>
 </configuration>

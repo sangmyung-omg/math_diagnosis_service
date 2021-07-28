@@ -2,7 +2,6 @@ package com.tmax.WaplMath.Recommend.service.schedule.v2;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
@@ -64,11 +63,8 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
   // 21.07.21. Throw exception if mastery not exist
   public void checkUserMasteryExist(String userId) {
 
-    if (!userKnowledgeRepo.findExistUserList().contains(userId)){
-      log.error("Not exist mastery for user = {} ", userId);
-      
-      throw new RecommendException(RecommendErrorCode.USER_MASTERY_NOT_EXIST_ERROR);
-    }
+    if (!userKnowledgeRepo.findExistUserList().contains(userId))      
+      throw new RecommendException(RecommendErrorCode.USER_MASTERY_NOT_EXIST_ERROR, userId);
   }
 
 

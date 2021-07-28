@@ -132,9 +132,9 @@ public class CardGeneratorV2 extends CardConstants {
     if (PRINT_PROB_INFO) {
       for (Difficulty diff : Difficulty.values()) {
         List<Problem> probList = diffProbList.getDiffProbList(diff);
-        log.info("\t{} level probs = {}", diff.getDiffEng(), getIdListFromProbList(probList));
+        log.debug("\t{} level probs = {}", diff.getDiffEng(), getIdListFromProbList(probList));
       }
-      log.info("");
+      log.debug("");
     }
   }
 
@@ -225,7 +225,7 @@ public class CardGeneratorV2 extends CardConstants {
         for (int i = 0; i < Math.min(DIFF_MAX_PROB - currentProbNum, probList.size()); i++) {
 
           if (PRINT_PROB_INFO)
-            log.info("\tAdd probId={} ({})", probList.get(i).getProbId(), diff.getDiffEng());
+            log.debug("\tAdd probId={} ({})", probList.get(i).getProbId(), diff.getDiffEng());
 
           probSetListDTO.addDiffProb(probList.get(i).getProbId(), diff);
 
@@ -257,7 +257,7 @@ public class CardGeneratorV2 extends CardConstants {
           if (!probSetListDTO.getDiffProbIdList(diff).contains(prob.getProbId())) {
 
             if (PRINT_PROB_INFO)	
-              log.info("\tAdd probId={} ({})", prob.getProbId(), diff.getDiffEng());
+              log.debug("\tAdd probId={} ({})", prob.getProbId(), diff.getDiffEng());
 
             probSetListDTO.addDiffProb(prob.getProbId(), diff);
 
@@ -435,9 +435,9 @@ public class CardGeneratorV2 extends CardConstants {
 
     // print
     if (PRINT_MASTERY) {
-      log.info("[{} {}] Curriculums = ", superCurr.name(), superCurr.getCurrId());
+      log.debug("[{} {}] Curriculums = ", superCurr.name(), superCurr.getCurrId());
       for (CurrMasteryDTO currMastery : currMasteryList)
-        log.info("{}\t{}\t(mastery={})", currMastery.getCurrId(), currMastery.getCurrName(), currMastery.getMastery());
+        log.debug("{}\t{}\t(mastery={})", currMastery.getCurrId(), currMastery.getCurrName(), currMastery.getMastery());
     }
 
     int probCnt = 0;
@@ -618,9 +618,9 @@ public class CardGeneratorV2 extends CardConstants {
     Map<Integer, Integer> totalTypeProbNumMap = new HashMap<>();
 
     if (PRINT_MASTERY) {
-      log.info("[subsection {}] Types = ", subSectionId);
+      log.debug("[subsection {}] Types = ", subSectionId);
       for (TypeMasteryDTO typeMastery : typeMasteryList)
-        log.info("{} (mastery={})", typeMastery.getTypeId(), typeMastery.getMastery());
+        log.debug("{} (mastery={})", typeMastery.getTypeId(), typeMastery.getMastery());
     }
     
     int probCnt = 0;
