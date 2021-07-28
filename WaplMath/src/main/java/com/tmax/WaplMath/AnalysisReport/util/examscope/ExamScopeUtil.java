@@ -52,7 +52,7 @@ public class ExamScopeUtil {
             Optional<User> userInfo = userRepo.findById(userID);
 
             if(!userInfo.isPresent()){
-                throw new UserNotFoundException();
+                throw new UserNotFoundException(userID);
             }
 
             //Get current curriculum ID

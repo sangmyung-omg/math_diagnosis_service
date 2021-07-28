@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE configuration>
 <configuration>
+	<!-- Custom context listener -->
+	<contextListener class="com.tmax.WaplMath.Common.util.context.LogBackContextListener"/>
+
+
 	<!-- log file root path -->
 	<property name="LOG_PATH" value="./logs/" />
 	<!-- log file name -->
@@ -13,15 +17,30 @@
 	<property name="MAX_FILE_SIZE" value="20MB" />
 	<!-- max history save days (day) -->
 	<property name="MAX_SAVE_DAYS" value="28" />
+
+	<!-- Log stash settings -->
+	<springProperty name="logstash_host" source="logstash.host"/>
+	<springProperty name="logstash_port" source="logstash.port"/>
+	<springProperty name="appname" source="app.name"/>
 		
 	<!-- Console Appender -->
 	<springProfile name="default, dev, prod">
+		<!-- Stdout -->
 		<appender name="STDOUT"
 			class="ch.qos.logback.core.ConsoleAppender">
 			<layout class="ch.qos.logback.classic.PatternLayout">
 				<Pattern>${LOG_PATTERN}</Pattern>
 			</layout>
 		</appender>
+
+		<!-- logstash appender -->
+		<!-- <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+			<remoteHost>${logstash_host}</remoteHost>
+			<port>${logstash_port}</port>
+			<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+				<customFields>{"appname" : "${appname}", "hostname" : "${HOSTNAME}"}</customFields>
+			</encoder>
+		</appender> -->
 	</springProfile>
 
 	<!-- File Appender -->
@@ -171,5 +190,9 @@
 		<springProfile name="prod">
 			<appender-ref ref="ERROR" />
 		</springProfile>
+		
+		<!-- <springProfile name="default, dev, prod">
+			<appender-ref ref="LOGSTASH" />
+		</springProfile> -->
 	</root>
 </configuration>

@@ -113,7 +113,7 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
         Optional<User> userOpt = userRepo.findById(userID);
         if(!userOpt.isPresent()){
             log.error("No user info found " + userID);
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
 
         // User user = userOpt.get();

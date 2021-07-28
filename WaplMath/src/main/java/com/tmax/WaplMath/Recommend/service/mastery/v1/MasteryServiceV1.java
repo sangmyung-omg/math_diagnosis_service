@@ -94,7 +94,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         
         //Pass condition check (any of the two lists' size == 0 or size doesn't match) => throw. must abort all other tasks
         if(probIdList.size() == 0 || correctList.size() == 0){
-            throw new LRSStatementEmptyException();
+            throw new LRSStatementEmptyException(userId);
         }
 
         //Convert probIdList to IntList
@@ -213,7 +213,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         Optional<User> user = userRepo.findById(userID);
         if(!user.isPresent()){
             log.error("User invalid {}. Cannot update mastery for unregistered user" , userID);
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
         
         

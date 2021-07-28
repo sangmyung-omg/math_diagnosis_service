@@ -297,7 +297,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         Optional<User> user = userRepo.findById(userID);
         if(!user.isPresent()){
             log.warn("No user Information found for " + userID);
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
         return user.get();
     }

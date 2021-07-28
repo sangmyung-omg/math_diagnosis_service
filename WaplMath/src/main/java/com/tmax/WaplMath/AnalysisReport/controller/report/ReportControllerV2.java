@@ -8,13 +8,8 @@ import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataLiteDTO;
 import com.tmax.WaplMath.AnalysisReport.service.report.ReportServiceBaseV0;
-import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
-import com.tmax.WaplMath.Common.exception.LRSStatementEmptyException;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
-
-import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

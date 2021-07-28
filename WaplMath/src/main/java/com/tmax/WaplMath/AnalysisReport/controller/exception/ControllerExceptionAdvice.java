@@ -1,7 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.controller.exception;
 
 import com.tmax.WaplMath.Common.dto.GenericErrorDTO;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.BaseException;
 import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 
 import org.springframework.http.HttpStatus;
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @RestControllerAdvice("com.tmax.WaplMath.AnalysisReport.controller")
 public class ControllerExceptionAdvice {
-    @ExceptionHandler(GenericInternalException.class)
+    @ExceptionHandler(BaseException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public GenericErrorDTO handleInternalError(GenericInternalException exception){
+    public GenericErrorDTO handleBaseExceptionError(BaseException exception){
         return new GenericErrorDTO(exception.getErrorCode(), exception.getMessage());
     }
 

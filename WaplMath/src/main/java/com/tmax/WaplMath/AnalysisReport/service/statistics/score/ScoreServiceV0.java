@@ -229,7 +229,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
         //Get all grade statistics
         Optional<User> userInfo = userRepo.findById(userID);
         if(!userInfo.isPresent()){
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
 
         //Get grade
@@ -379,7 +379,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
         //Get usergrade from info
         Optional<User> userInfo = userRepo.findById(userID);
         if(!userInfo.isPresent()){
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
 
         String grade = userInfo.get().getGrade();

@@ -38,7 +38,7 @@ public class CommentaryService {
     public CommentaryResponseDTO getCommentaryFromTemplate(String userID, String template, Set<String> excludeSet){
         Optional<User> userOpt = userRepo.findById(userID);
         if(!userOpt.isPresent()){
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
         
         CommentaryDataDTO data = getCommentaryData(userID,excludeSet);
@@ -59,7 +59,7 @@ public class CommentaryService {
     public CommentaryDataDTO getCommentaryData(String userID, Set<String> excludeSet){
         Optional<User> userOpt = userRepo.findById(userID);
         if(!userOpt.isPresent()){
-            throw new UserNotFoundException();
+            throw new UserNotFoundException(userID);
         }
 
         PersonalScoreDTO score = scoreSvc.getUserScore(userID, excludeSet);
