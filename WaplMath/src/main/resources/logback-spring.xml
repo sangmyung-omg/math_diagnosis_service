@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE configuration>
-<configuration scan="true" scanPeriod="10 seconds">
+<configuration>
 	<!-- Custom context listener -->
 	<contextListener class="com.tmax.WaplMath.Common.util.context.LogBackContextListener"/>
   <!-- root log level-->
