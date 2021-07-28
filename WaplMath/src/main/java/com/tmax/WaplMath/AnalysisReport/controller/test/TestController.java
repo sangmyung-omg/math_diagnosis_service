@@ -30,6 +30,7 @@ import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
+import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
@@ -40,6 +41,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 // import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -200,5 +202,12 @@ public class TestController {
         Optional<RedisStringData> output = redisRepo.findById(id);
 
         return new ResponseEntity<>(output.get(), HttpStatus.OK);
+    }
+
+    @GetMapping("/tokentest")
+    ResponseEntity<Object> genWaplScore(@RequestHeader("token") String token) {
+        JWTUtil.getUserID(token);
+
+        return new ResponseEntity<>("done", HttpStatus.OK);
     }
 }

@@ -39,7 +39,7 @@ public class UpdatedResultControllerV0 {
     
     @PutMapping("/updatedresult")
     ResponseEntity<Object> putUpdatedResult(@RequestHeader("token") String token, @RequestBody ProblemSolveListDTO probSolveList){
-        String userID = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID = JWTUtil.getUserID(token, false);
 
         System.out.println(probSolveList.toString());
 

@@ -47,7 +47,7 @@ public class ChapterControllerV0 {
                                            @RequestParam(name="range", required = false) String range,
                                            @RequestParam(name="subrange", required = false) String subrange){
         //Extract userID from token                                         
-        String userID = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID = JWTUtil.getUserID(token, false);
 
     
         List<ChapterDetailDTO> output = chapterSvc.getChapterListOfUserInRange(userID, range, subrange);
@@ -57,7 +57,7 @@ public class ChapterControllerV0 {
     @PostMapping("/chapters")
     ResponseEntity<Object> getChaptersListFromChapterIDList(@RequestHeader("token") String token, 
                                                             @RequestBody ChapterIDListDTO chapterIDList){
-        // String userID =  JWTUtil.getJWTPayloadField(token, "userID");;
+        // String userID =  JWTUtil.getUserID(token, false);;
 
         // List<ChapterDetailDTO> output = chapterSvc.getSpecificChapterListOfUser(userID, chapterIDList);
         throw new GenericInternalException(ARErrorCode.UNSUPPORTED_API_ERROR);

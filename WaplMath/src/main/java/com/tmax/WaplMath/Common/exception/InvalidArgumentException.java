@@ -1,11 +1,13 @@
 package com.tmax.WaplMath.Common.exception;
 
+import com.tmax.WaplMath.Common.util.error.CommonErrorCode;
+
 public class InvalidArgumentException extends GenericInternalException {
     public InvalidArgumentException(){
-        super("ERR-0004", "Invalid parameter");
+        super(CommonErrorCode.INVALID_ARGUMENT);
     }
 
     public InvalidArgumentException(String message){
-        super("ERR-0004", "Invalid parameter: " + message);
+        super(CommonErrorCode.INVALID_ARGUMENT, message);
     }
 }

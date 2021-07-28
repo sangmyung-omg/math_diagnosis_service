@@ -38,7 +38,7 @@ public class ReportControllerV2 {
     @PutMapping("/updatedreport")
     public ResponseEntity<Object> getUpdatedReport(@RequestHeader("token") String token, @RequestParam(name="exclude", defaultValue = "") String exclude){
         //Parse jwt to get userID
-        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID  = JWTUtil.getUserID(token, false);
                 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -55,7 +55,7 @@ public class ReportControllerV2 {
     @GetMapping("/report")
     public ResponseEntity<Object> getReport(@RequestHeader("token") String token, @RequestParam(name="exclude", defaultValue = "") String exclude){
         //Parse jwt to get userID
-        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID  = JWTUtil.getUserID(token, false);
                 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -68,7 +68,7 @@ public class ReportControllerV2 {
     @GetMapping("/reportlite")
     public ResponseEntity<Object> getReportLite(@RequestHeader("token") String token, @RequestParam(name="exclude", defaultValue = "") String exclude){
         //Parse jwt to get userID
-        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID  = JWTUtil.getUserID(token, false);
                 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));

@@ -33,7 +33,7 @@ public class StudyGuideControllerV0 {
     
     @GetMapping("/studyguide")
     ResponseEntity<Object> getStudyGuide(@RequestHeader("token") String token){
-        String userID  = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID  = JWTUtil.getUserID(token, false);
 
         List<StudyGuideDTO> outputList = new ArrayList<StudyGuideDTO>();
         outputList.add(studySvc.getStudyGuideOfUser(userID));

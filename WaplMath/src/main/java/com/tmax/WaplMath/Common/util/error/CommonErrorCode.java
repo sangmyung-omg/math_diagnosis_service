@@ -12,6 +12,10 @@ public enum CommonErrorCode implements ErrorCodeBase {
 
     LRS_STATEMENT_EMPTY("0003", "No LRS Statement found. Please check if user's info is properly submitted to LRS."),
 
+    JWT_FIELD_NOT_FOUND("0004", "Requested field not found in jwt token."),
+    JWT_INVALID("0005", "JWT has invalid format."),
+
+    INVALID_ARGUMENT("0006", "Given argument is invalid"),
 
     //The lower bound error code;
     UNKNOWN_ERROR("9999", "Unknown error");

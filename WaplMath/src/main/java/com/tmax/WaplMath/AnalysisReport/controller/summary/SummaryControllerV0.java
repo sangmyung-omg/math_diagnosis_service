@@ -35,7 +35,7 @@ class SummaryControllerV0 {
         }
 
 
-        String userID  = JWTUtil.getJWTPayloadField(token, "userID");        
+        String userID  = JWTUtil.getUserID(token, false);        
 
         return new ResponseEntity<>(summarySvc.getSummaryOfUser(userID),HttpStatus.OK);
     }

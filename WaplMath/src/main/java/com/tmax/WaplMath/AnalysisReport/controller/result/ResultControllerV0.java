@@ -37,7 +37,7 @@ public class ResultControllerV0 {
     
     @GetMapping("/result")
     ResponseEntity<Object> getResult(@RequestHeader("token") String token) {
-        String userID = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID = JWTUtil.getUserID(token, false);
 
         DiagnosisResultDTO output = resultSvc.getResultOfUser(userID);
 
