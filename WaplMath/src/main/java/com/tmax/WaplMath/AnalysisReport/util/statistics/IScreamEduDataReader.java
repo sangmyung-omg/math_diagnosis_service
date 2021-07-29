@@ -162,7 +162,7 @@ public class IScreamEduDataReader {
      * @return
      */
     public Integer getYearOfIScreamUser(String userID){
-        int rawYear = Integer.valueOf(userID.substring(2, 3));
+        int rawYear = Integer.valueOf(userID.substring(0, 1));
 
         return yearTransLUT.get(rawYear);
     }
@@ -188,32 +188,6 @@ public class IScreamEduDataReader {
 
         //Get the whole data and make it into UserKnowlegdeList
         Map<String, Mastery> wholeData = getAllUserMasteryData();
-
-        //Init output List
-        // List<UserKnowledge> output = new ArrayList<>();
-
-        //For all users of iscream edu
-        // for(Map.Entry<String, Mastery> entry: wholeData.entrySet()){
-        //     String userID = entry.getKey();
-            
-        //     //For all uks create and push to userknowledge
-        //     for(Map.Entry<Integer, Float> ukentry : entry.getValue().getMap().entrySet()){
-        //         //If uk ID is not in the searched ukSet, then continue
-        //         if(!ukSet.contains(ukentry.getKey())){
-        //             continue;
-        //         }
-
-        //         output.add(UserKnowledge.builder()
-        //                                 .userUuid(userID)
-        //                                 .ukId(ukentry.getKey())
-        //                                 .ukMastery(ukentry.getValue())
-        //                                 .user(User.builder()
-        //                                           .userUuid(userID)
-        //                                           .grade(getYearOfIScreamUser(userID).toString())
-        //                                           .build() )
-        //                                 .build());
-        //     }
-        // }
         
         //Parallel optimization
         List<UserKnowledge> output = 
@@ -295,7 +269,7 @@ public class IScreamEduDataReader {
 
         //get Average uk mastery data
         Path path = null;
-        String filepathSuffix = "statistics/user_uk_all.json";
+        String filepathSuffix = "statistics/compressed_user_uk_all.json";
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
         catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
@@ -355,7 +329,7 @@ public class IScreamEduDataReader {
 
         //get Average uk mastery data
         Path path = null;
-        String filepathSuffix = "statistics/uk_user_data.json";
+        String filepathSuffix = "statistics/compressed_uk_user_data.json";
         try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
         catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
 
