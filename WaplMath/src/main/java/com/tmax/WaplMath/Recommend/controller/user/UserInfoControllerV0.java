@@ -31,7 +31,7 @@ public class UserInfoControllerV0 {
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token,
 			@RequestBody UserExamInfoDTO input) {
 
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 
     log.info("User exam info service. userId : {}", userId);
 
@@ -44,7 +44,7 @@ public class UserInfoControllerV0 {
 	@PutMapping(value="/userbasicinfo", produces="application/json; charset=utf-8")
 	ResponseEntity<Object> updateBasicInfo(@RequestHeader("token") String token, @RequestBody UserBasicInfoDTO input) {
 
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 
     log.info("User basic info service. userId : {}", userId);
 
@@ -57,7 +57,7 @@ public class UserInfoControllerV0 {
 	@DeleteMapping(value="/user", produces="application/json;charset=utf-8")
 	ResponseEntity<Object> deleteUserInfo(@RequestHeader("token") String token){
 
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 
     log.info("User delete service. userId : {}", userId);
 

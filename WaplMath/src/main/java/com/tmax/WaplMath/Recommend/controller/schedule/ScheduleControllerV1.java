@@ -32,7 +32,7 @@ public class ScheduleControllerV1 {
 
 	@GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 		log.info("userId: "+userId);
 		ExamScheduleCardDTO examScheduleCard = scheduleMvc.getExamScheduleCard(userId);
 		System.out.println("version 1");
@@ -41,7 +41,7 @@ public class ScheduleControllerV1 {
 	
 	@GetMapping(value = "/normalschedulecard", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 		log.info("userId: "+userId);
 		NormalScheduleCardDTOV1 normalScheduleCard = scheduleMvc.getNormalScheduleCard(userId);
 		System.out.println("version 1");
@@ -50,7 +50,7 @@ public class ScheduleControllerV1 {
 	
 	@GetMapping(value = "/normalschedulecard/dummy", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> getNormalScheduleCardDummy(@RequestHeader("token") String token) {
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 		log.info("userId: "+userId);
 		NormalScheduleCardDTOV1 normalScheduleCard = scheduleMvc.getNormalScheduleCardDummy(userId);
 		System.out.println("version 1");

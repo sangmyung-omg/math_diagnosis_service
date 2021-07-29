@@ -29,7 +29,7 @@ public class ScheduleControllerV2 {
   @GetMapping(value = "/normalschedulecard", produces = "application/json; charset=utf-8")
   public ResponseEntity<Object> getNormalScheduleCard(@RequestHeader("token") String token) {
 
-    String userId = JWTUtil.getJWTPayloadField(token, "userID");
+    String userId = JWTUtil.getUserID(token, false);
 
     log.info("Normal card service. userId : {}", userId);
 
@@ -44,7 +44,7 @@ public class ScheduleControllerV2 {
   @GetMapping(value = "/examschedulecard", produces = "application/json; charset=utf-8")
   public ResponseEntity<Object> getExamScheduleCard(@RequestHeader("token") String token) {
 
-    String userId = JWTUtil.getJWTPayloadField(token, "userID");
+    String userId = JWTUtil.getUserID(token, false);
     
     log.info("Exam card service. userId : {}", userId);
 
@@ -59,7 +59,7 @@ public class ScheduleControllerV2 {
   @GetMapping(value = "/normalschedulecard/dummy", produces = "application/json; charset=utf-8")
   public ResponseEntity<Object> getNormalScheduleCardDummy(@RequestHeader("token") String token) {
 
-    String userId = JWTUtil.getJWTPayloadField(token, "userID");
+    String userId = JWTUtil.getUserID(token, false);
     
     log.info("Normal dummy service. userId : {}", userId);
 

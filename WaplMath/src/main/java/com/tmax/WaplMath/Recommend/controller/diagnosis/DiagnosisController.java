@@ -48,7 +48,7 @@ public class DiagnosisController {
 		}
 		
 		// Decode JWT and get userId
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map = problemService.getDiagnosisProblems(userId, diagType);
@@ -77,7 +77,7 @@ public class DiagnosisController {
 			return new ResponseEntity<>(map, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		// Decode JWT and get userId
-		String userId = JWTUtil.getJWTPayloadField(token, "userID");
+		String userId = JWTUtil.getUserID(token, false);
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map = problemService.getExtraProblem(userId, probIdList);

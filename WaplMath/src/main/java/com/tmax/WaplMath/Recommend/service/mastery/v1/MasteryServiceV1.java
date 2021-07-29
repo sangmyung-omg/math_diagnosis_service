@@ -207,7 +207,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     @Override
     public ResultMessageDTO updateMasteryFromLRS(String token) {
-        String userID = JWTUtil.getJWTPayloadField(token, "userID");
+        String userID = JWTUtil.getUserID(token, false);
 
         //Check userValidity
         Optional<User> user = userRepo.findById(userID);
