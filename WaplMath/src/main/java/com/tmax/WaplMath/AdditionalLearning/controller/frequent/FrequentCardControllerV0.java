@@ -23,7 +23,7 @@ public class FrequentCardControllerV0 {
 
 	@GetMapping(value = "/frequent", produces = "application/json; charset=utf-8")
 	ResponseEntity<Object> FrequentCard(@RequestHeader("token") String token, @RequestParam("isFirstFrequent") boolean isFirstFrequent) {
-		String userId = JWTUtil.getUserID(token, false);
+		String userId = JWTUtil.getUserID(token);
 		FrequentCardDTO frequentCard = FrequentCardService.getFrequentCard(userId,isFirstFrequent);
 		return new ResponseEntity<>(frequentCard, HttpStatus.OK);
 	}
