@@ -1,3 +1,0 @@
-uk_user_data.json filter=lfs diff=lfs merge=lfs -text
-user_uk_all.json filter=lfs diff=lfs merge=lfs -text
-whole_data.json filter=lfs diff=lfs merge=lfs -text
