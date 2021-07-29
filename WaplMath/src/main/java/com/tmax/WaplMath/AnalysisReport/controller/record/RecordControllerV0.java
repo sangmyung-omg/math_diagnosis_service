@@ -37,7 +37,7 @@ public class RecordControllerV0 {
        
     @GetMapping("/record")
     ResponseEntity<Object> getLevelDiagRecord(@RequestHeader("token") String token){
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
 
         LevelDiagnosisRecordDTO output = recordSvc.getRecordOfUser(userID);
 

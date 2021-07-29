@@ -40,7 +40,7 @@ public class CurriculumControllerV2 {
                                                     @RequestParam(name="exclude", defaultValue = "") String exclude,
                                                     @RequestBody List<String> currIDList) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -55,7 +55,7 @@ public class CurriculumControllerV2 {
                                                         @RequestParam(name="exclude", defaultValue = "") String exclude,
                                                         @PathVariable(name="currID") String currID) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -76,7 +76,7 @@ public class CurriculumControllerV2 {
                                                     @RequestParam(name="subsearch", defaultValue = "false") boolean subSearch,
                                                     @RequestParam(name="order", defaultValue = "id") String order) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);             
+        String userID  = JWTUtil.getUserID(token);             
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -94,7 +94,7 @@ public class CurriculumControllerV2 {
                                                         @RequestParam(name="typeRange", defaultValue = "") String typeRange,
                                                         @RequestParam(name="order", defaultValue = "id") String order) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);               
+        String userID  = JWTUtil.getUserID(token);               
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -112,7 +112,7 @@ public class CurriculumControllerV2 {
                                                         @RequestParam(name="order", defaultValue = "id") String order,
                                                         @RequestParam(name="currIdFilter", defaultValue = "") String currIdFilter) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);               
+        String userID  = JWTUtil.getUserID(token);               
 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));                                                    

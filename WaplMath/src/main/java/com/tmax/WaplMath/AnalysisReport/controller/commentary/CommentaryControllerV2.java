@@ -37,7 +37,7 @@ public class CommentaryControllerV2 {
     public ResponseEntity<Object> getCommentaryData(@RequestHeader("token") String token, 
                                                     @RequestParam(defaultValue = "", name="exclude") String exclude) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -52,7 +52,7 @@ public class CommentaryControllerV2 {
                                                             @RequestBody CommentaryTemplateInDTO body,
                                                             @RequestParam(defaultValue = "", name="exclude") String exclude) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
 
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));

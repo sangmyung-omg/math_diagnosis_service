@@ -32,7 +32,7 @@ public class UserKnowledgeControllerV2 {
     @PostMapping("/userknowledge")
     public ResponseEntity<Object> getUserKnowledgeList(@RequestHeader("token") String token, @RequestBody List<Integer> ukIDList) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         log.debug(String.format("getByUkIdList(%s, %s)", userID, ukIDList.toString()));
         List<UkUserKnowledgeDetailDTO> result = userKnowledgeSvc.getByUkIdList(userID, ukIDList);
@@ -42,7 +42,7 @@ public class UserKnowledgeControllerV2 {
     @GetMapping("/userknowledge/{ukID}")
     public ResponseEntity<Object> getUserKnowledge(@RequestHeader("token") String token, @PathVariable("ukID") Integer ukID) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         log.debug(String.format("getByUkId(%s, %d)", userID, ukID));
         UkUserKnowledgeDetailDTO result = userKnowledgeSvc.getByUkId(userID, ukID);

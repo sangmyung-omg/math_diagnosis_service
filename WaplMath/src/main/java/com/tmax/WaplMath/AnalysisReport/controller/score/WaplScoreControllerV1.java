@@ -24,7 +24,7 @@ public class WaplScoreControllerV1 {
 
     @GetMapping("/waplscore")
     public ResponseEntity<Object> getWaplScore(@RequestHeader("token") String token) {
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         WAPLScoreDTO result = WAPLScoreDTO.getScaledScore( waplScoreSvcV0.getWaplScore(userID));
         return new ResponseEntity<>(result, HttpStatus.OK);

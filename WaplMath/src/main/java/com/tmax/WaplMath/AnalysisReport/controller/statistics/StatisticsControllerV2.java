@@ -39,7 +39,7 @@ public class StatisticsControllerV2 {
                                                @RequestParam(defaultValue = "user", name="type") String type,
                                                @RequestParam(defaultValue = "", name="exclude") String exclude) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -69,7 +69,7 @@ public class StatisticsControllerV2 {
                                                @RequestParam(defaultValue = "11", name="histogramSize") Integer histogramSize,
                                                @RequestParam(defaultValue = "101", name="percentileLUTSize") Integer percentileLUTSize) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -83,7 +83,7 @@ public class StatisticsControllerV2 {
     public ResponseEntity<Object> getSolveSpeed(@RequestHeader("token") String token, 
                                                @RequestParam(defaultValue = "", name="exclude") String exclude) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
@@ -97,7 +97,7 @@ public class StatisticsControllerV2 {
     public ResponseEntity<Object> getCorrectRate(@RequestHeader("token") String token, 
                                                @RequestParam(defaultValue = "", name="exclude") String exclude) {
         //Parse jwt to get userID
-        String userID  = JWTUtil.getUserID(token, false);
+        String userID  = JWTUtil.getUserID(token);
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));

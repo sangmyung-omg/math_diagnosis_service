@@ -38,7 +38,7 @@ public class UpdatedResultControllerV1 {
     
     @PutMapping("/updatedresult")
     ResponseEntity<Object> putUpdatedResult(@RequestHeader("token") String token){
-        String userID = JWTUtil.getUserID(token, false);
+        String userID = JWTUtil.getUserID(token);
 
         //Step 1: update mastery => throw in mastery svc
         masterySvc.updateMasteryFromLRS(token);

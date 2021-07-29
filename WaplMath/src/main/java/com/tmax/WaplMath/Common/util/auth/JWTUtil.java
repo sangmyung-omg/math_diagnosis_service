@@ -19,12 +19,16 @@ import com.tmax.WaplMath.Common.exception.InvalidTokenException;
 import com.tmax.WaplMath.Common.exception.JWTFieldNotFound;
 import com.tmax.WaplMath.Common.exception.JWTInvalidException;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class JWTUtil {
     private static final String USER_ID_FIELD = "userID";
     private static final String SUB_FIELD = "sub";
+
+    private static boolean DEBUG_MODE = true;
 
 
     static public String getJWTPayloadField(String token, String fieldName){
@@ -155,6 +159,9 @@ public class JWTUtil {
     }
 
     public static String getUserID(String token){
+        if(DEBUG_MODE)
+            return getUserID(token, false);
+
         return getUserID(token, true);
     }
 
