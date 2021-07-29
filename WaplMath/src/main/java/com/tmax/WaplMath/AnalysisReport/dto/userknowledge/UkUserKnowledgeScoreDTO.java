@@ -9,6 +9,5 @@ import lombok.Data;
 @Builder
 public class UkUserKnowledgeScoreDTO {
     private Integer ukID;
-    private PersonalScoreDTO mastery;
-    private PersonalScoreDTO waplscore;
+    private Double mastery;
 }

@@ -187,7 +187,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         LocalDateTime dueDate = dueDateTS != null ? dueDateTS.toLocalDateTime() : LocalDateTime.now();
 
         //Get duration to target date
-        Duration timeDiff = Duration.between(dueDate, LocalDateTime.now());
+        Duration timeDiff = Duration.between(LocalDateTime.now(), dueDate);
         long diffDay = timeDiff.toDays();
 
         //target exam info

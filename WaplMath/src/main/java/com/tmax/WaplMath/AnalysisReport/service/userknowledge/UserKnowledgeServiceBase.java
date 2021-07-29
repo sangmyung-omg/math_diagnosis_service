@@ -3,6 +3,7 @@ package com.tmax.WaplMath.AnalysisReport.service.userknowledge;
 import java.util.List;
 import java.util.Set;
 
+import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserUKKnowledgeDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userknowledge.UkUserKnowledgeDetailDTO;
 
 public interface UserKnowledgeServiceBase {
@@ -11,4 +12,9 @@ public interface UserKnowledgeServiceBase {
 
     public List<UkUserKnowledgeDetailDTO> getByUkIdList(String userID, List<Integer> ukID);
     public List<UkUserKnowledgeDetailDTO> getByUkIdList(String userID, List<Integer> ukID, Set<String> excludeSet);
+
+    public UserUKKnowledgeDTO getAll(String userID, Set<String> excludeSet);
+    public UserUKKnowledgeDTO getByUkIdListV2(String userID, List<Integer> ukID, Set<String> excludeSet);
+
+    public List<UserUKKnowledgeDTO> getAllOfUserList(List<String> userID, Set<String> excludeSet);
 }

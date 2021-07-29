@@ -7,7 +7,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.persistence.Entity;
+
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import com.google.common.reflect.TypeToken;
@@ -15,7 +19,9 @@ import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.uk.UkSimpleDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserUKKnowledgeDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userknowledge.UkUserKnowledgeDetailDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.userknowledge.UkUserKnowledgeScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
@@ -25,6 +31,8 @@ import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.Builder;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
@@ -36,6 +44,13 @@ import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.Common.repository.uk.UkRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
+
+@Data
+@Builder
+class UserMapKnowledgeInternal {
+    private String userID;
+    private UkUserKnowledgeScoreDTO knowledgescore;
+}
 
 @Slf4j
 @Service("AR-UserKnowledgeServiceV0")
@@ -213,5 +228,76 @@ public class UserKnowledgeServiceV0 implements UserKnowledgeServiceBase {
                                .score(score)
                                .percentile(percentile)
                                .build();
+    }
+
+    //================================
+    @Override
+    public UserUKKnowledgeDTO getAll(String userID,Set<String> excludeSet) {
+
+        //Get all uk info
+        List<UserKnowledge> knowledgeList = userKnowledgeRepo.getByUserID(userID);
+        
+        List<UkUserKnowledgeScoreDTO> ukKnowledgeList =
+            knowledgeList.stream()
+                          .parallel()
+                          .map(uknow -> {
+                            return UkUserKnowledgeScoreDTO.builder()
+                                                          .ukID(uknow.getUkId())
+                                                          .mastery(!excludeSet.contains("mastery") ? 0.0 : null)
+                                                          .build();
+                          }).collect(Collectors.toList());
+        
+        return UserUKKnowledgeDTO.builder().userID(userID).ukKnowledgeList(ukKnowledgeList).build();
+    }
+
+    @Override
+    public UserUKKnowledgeDTO getByUkIdListV2(String userID, List<Integer> ukIDList, Set<String> excludeSet) {
+        //Build 
+
+        List<UkUserKnowledgeScoreDTO> ukKnowledgeList =
+                    ukIDList.stream()
+                          .parallel()
+                          .map(ukId -> {
+                            return UkUserKnowledgeScoreDTO.builder()
+                                                          .ukID(ukId)
+                                                          .mastery(!excludeSet.contains("mastery") ? 0.0 : null)
+                                                          .build();
+                          }).collect(Collectors.toList());
+        
+        return UserUKKnowledgeDTO.builder().userID(userID).ukKnowledgeList(ukKnowledgeList).build();
+    }
+
+    @Override
+    public List<UserUKKnowledgeDTO> getAllOfUserList(List<String> userIDList, Set<String> excludeSet) {
+        //Get all uk info
+        
+
+
+        
+        // // List<UkUserKnowledgeScoreDTO> ukKnowledgeList =
+        // Map<String, UkUserKnowledgeScoreDTO> userMap = 
+        //     knowledgeList.stream()
+        //                   .parallel()
+        //                   .map(uknow -> {
+        //                     UkUserKnowledgeScoreDTO knowledgescore = UkUserKnowledgeScoreDTO.builder()
+        //                         .ukID(uknow.getUkId())
+        //                         .mastery(!excludeSet.contains("mastery") ? 0.0 : null)
+        //                         .build();
+                            
+        //                     return UserMapKnowledgeInternal.builder()
+        //                                 .userID(uknow.getUserUuid())
+        //                                 .knowledgescore(knowledgescore)
+        //                                 .build();
+        //                   }).collect(Collectors.toMap(UserMapKnowledgeInternal::getUserID, UserMapKnowledgeInternal::getKnowledgescore));
+        
+        // // return UserUKKnowledgeDTO.builder().userID(userID).ukKnowledgeList(ukKnowledgeList).build();
+        // return userIDList.stream().parallel()
+        //                  .map(userID -> {
+                            
+
+        //                     UserUKKnowledgeDTO.builder().userID(userID).ukKnowledgeList(userMap.get(userID)).build()
+        //                  })
+        //                  .collect(Collectors.toList());
+        return null;
     }
 }

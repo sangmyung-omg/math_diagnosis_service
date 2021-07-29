@@ -11,6 +11,5 @@ import lombok.Data;
 @Builder
 public class UserUKKnowledgeDTO {
     private String userID;
-    private List<UkUserKnowledgeScoreDTO> ukKnowledgeList;
-    
+    private List<UkUserKnowledgeScoreDTO> ukKnowledgeList;   
 }

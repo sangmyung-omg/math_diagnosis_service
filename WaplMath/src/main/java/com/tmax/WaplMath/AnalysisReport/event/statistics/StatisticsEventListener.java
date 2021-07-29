@@ -62,7 +62,7 @@ public class StatisticsEventListener {
      */
     @EventListener
     public void startupStatisticsProcessor(ApplicationStartedEvent event){
-        log.info("Initializing Curriculum stats");
+        log.info("Checking statistics status");
         boolean result = currStatSvc.updateStatistics(false);
 
         if(result){
@@ -72,6 +72,8 @@ public class StatisticsEventListener {
             log.info("Updating All user stats");
             userStatSvc.updateAllUsers();     
         }
+        
+        log.info("Statistics module ready");
     }
 
     @Scheduled(cron="0 0 0 * * *")
