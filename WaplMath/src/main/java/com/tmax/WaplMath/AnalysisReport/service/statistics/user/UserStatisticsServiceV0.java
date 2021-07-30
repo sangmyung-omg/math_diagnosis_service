@@ -466,7 +466,11 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
         //Tallys for correct rate and duration count
         Integer correctTally = 0;
+        Integer passTally = 0;
+        // Integer wrongTally = 0; //wrong = total - correct - pass
         Integer speedSatisfyTally = 0;
+
+        Integer totalTally = 0;
 
         Set<String> recentCurrSet = new LinkedHashSet<>();
         Set<String> diagRecentCurrSet = new LinkedHashSet<>();
@@ -487,22 +491,6 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                 continue;
             }
 
-            //Get curr ID of problem -> add to recent set
-            String currID = curriculumInfoRepo.getCurrIdByProbId(probID);
-            if(currID != null && !currID.isEmpty()){
-                //Add to recent
-                recentCurrSet.add(currID);
-
-                //If diag. add to diag recent too
-                if(Arrays.asList("diagnosis", "diagnosis_simple").contains( statement.getSourceType() ) )
-                    diagRecentCurrSet.add(currID);
-            }
-
-            //Get correct histogram
-            if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){
-                correctTally++;
-            }
-
             //Get the raw duration string(as it canbe null)
             String durationRaw = statement.getDuration();
 
@@ -521,6 +509,27 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                 continue;
             }
 
+            //Build stats from here (No more skip conditions)
+            //Get curr ID of problem -> add to recent set
+            String currID = curriculumInfoRepo.getCurrIdByProbId(probID);
+            if(currID != null && !currID.isEmpty()){
+                //Add to recent
+                recentCurrSet.add(currID);
+
+                //If diag. add to diag recent too
+                if(Arrays.asList("diagnosis", "diagnosis_simple").contains( statement.getSourceType() ) )
+                    diagRecentCurrSet.add(currID);
+            }
+
+            //Get correct histogram
+            if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){
+                correctTally++;
+            }
+
+            if(statement.getUserAnswer() != null && statement.getUserAnswer().equals("PASS")){
+                passTally++;
+            }
+
             if(difficulty.equals("상") && duration < (3 * 60 + 30 )* 1000){
                 speedSatisfyTally++;
             }
@@ -530,6 +539,8 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             else if(difficulty.equals("하") && duration < (2 * 60 + 30 )* 1000){
                 speedSatisfyTally++;
             }
+
+            totalTally++;
         }
 
 
@@ -538,7 +549,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                             Statistics.builder()
                                                       .name(STAT_CORRECT_RATE)
                                                       .type(Statistics.Type.FLOAT)
-                                                      .data(Float.toString((float)correctTally / statementList.size()))
+                                                      .data(Float.toString((float)correctTally / totalTally))
                                                       .build(), 
                                             ts));
 
@@ -546,7 +557,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                             Statistics.builder()
                                                       .name(STAT_SOLVING_SPEED_SATISFY_RATE)
                                                       .type(Statistics.Type.FLOAT)
-                                                      .data(Float.toString((float)speedSatisfyTally / statementList.size()))
+                                                      .data(Float.toString((float)speedSatisfyTally / totalTally))
                                                       .build(), 
                                             ts));
 
@@ -554,7 +565,31 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                             Statistics.builder()
                                                       .name(STAT_RATE_PROBLEM_COUNT)
                                                       .type(Statistics.Type.INT)
-                                                      .data(Integer.toString(statementList.size()))
+                                                      .data(Integer.toString(totalTally))
+                                                      .build(), 
+                                            ts));
+        
+        updateSet.add(statsToAnalyticsUser( userID, 
+                                            Statistics.builder()
+                                                      .name(STAT_CORRECT_CNT)
+                                                      .type(Statistics.Type.INT)
+                                                      .data(Integer.toString(correctTally))
+                                                      .build(), 
+                                            ts));
+
+        updateSet.add(statsToAnalyticsUser( userID, 
+                                            Statistics.builder()
+                                                      .name(STAT_PASS_CNT)
+                                                      .type(Statistics.Type.INT)
+                                                      .data(Integer.toString(passTally))
+                                                      .build(), 
+                                            ts));
+
+        updateSet.add(statsToAnalyticsUser( userID, 
+                                            Statistics.builder()
+                                                      .name(STAT_WRONG_CNT)
+                                                      .type(Statistics.Type.INT)
+                                                      .data(Integer.toString(totalTally - correctTally - passTally))
                                                       .build(), 
                                             ts));
         
