@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
+import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.model.problem.ProblemType;
+import com.tmax.WaplMath.Common.util.error.CommonErrorCode;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbDTO;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
@@ -33,9 +35,9 @@ import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 public class WaplScoreManagerV1 {
 
   //Logging option
-  private final Boolean printCardInfo = false; //level 1
-  private final Boolean printUkInfo = false; //level 2
-  private final Boolean printProbInfo = false; //level 3
+  private static final boolean PRINT_CARD_INFO = true; //level 1
+  private static final boolean PRINT_UK_INFO = false; //level 2
+  private static final boolean PRINT_PROB_INFO = false; //level 3
 
 
   @Autowired
@@ -51,15 +53,15 @@ public class WaplScoreManagerV1 {
   CurriculumRepo curriculumRepo;
 
 
-  public Integer totalUkLength = 0;
+  private Integer totalUkLength = 0;
 
-  public Integer totalProbCnt = 0;
+  private Integer totalProbCnt = 0;
   
 
   public List<WaplScoreProbDTO> generateSectionCardProbList(Set<String> sectionIdSet, String type, Integer probNum) {
     List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<>();
     List<String> midSubSectionList = curriculumRepo.findSubSectionListInSectionSet(sectionIdSet);
-    Map<String, List<Integer>> subSectionTypeMap = new HashMap<String, List<Integer>>();
+    Map<String, List<Integer>> subSectionTypeMap = new HashMap<>();
     for (String subSection : midSubSectionList)
       subSectionTypeMap.put(subSection, problemTypeRepo.findTypeIdListInSubSection(subSection));
     Collections.shuffle(midSubSectionList);	
@@ -69,63 +71,67 @@ public class WaplScoreManagerV1 {
       List<Integer> typeList = subSectionTypeMap.get(subSection);
       Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
       List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-      if (ukList.size() != 0) {
-        if (printProbInfo)	log.info("	중단원 세트 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
+      if (!ukList.isEmpty()) {
+        if (PRINT_PROB_INFO)	log.info("\t중단원 세트 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
         cardProbDTOList.add(new WaplScoreProbDTO(ukList, type));
         probCnt += 1;
       }
     }
     totalProbCnt += probCnt;
-    if (printUkInfo)	log.info("	probDTO 추가: {}", cardProbDTOList);
+    if (PRINT_UK_INFO)	log.info("\tprobDTO 추가: {}", cardProbDTOList);
     return cardProbDTOList;
   }
 
   public List<WaplScoreProbDTO> generateTrialExamCardProbList(List<String> examSubSectionList) {
-    List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<WaplScoreProbDTO>();
+    List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<>();
     List<Integer> typeList = problemTypeRepo.findTypeIdListInSubSectionList(examSubSectionList);
 
     int probCnt = 0;
     while (probCnt != CardConstants.MAX_CARD_PROB_NUM) {
       Integer typeId = typeList.get(new Random().nextInt(typeList.size()));
       List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-      if (ukList.size() != 0) {
-        if (printProbInfo)	log.info("	모의고사 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
+      if (!ukList.isEmpty()) {
+        if (PRINT_PROB_INFO)	log.info("\t모의고사 카드 문제 {}, 유형={}, uk추가: {}", probCnt + 1, typeId, ukList);
         cardProbDTOList.add(new WaplScoreProbDTO(ukList, "시험대비"));
         probCnt += 1;
       }
     }
     totalProbCnt += probCnt;
-    if (printUkInfo)	log.info("	probDTO 추가: {}", cardProbDTOList);
+    if (PRINT_UK_INFO)	log.info("\tprobDTO 추가: {}", cardProbDTOList);
     return cardProbDTOList;
   }
 
   public WaplScoreProbListDTO getWaplScoreProbList(String targetExam, String currentCurriculumId, Integer remainDay) {
     WaplScoreProbListDTO output = new WaplScoreProbListDTO();
-    List<WaplScoreProbDTO> probList = new ArrayList<WaplScoreProbDTO>();
+    List<WaplScoreProbDTO> probList = new ArrayList<>();
+
+    if (remainDay <= 0)
+      throw new GenericInternalException(CommonErrorCode.INVALID_ARGUMENT, 
+                                         "[WaplScoreManager] 'remainDay' must not be less than 0 ");
 
     //실력 향상
     if (remainDay > 14) {
       Integer normalScheduleDay = remainDay - 14;
-      String EndCurrId = ExamScope.examScope.get(targetExam.replace("mid", "final")).get(1);
-      List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, EndCurrId); // 이번학기마지막까지
+      String endCurrId = ExamScope.examScope.get(targetExam.replace("mid", "final")).get(1);
+      List<String> subSectionList = curriculumRepo.findSubSectionListBetween(currentCurriculumId, endCurrId); // 이번학기마지막까지
       List<ProblemType> typeIdList = problemTypeRepo.findTypeListInSubSectionList(subSectionList);
-      Set<String> sectionIdSet = new HashSet<String>(); // 이번학기마지막까지
+      Set<String> sectionIdSet = new HashSet<>(); // 이번학기마지막까지
       subSectionList.forEach(subSection -> sectionIdSet.add(subSection.substring(0, 14)));
-      if (printCardInfo) log.info("typeId 개수 = {}", typeIdList.size());
+      if (PRINT_CARD_INFO) log.info("typeId 개수 = {}", typeIdList.size());
 
       String prevSection = typeIdList.get(0).getCurriculumId().substring(0, 14);
       Integer nextTypeIdx = 0;
-      Boolean isTypeFinished = false;
+      boolean isTypeFinished = false;
       for (int cnt = 0; cnt < normalScheduleDay; cnt++) {
         int probCnt = 0;
-        List<WaplScoreProbDTO> todayCardProbDTOList = new ArrayList<WaplScoreProbDTO>();
+        List<WaplScoreProbDTO> todayCardProbDTOList = new ArrayList<>();
         int cardCnt = 1;
         if (nextTypeIdx == typeIdList.size())	nextTypeIdx--;
         ProblemType firstType = typeIdList.get(nextTypeIdx);
         String currentSection = firstType.getCurriculumId().substring(0, 14);
         //중단원 평가
         if (!currentSection.equals(prevSection) || isTypeFinished) {
-          if (printCardInfo)	log.info("실력향상 {}번째 날 중간 평가 카드 (중단원={})", cnt + 1, prevSection);
+          if (PRINT_CARD_INFO)	log.info("실력향상 {}번째 날 중간 평가 카드 (중단원={})", cnt + 1, prevSection);
           probCnt += CardConstants.MAX_CARD_PROB_NUM;
           todayCardProbDTOList = generateSectionCardProbList(new HashSet<String>(Arrays.asList(prevSection)), "실력향상", CardConstants.MAX_CARD_PROB_NUM);
           if (isTypeFinished) isTypeFinished = false;
@@ -133,8 +139,8 @@ public class WaplScoreManagerV1 {
           for (ProblemType type : typeIdList.subList(nextTypeIdx, typeIdList.size())) {
             Integer typeId = type.getTypeId();
             List<Integer> ukList = typeUkRelRepo.findAllUkByTypeId(typeId);
-            if(ukList.size() != 0) {
-              if (printCardInfo)	log.info("실력향상 {}번째 날 {}번째 유형 카드 (유형={}, 소단원={}) uk 추가: {}", cnt + 1, cardCnt++, typeId, type.getCurriculumId(), ukList);
+            if(!ukList.isEmpty()) {
+              if (PRINT_CARD_INFO)	log.info("실력향상 {}번째 날 {}번째 유형 카드 (유형={}, 소단원={}) uk 추가: {}", cnt + 1, cardCnt++, typeId, type.getCurriculumId(), ukList);
               for (int i = 0; i < CardConstants.MAX_TYPE_CARD_PROB_NUM; i++)
                 todayCardProbDTOList.add(new WaplScoreProbDTO(ukList, "실력향상"));
               probCnt += CardConstants.MAX_TYPE_CARD_PROB_NUM;
@@ -149,62 +155,68 @@ public class WaplScoreManagerV1 {
         }
         if (probCnt < CardConstants.MAX_CARD_PROB_NUM) {
           Integer addtlProbNum = CardConstants.MAX_CARD_PROB_NUM - probCnt;
-          if (printCardInfo)	log.info("실력향상 {}번째 날 추가 보충학습 카드 ({}문제)", cnt + 1, addtlProbNum);
+          if (PRINT_CARD_INFO)	log.info("실력향상 {}번째 날 추가 보충학습 카드 ({}문제)", cnt + 1, addtlProbNum);
           todayCardProbDTOList.addAll(generateSectionCardProbList(sectionIdSet, "시험대비", addtlProbNum));
         }
         probList.addAll(todayCardProbDTOList);
         prevSection = currentSection;
-        if (printCardInfo) log.info("");
+        if (PRINT_CARD_INFO) log.info("");
       }
     }
-    log.info("실력향상 문제 수 = {}", totalProbCnt);
+    log.info("Normal schedule probNum = {}", totalProbCnt);
     log.info("=========================");
 
     //시험 대비
     String examStartCurriculumId = ExamScope.examScope.get(targetExam).get(0);
     String examEndCurriculumId = ExamScope.examScope.get(targetExam).get(1);
-    List<String> examSubSectionList = curriculumRepo.findSubSectionListBetween(examStartCurriculumId, examEndCurriculumId); // 시험 범위
-    Set<String> sectionIdSet = new HashSet<String>();
+    List<String> examSubSectionList = 
+      curriculumRepo.findSubSectionListBetween(examStartCurriculumId, examEndCurriculumId); // 시험 범위
+    Set<String> sectionIdSet = new HashSet<>();
     examSubSectionList.forEach(subSection -> sectionIdSet.add(subSection.substring(0, 14)));
 
-    if (printCardInfo) log.info("시험대비 중단원: {}", sectionIdSet);
+    if (PRINT_CARD_INFO) log.info("시험대비 중단원: {}", sectionIdSet);
     int examDay = 0;
-    Integer numExamType1Cards = Math.floorDiv(14, sectionIdSet.size());
-    Map<String, Integer> type1CardsNum = new HashMap<String, Integer>();
-    sectionIdSet.forEach(sectionId -> type1CardsNum.put(sectionId, numExamType1Cards));
+    Integer numSectionExamCards = Math.floorDiv(14, sectionIdSet.size());
+    Map<String, Integer> sectionExamCardNums = new HashMap<>();
+    sectionIdSet.forEach(sectionId -> sectionExamCardNums.put(sectionId, numSectionExamCards));
     
+    // prob list for each exam day
+    List<List<WaplScoreProbDTO>> dayExamProbList = new ArrayList<>();
     while (examDay != 14) {
-      List<WaplScoreProbDTO> cardProbDTOList = new ArrayList<WaplScoreProbDTO>();
-      // 모의고사 이틀
+      // trial exam card
       if (examDay >= 12) {
-        if (printCardInfo) log.info("시험대비 {}번째 날 모의고사 카드", examDay + 1);
-        cardProbDTOList = generateTrialExamCardProbList(examSubSectionList);
-        probList.addAll(cardProbDTOList);
-      // type 1
-      } else if (type1CardsNum.keySet().size() != 0) {
-        String sectionId = curriculumRepo.sortByCurrSeq(type1CardsNum.keySet()).get(0);
-        if (printCardInfo) log.info("시험대비 {}번째 날 Type1 카드 (중단원={})", examDay + 1, sectionId);
-        cardProbDTOList = generateSectionCardProbList(new HashSet<String>(Arrays.asList(sectionId)), "시험대비", CardConstants.MAX_CARD_PROB_NUM);
-        probList.addAll(cardProbDTOList);
-        if (type1CardsNum.get(sectionId) == 1)
-          type1CardsNum.remove(sectionId);
+        if (PRINT_CARD_INFO) log.info("시험대비 {}번째 날 모의고사 카드", examDay + 1);
+        dayExamProbList.add(generateTrialExamCardProbList(examSubSectionList));
+      // section exam card
+      } else if (!sectionExamCardNums.keySet().isEmpty()) {
+        String sectionId = curriculumRepo.sortByCurrSeq(sectionExamCardNums.keySet()).get(0);
+        if (PRINT_CARD_INFO) log.info("시험대비 {}번째 날 Type1 카드 (중단원={})", examDay + 1, sectionId);
+        dayExamProbList.add(generateSectionCardProbList(new HashSet<>(Arrays.asList(sectionId)), 
+                                                    "시험대비", CardConstants.MAX_CARD_PROB_NUM));
+        if (sectionExamCardNums.get(sectionId) == 1)
+          sectionExamCardNums.remove(sectionId);
         else
-          type1CardsNum.put(sectionId, type1CardsNum.get(sectionId)-1);
-      // type 2
+          sectionExamCardNums.put(sectionId, sectionExamCardNums.get(sectionId)-1);
+      // total exam card
       } else {
-        if (printCardInfo) log.info("시험대비 {}번째 날 Type2 카드 (중단원={})", examDay + 1, sectionIdSet);
-        cardProbDTOList = generateSectionCardProbList(sectionIdSet, "시험대비", CardConstants.MAX_CARD_PROB_NUM);
-        probList.addAll(cardProbDTOList);				
+        if (PRINT_CARD_INFO) log.info("시험대비 {}번째 날 Type2 카드 (중단원={})", examDay + 1, sectionIdSet);
+        dayExamProbList.add(generateSectionCardProbList(sectionIdSet, "시험대비", CardConstants.MAX_CARD_PROB_NUM));				
       }
       examDay += 1;
     }
 
-    log.info("최종 문제 수 = {}", totalProbCnt);
-    assert (totalProbCnt == probList.size());
-    output.setProbList(probList);
-    probList.forEach(e -> totalUkLength += e.getUkList().size());
-    log.info("최종 UK sequence 길이 = {}", totalUkLength);
+    // if remain day less than 14 days
+    Collections.reverse(dayExamProbList);
+    Integer listSize = Math.min(remainDay, 14);
+    log.info("Cut exam card within {} days", listSize);
+    dayExamProbList.subList(0, listSize).stream()
+                   .forEach(examProbList -> probList.addAll(examProbList));
 
+    log.info("Total waplScore probNum = {}", probList.size());
+    probList.forEach(e -> totalUkLength += e.getUkList().size());
+    log.info("Total waplScore uk sequence length = {}", totalUkLength);
+
+    output.setProbList(probList);
     return output;
   }
 }

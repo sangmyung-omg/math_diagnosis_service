@@ -6,5 +6,5 @@ import lombok.Data;
 
 @Data
 public class WaplScoreProbListDTO {
-	public List<WaplScoreProbDTO> probList;
+	private List<WaplScoreProbDTO> probList;
 }

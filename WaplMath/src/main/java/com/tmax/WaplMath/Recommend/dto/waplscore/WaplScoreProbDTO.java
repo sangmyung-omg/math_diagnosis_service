@@ -8,6 +8,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class WaplScoreProbDTO {
-	public List<Integer> ukList;
-	public String type;
+	private List<Integer> ukList;
+	private String type;
 }
