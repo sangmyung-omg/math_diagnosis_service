@@ -48,6 +48,8 @@ dependencies {
 	compile 'org.springframework.kafka:spring-kafka'
 
 	implementation 'com.auth0:java-jwt:3.18.1'
+
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 test {
