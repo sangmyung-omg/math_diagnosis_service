@@ -188,7 +188,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
         //Get duration to target date
         Duration timeDiff = Duration.between(LocalDateTime.now(), dueDate);
-        long diffDay = timeDiff.toDays();
+        long diffDay = Math.max(1, timeDiff.toDays()); // bound diffday to at least 1 day
 
         //target exam info
         String examType = userInfo.getExamType() != null ? userInfo.getExamType() : "final"; 

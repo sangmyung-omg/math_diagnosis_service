@@ -14,12 +14,14 @@ import java.util.Optional;
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.event.statistics.StatisticsEventPublisher;
+import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
 // import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
 // import com.tmax.WaplMath.AnalysisReport.model.knowledge.UserKnowledgeJoined;
 // import com.tmax.WaplMath.AnalysisReport.model.problem.ProblemCurriculum;
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.curriculum.UserCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.legacy.problem.ProblemCurriculumRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.problem.ProblemRepo;
+import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticUserRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
@@ -32,6 +34,8 @@ import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
+import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
+import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceV1;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 
@@ -207,6 +211,23 @@ public class TestController {
     @GetMapping("/tokentest")
     ResponseEntity<Object> genWaplScore(@RequestHeader("token") String token) {
         JWTUtil.getUserID(token);
+
+        return new ResponseEntity<>("done", HttpStatus.OK);
+    }
+
+    @Autowired
+    StatisticUserRepo statUserRepo;
+    
+    @Autowired
+    MasteryEventPublisher masteryEventPublisher;
+
+    @GetMapping("/forceregenuserstat")
+    ResponseEntity<Object> forceRegenUserStats(@RequestParam("userID") String userID, @RequestParam("debugkey") String debugkey) {
+        if(debugkey.equals("debugtest22")){
+            // statUserRepo.deleteAllOfUser(userID);
+            publisher.publishWaplScoreGenEvent(userID, true);
+            masteryEventPublisher.publishChangeEvent(userID);
+        }
 
         return new ResponseEntity<>("done", HttpStatus.OK);
     }
