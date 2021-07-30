@@ -31,6 +31,8 @@ public interface UserStatisticsServiceBase {
     public static final String STAT_EXAMSCOPE_SCORE = "examscope_score";
     public static final String STAT_EXAMSCOPE_PERCENTILE_LUT = "examscope_percentile_lut";
 
+    public static final String STAT_EXAMSCOPE_SCORE_HISTORY = "examscope_score_hist";
+
     public static final String STAT_CORRECT_RATE = "correct_rate";
     public static final String STAT_SOLVING_SPEED_SATISFY_RATE = "solve_speed_satisfy_rate";
     public static final String STAT_RATE_PROBLEM_COUNT = "rate_problem_count";

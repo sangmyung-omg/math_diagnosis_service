@@ -169,6 +169,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         return output;        
     }
 
+    
     /**
      * Generate new waplscore
      * @param userID userID of user to calc wapl score
@@ -176,6 +177,9 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
      * @return
      */
     public WaplScoreData generateWaplScore(String userID, boolean saveToDB){
+        return generateWaplScore(userID, null, saveToDB);
+    }
+    public WaplScoreData generateWaplScore(String userID, Float examScopeScore, boolean saveToDB){
         //Get the target data from the appripriate DB
         User userInfo = userInfoRepo.getUserInfoByUUID(userID);
 
@@ -229,19 +233,23 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         //Save the wapl score to stats
         Float waplScore = score/count;
 
-        //Fix waplScore if it is lower than examScore
-        Statistics examScoreStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_EXAMSCOPE_SCORE);
-        if(examScoreStat != null){
-            Float examScore = examScoreStat.getAsFloat();
-            if(waplScore < examScore){
-                log.warn("Wapl Score calibration for {}", userID);
-                // waplScore = (float)Math.min(1.0, examScore * 1.01);
-                
-                float diff = 100.0f - examScore;
-                waplScore = examScore + (float)Math.random()*diff;
-
-                log.warn("Calibrated to {} for {}", waplScore, userID);
+        //Exam score exception test
+        Float examScore = null;
+        if(examScopeScore == null){
+            //Fix waplScore if it is lower than examScore
+            Statistics examScoreStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_EXAMSCOPE_SCORE);
+            if(examScoreStat != null){
+                examScore = examScoreStat.getAsFloat();
             }
+        }
+        else
+            examScore = examScopeScore;
+
+        if(waplScore < examScore){
+            log.warn("Wapl Score calibration for {}", userID);
+            float diff = 100.0f - examScore;
+            waplScore = examScore + (float)Math.random()*diff;
+            log.warn("Calibrated to {} for {}", waplScore, userID);
         }
 
         //Convert mastery map to Json with Gson

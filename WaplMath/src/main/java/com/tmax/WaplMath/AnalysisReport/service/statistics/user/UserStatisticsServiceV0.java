@@ -3,8 +3,8 @@ package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +23,7 @@ import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticUserRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics.Type;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreData;
@@ -120,7 +121,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         //Create set for DB update
-        Set<StatsAnalyticsUser> updateSet = IntStream.range(0, 5)
+        Set<StatsAnalyticsUser> updateSet = IntStream.range(0, 4)
                                                     .parallel()
                                                     .mapToObj(idx -> parallelRunner(userID, now, idx))
                                                     .flatMap(set -> set.stream())
@@ -159,9 +160,6 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             case 3:
                 output = getLRSStatistics(userID, ts);
                 break;
-            case 4:
-                output = getWaplScoreStats(userID, ts);
-                break;
             default:
                 output = new HashSet<>();
         }
@@ -169,7 +167,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         return output;
     }
 
-    private Set<StatsAnalyticsUser> getWaplScoreStats(String userID, Timestamp ts){
+    private Set<StatsAnalyticsUser> getWaplScoreStats(String userID, Float examScopeScore, Timestamp ts){
         //Check if wapl score and mastery exists
         if(hasUserStatistics(userID, STAT_WAPL_SCORE) && hasUserStatistics(userID, STAT_WAPL_SCORE_MASTERY)){
             log.debug("Using exising wapl stats. [{}]", userID);
@@ -181,7 +179,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         //Create set for DB update
         Set<StatsAnalyticsUser> updateSet = new HashSet<>();
 
-        WaplScoreData data = waplScoreSvc.generateWaplScore(userID, false);
+        WaplScoreData data = waplScoreSvc.generateWaplScore(userID, examScopeScore, false);
 
         //Create stat statements and add to set
         //waplscore
@@ -283,9 +281,43 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                 .map(UserKnowledge::getUkMastery)
                                                 .collect(Collectors.toList());
 
+        Float examScopeScore = ukStatSvc.getMean(masteryList);
+
+        if(examScopeScore.isNaN()){
+            log.error("Cannot create examscope score for {}. Score is NaN", userID);
+            return output;
+        }
+
         output.add(statsToAnalyticsUser(userID, 
-                                            new Statistics(STAT_EXAMSCOPE_SCORE, Statistics.Type.FLOAT, ukStatSvc.getMean(masteryList).toString()), 
+                                            new Statistics(STAT_EXAMSCOPE_SCORE, Statistics.Type.FLOAT, examScopeScore.toString()), 
                                             ts));
+
+
+        //Update score history (DEBUG use)
+        //Get if exist
+        List<Float> historyList = null;
+        Statistics historyStat = getUserStatistics(userID, STAT_EXAMSCOPE_SCORE_HISTORY);
+        if(historyStat != null){
+            try { historyList = historyStat.getAsFloatList();}
+            catch(Throwable e){log.error("Exisiting examscope history for {} is invalid. generating new list.", userID);}
+        }
+
+        if(historyList == null)
+            historyList = new ArrayList<>();
+        
+        //Append score if last result is not same as before or empty
+        if( historyList.size() == 0 ||  
+           (historyList.size() > 0 && historyList.get(historyList.size() - 1) != examScopeScore) 
+           ){
+            historyList.add(examScopeScore);
+            output.add(statsToAnalyticsUser(userID, 
+                                            Statistics.builder().name(STAT_EXAMSCOPE_SCORE_HISTORY).type(Type.FLOAT_LIST).data(historyList.toString()).build(),
+                                            ts));
+        }
+
+
+        //Run waplscore get here (examscore dependent)
+        output.addAll(getWaplScoreStats(userID, examScopeScore, ts));
 
         return output;
     }
@@ -296,21 +328,6 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
         //Get all user list
         List<User> userList = (List<User>)userRepository.findAll();
-
-        // Set<StatsAnalyticsUser> updateSet = new HashSet<>();
-        // for(User user : userList){
-        //     log.info(String.format("Updating statistics for user [%s] (%s)",user.getUserUuid(), user.getName()));
-
-        //     //Get user update set
-        //     Set<StatsAnalyticsUser> userUpdateSet = updateSpecificUser(user.getUserUuid(), false);
-
-        //     if(userUpdateSet == null){
-        //         log.error("Cannot create update set for user [{}] ({})", user.getUserUuid(), user.getName());
-        //         continue;
-        //     }
-
-        //     updateSet.addAll(userUpdateSet);
-        // }
 
         Set<StatsAnalyticsUser> updateSet = 
                     userList.stream()
