@@ -41,7 +41,7 @@ public class UpdatedResultControllerV1 {
         String userID = JWTUtil.getUserID(token);
 
         //Step 1: update mastery => throw in mastery svc
-        masterySvc.updateMasteryFromLRS(token);
+        masterySvc.updateMasteryWithLRS(userID);
 
         //Step 2:
         DiagnosisResultV1DTO output = null;

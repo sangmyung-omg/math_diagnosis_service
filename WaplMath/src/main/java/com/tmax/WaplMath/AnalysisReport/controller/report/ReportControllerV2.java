@@ -44,7 +44,7 @@ public class ReportControllerV2 {
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));
 
         //Step 1: update mastery -> if error, the masterySvc will throw it itself
-        masterySvc.updateMasteryFromLRS(token);
+        masterySvc.updateMasteryWithLRS(userID);
 
         //Step 2:
         ReportDataDTO output = reportSvc.getReport(userID, excludeSet);

@@ -31,7 +31,9 @@ import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.redis.RedisStringData;
+import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
+import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
@@ -50,12 +52,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * Test REST Controller for unit testing
  * @author Jonghyun Seong
  */
 @RestController
+@Slf4j
 @RequestMapping(path=ARConstants.apiPrefix + "/v0")
 public class TestController {
     @Autowired
@@ -225,6 +230,36 @@ public class TestController {
             // statUserRepo.deleteAllOfUser(userID);
             publisher.publishWaplScoreGenEvent(userID, true);
             masteryEventPublisher.publishChangeEvent(userID);
+        }
+
+        return new ResponseEntity<>("done", HttpStatus.OK);
+    }
+
+    @Autowired
+    UserRepo userRepo;
+
+    @Autowired
+    MasteryServiceV1 masterySvc;
+
+    @GetMapping("/forceregenusermastery")
+    ResponseEntity<Object> forceRegenAllMastery(@RequestParam("debugkey") String debugkey) {
+        if(debugkey.equals("debugtest2233")){
+            List<User> allUserList = (List<User>)userRepo.findAll();
+
+            //For all user
+            int idx = 1;
+            for(User user: allUserList){
+                String userID = user.getUserUuid();
+                log.info("Force mastery update for {} {}/{}", userID, idx, allUserList.size());
+
+                try{
+                    masterySvc.updateMasteryWithLRS(userID);
+                }
+                catch(Throwable e){
+                    log.warn("Unable to update mastery for {}", userID);
+                }
+                idx++;
+            }            
         }
 
         return new ResponseEntity<>("done", HttpStatus.OK);

@@ -210,22 +210,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
     @Override
     public ResultMessageDTO updateMasteryFromLRS(String token) {
         String userID = JWTUtil.getUserID(token);
-
-        //Check userValidity
-        Optional<User> user = userRepo.findById(userID);
-        if(!user.isPresent()){
-            log.error("User invalid {}. Cannot update mastery for unregistered user" , userID);
-            throw new UserNotFoundException(userID);
-        }
-        
-        
-        log.debug("update mastery from LRS {}", userID);
-        // ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);    
-        
-        //FIXME: duplicate filter temp.
-        ProblemSolveListDTO result = getLrsWithoutDuplicate(userID);
-
-        return this.updateMastery(userID, result.getProbIdList(), result.getCorrectList());
+        return updateMasteryWithLRS(userID);
     }
 
     /**
@@ -312,7 +297,20 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     @Override
     public ResultMessageDTO updateMasteryWithLRS(String userID) {
-        //Create token from userID
-        return null;
+        //Check userValidity
+        Optional<User> user = userRepo.findById(userID);
+        if(!user.isPresent()){
+            log.error("User invalid {}. Cannot update mastery for unregistered user" , userID);
+            throw new UserNotFoundException(userID);
+        }
+        
+        
+        log.debug("update mastery from LRS {}", userID);
+        // ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);    
+        
+        //FIXME: duplicate filter temp.
+        ProblemSolveListDTO result = getLrsWithoutDuplicate(userID);
+
+        return this.updateMastery(userID, result.getProbIdList(), result.getCorrectList());
     }
 }
