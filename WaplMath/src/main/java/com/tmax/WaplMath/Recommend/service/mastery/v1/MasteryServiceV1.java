@@ -74,12 +74,13 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
 
     //Scaler for uk mastery
-    private static final float SCALE_PARAM = 0.65079f;
-  private static final float BIAS_PARAM = 0.4f;
-    private static final float SCALE_THRESHOLD = 0.85f;
+    // private static final float SCALE_PARAM = 0.65079f;
+    // private static final float BIAS_PARAM = 0.4f;
+    // private static final float SCALE_THRESHOLD = 0.85f;
     
     private float correctUkMastery(float currentMastery){
-        return currentMastery >= SCALE_THRESHOLD ? 1.0f : (float)( SCALE_PARAM * Math.sqrt(currentMastery) + BIAS_PARAM);
+        // return currentMastery >= SCALE_THRESHOLD ? 1.0f : (float)( SCALE_PARAM * Math.sqrt(currentMastery) + BIAS_PARAM);
+        return currentMastery;
     }
 
 
