@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -85,8 +88,8 @@ public class LRSAPIManager {
       this.value = value;
     }
 
-    public static List<String> getAllDiagnosis(){
-      return null;
+    public static List<String> getAllSourceTypes(){
+      return Stream.of(SourceType.values()).map(s -> s.getValue()).collect(Collectors.toList());
     }
   }
 
@@ -100,6 +103,10 @@ public class LRSAPIManager {
 
     private ActionType(String value){
       this.value = value;
+    }
+
+    public static List<String> getAllActionTypes(){
+      return Stream.of(ActionType.values()).map(s -> s.getValue()).collect(Collectors.toList());
     }
   }
 

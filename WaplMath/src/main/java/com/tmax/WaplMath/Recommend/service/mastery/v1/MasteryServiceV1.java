@@ -22,6 +22,7 @@ import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
+import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
@@ -219,9 +220,99 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         
         
         log.debug("update mastery from LRS {}", userID);
-        ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);        
+        // ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);    
+        
+        //FIXME: duplicate filter temp.
+        ProblemSolveListDTO result = getLrsWithoutDuplicate(userID);
 
         return this.updateMastery(userID, result.getProbIdList(), result.getCorrectList());
     }
 
+    /**
+     * Added to get lrs and filter duplicates
+     * @param userID
+     * @since 2021-08-02
+     * @author jonghyun seong
+     * @return
+     */
+    private ProblemSolveListDTO getLrsWithoutDuplicate(String userID){
+        List<String> actionTypeList = LRSAPIManager.ActionType.getAllActionTypes();
+        List<String> sourceTypeList = LRSAPIManager.SourceType.getAllSourceTypes();
+
+        List<LRSStatementResultDTO> resultList =  lrsapiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
+
+        //Result probIdList + correctList
+        List<String> probIdList = new ArrayList<>();
+        List<String> correctList = new ArrayList<>();
+
+        //Set to save identity(duplicate id set)
+        Set<String> identitySet = new HashSet<>();
+        for(LRSStatementResultDTO lrsStatement : resultList){
+            //build id list
+            String identity = buildIdentityString(lrsStatement);
+
+            //If in identity (duplicate continue and skip)
+            if(identitySet.contains(identity))
+                continue;
+
+            //Add if not exist
+            identitySet.add(identity);
+
+            // prob id and correct for this loop
+            String probId = null;
+            String correct = null;
+
+            if(lrsStatement.getSourceId() == null){
+                log.warn("Invalid source ID from LRS {}. user {}. skipping", lrsStatement.getSourceId(), userID);
+                continue;
+            }
+
+            //Set probid = source id
+            probId = lrsStatement.getSourceId();
+
+            //Check correct . Priority. isCorrect value  -> userAnswer Pass
+            //Check is correct
+            if(lrsStatement.getIsCorrect() == null){
+                log.warn("Invalid isCorrect value from LRS {}, user {}, skipping", lrsStatement.getIsCorrect(), userID);
+                continue;
+                
+            }
+            
+            correct = lrsStatement.getIsCorrect() > 0 ? "true" : "false";
+
+            //Check pass. pass is treated as false even if isCorrect > 0
+            if(lrsStatement.getUserAnswer() != null && lrsStatement.getUserAnswer().equals("PASS")){
+                correct = "false";
+            }
+
+
+            if(correct == null || probId == null){
+                log.warn("One of correct, probId is invalid. skipping entry. {} {} . user {}", correct, probId, userID);
+                continue;
+            }
+
+
+            //Add to list
+            probIdList.add(probId);
+            correctList.add(correct);
+        }
+
+
+        return ProblemSolveListDTO.builder().probIdList(probIdList).correctList(correctList).build();
+    }
+
+    private String buildIdentityString(LRSStatementResultDTO input){
+        return String.format("%s/%s/%s/%s/%s/%s",   input.getUserId(),
+                                                    input.getActionType(), 
+                                                    input.getSourceType(), 
+                                                    input.getSourceId(), 
+                                                    input.getTimestamp(), 
+                                                    input.getPlatform());
+    }
+
+    @Override
+    public ResultMessageDTO updateMasteryWithLRS(String userID) {
+        //Create token from userID
+        return null;
+    }
 }
