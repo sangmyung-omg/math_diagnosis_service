@@ -231,25 +231,25 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
 
 
         //Save the wapl score to stats
-        Float waplScore = score/count;
+        Double waplScore = (double)score/count;
 
         //Exam score exception test
-        Float examScore = null;
+        Double examScore = null;
         if(examScopeScore == null){
             //Fix waplScore if it is lower than examScore
             Statistics examScoreStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_EXAMSCOPE_SCORE);
             if(examScoreStat != null){
-                examScore = examScoreStat.getAsFloat();
+                examScore = (double)examScoreStat.getAsFloat();
             }
         }
         else
-            examScore = examScopeScore;
+            examScore = (double)examScopeScore;
 
         if(waplScore < examScore){
             log.warn("Wapl Score calibration for {}", userID);
-            float diff = 100.0f - examScore;
-            waplScore = examScore + (float)Math.random()*diff;
-            log.warn("Calibrated to {} for {}", waplScore, userID);
+            double diff = 1.0f - examScore;
+            waplScore = Math.min(1.0,examScore + Math.random()*diff);
+            log.warn("Calibrated with exam :{} wapl: {} for {}", examScore, waplScore, userID);
         }
 
         //Convert mastery map to Json with Gson
@@ -263,7 +263,7 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         //Log
         log.info("Save to wapl score to table for user: " + userID);
 
-        return new WaplScoreData(waplScore,masteryJson);
+        return new WaplScoreData(waplScore.floatValue(),masteryJson);
     }
 
     public WaplScoreData generateWaplScore(String userID){
