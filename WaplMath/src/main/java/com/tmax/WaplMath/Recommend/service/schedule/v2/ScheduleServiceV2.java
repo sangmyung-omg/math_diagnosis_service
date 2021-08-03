@@ -45,7 +45,6 @@ import lombok.extern.slf4j.Slf4j;
 *                         └───────────────────────────┘
 */
 
-@Slf4j
 @Service("ScheduleServiceV2")
 public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
@@ -60,7 +59,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
   private UserKnowledgeRepo userKnowledgeRepo;
   
 
-  // 21.07.21. Throw exception if mastery not exist
+  // 21.07.21. Throw exception if user mastery not exist
   public void checkUserMasteryExist(String userId) {
 
     if (!userKnowledgeRepo.findExistUserList().contains(userId))      
@@ -68,11 +67,12 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
   }
 
 
+  // type = "normal", "dummy", "exam"
   public ScheduleCardOutputDTO getScheduleCard(String userId, String type){
 
     List<CardDTOV2> cardList = new ArrayList<>();
 
-    // check user mastery exist in USER_KNOWLEDGE
+    // check user mastery exist in USER_KNOWLEDGE TB
     checkUserMasteryExist(userId);
 
     // initialize schedule configurator
@@ -89,8 +89,8 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
     else
       scheduleConfig = scheduleConfigurator.getDummyScheduleConfig();
 
-    // set card generator
-    cardGenerator.initGenerator(userId, 
+    // initialize card generator
+    cardGenerator.initGenerator(userId,
                                 scheduleConfigurator.getSolvedProbIdSet(), 
                                 scheduleConfigurator.getExamSubSectionIdSet());
     

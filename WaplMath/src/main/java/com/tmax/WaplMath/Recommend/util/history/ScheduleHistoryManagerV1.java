@@ -42,6 +42,7 @@ public class ScheduleHistoryManagerV1 {
   LRSAPIManager lrsAPIManager;
 
 
+  // parse numeric problem id
   public Integer parseSourceId(String sourceId){
     Integer output;
 
@@ -58,6 +59,7 @@ public class ScheduleHistoryManagerV1 {
   }
 
   
+  // 이미 푼 문제 Id set 리턴
   public Set<Integer> getSolvedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList){
 
     GetStatementInfoDTO LRSinput = GetStatementInfoDTO.builder()
@@ -79,6 +81,7 @@ public class ScheduleHistoryManagerV1 {
   }
 
 
+  // 날마다 푼 문제 Id set 리턴
   public Map<String, Set<Integer>> getSolvedProbIdSetByDay(String userId, String today, String dateFrom, 
                                                            List<String> sourceTypeList) {
 
@@ -110,6 +113,7 @@ public class ScheduleHistoryManagerV1 {
   }
 
 
+  // 가장 최근에 푼 보충 카드 날짜 리턴 (yyyy-MM-dd)
   public String getRecentSuppleCardDate(String userId, String today) {
 
     GetStatementInfoDTO LRSinput = GetStatementInfoDTO.builder()
@@ -127,6 +131,7 @@ public class ScheduleHistoryManagerV1 {
   }
 
 
+  // 특정 카드로 푼 유형 리스트 리턴
   public List<Integer> getCompletedTypeIdList(String userId, String today, String dateFrom, String sourceType) {
 
     Set<Integer> probIdSet = getSolvedProbIdSet(userId, today, dateFrom, new ArrayList<>(Arrays.asList(sourceType)));
@@ -136,6 +141,7 @@ public class ScheduleHistoryManagerV1 {
   }
 
 
+  // 특정 카드로 푼 중단원 Id set 리턴
   public Set<String> getCompletedSectionIdList(String userId, String today, String sourceType){
 
     Set<Integer> probIdSet = getSolvedProbIdSet(userId, today, "", new ArrayList<>(Arrays.asList(sourceType)));
@@ -145,7 +151,7 @@ public class ScheduleHistoryManagerV1 {
   }
 
 
-  //21.07.01 card generator v2
+  // (21.07.01 card generator v2) 가장 최근에 푼 보충 카드 이후에 푼 유형 카드들의 유형 리스트 리턴
   public List<Integer> getCompletedTypeIdListAfterSuppleCard(String userId, String today) {
 
     String lastSuppleDate = getRecentSuppleCardDate(userId, today);
@@ -156,6 +162,7 @@ public class ScheduleHistoryManagerV1 {
   }
   
 
+  // 중단원 별로 푼 카드 개수 리턴
   public Map<String, Integer> getCompletedSectionNum(String userId, String today, String sourceType) {
 
     Map<String, Set<Integer>> daySolvedProbIdSet = 
