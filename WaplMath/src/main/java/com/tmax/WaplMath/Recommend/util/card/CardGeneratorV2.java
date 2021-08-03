@@ -63,10 +63,10 @@ public class CardGeneratorV2 extends CardConstants {
   @Qualifier("RE-UserKnowledgeRepo")
   private UserKnowledgeRepo userKnowledgeRepo;
 
-
+  // user info vars
   private String userId;
-  private Set<Integer> solvedProbIdSet;
-  private Set<String> examSubSectionIdSet;
+  private Set<Integer> solvedProbIdSet; // 이미 푼 문제 Id set
+  private Set<String> examSubSectionIdSet; // 시험 범위 내 소단원 Id set
 
 
   public enum CurrType {
@@ -86,7 +86,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // return problem exist level
+  // orderedDiffList 순서대로, 문제가 있으면 그 난이도를 리턴
   public String getExistLevel(List<String> existDiffStrList, List<Difficulty> orderedDiffList){
     for (Difficulty diff: orderedDiffList){			
       if (existDiffStrList.contains(diff.name()))
@@ -96,9 +96,10 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // high=0, middle=1, low=2
+  // 첫 문제 난이도 결정 (existDiffStrList = 문제가 존재하는 난이도 리스트)
   public String getFirstProbLevel(Float mastery, List<String> existDiffStrList) {
     if (mastery >= MASTERY_HIGH_THRESHOLD) {
+      // high-middle-low
       return getExistLevel(existDiffStrList, Difficulty.getDiffListByOrder(new Integer[] {0,1,2}));
 
     } else if (mastery >= MASTERY_LOW_THRESHOLD) {
@@ -106,19 +107,21 @@ public class CardGeneratorV2 extends CardConstants {
         Float differenceToHigh = MASTERY_HIGH_THRESHOLD - mastery;
 
         if (differenceToLow < differenceToHigh)
-          return getExistLevel(existDiffStrList,  Difficulty.getDiffListByOrder(new Integer[] {1,2,0}));
+          // middle-low-high
+          return getExistLevel(existDiffStrList,  Difficulty.getDiffListByOrder(new Integer[] {1,2,0})); 
 
         else
+          // middle-high-low
           return getExistLevel(existDiffStrList, Difficulty.getDiffListByOrder(new Integer[] {1,0,2}));
 
-    } else {			
+    } else {
+      // low-middle-high
       return getExistLevel(existDiffStrList, Difficulty.getDiffListByOrder(new Integer[] {2,1,0}));
-
     }
   }
 
 
-  // 문제 난이도 별 문제 Id 모아놓는 모듈.
+  // DiffProbListDTO (문제 난이도 별 문제 객체 set DTO) 생성/출력 및 리턴
   public DiffProbListDTO generateDiffProbList(List<Problem> probList) {
     DiffProbListDTO diffProbList = new DiffProbListDTO();
     for (Problem prob : probList) {	diffProbList.addDiffProb(prob, Difficulty.valueOf(prob.getDifficulty())); }
@@ -128,6 +131,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
+  // DiffProbListDTO 출력
   public void printDiffProbList(DiffProbListDTO diffProbList) {
     if (PRINT_PROB_INFO) {
       for (Difficulty diff : Difficulty.values()) {
@@ -139,46 +143,46 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 문제 리스트를 최대 특정 크기만큼 자름
+  // 문제 리스트를 최대 크기만큼 slice
   public List<Problem> sliceProbList(List<Problem> probList, Integer MAX_PROBLEM_NUM) {
     return probList.subList(0, Math.min(MAX_PROBLEM_NUM, probList.size()));
   }
 
 
-  // Problem 객체 리스트에서 Integer 리스트 추출
+  // Problem 객체 리스트에서 probId integer 리스트 추출
   public List<Integer> getIdListFromProbList(List<Problem> probList) {
     return probList.stream().map(prob -> prob.getProbId()).collect(Collectors.toList());
   }
 
 
-  // 문제 풀이 예상 시간 측정
+  // 문제 set에 대해, 평균 풀이 예상 시간 측정
   public Integer getSumEstimatedTime(List<Problem> probList) {
     Integer getSumEstimatedTime = 0;
 
     for (Problem prob : probList) {
       Float probDBTime = prob.getTimeRecommendation();
-      Integer probTime = (probDBTime == null || probDBTime == 0.0f) ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(probDBTime);
+      Integer probTime = (probDBTime == null || probDBTime == 0.0f) 
+                       ? AVERAGE_PROB_ESTIMATED_TIME : Math.round(probDBTime);
 
       getSumEstimatedTime += probTime;
     }
-
     return getSumEstimatedTime;
   }
 
 
-  // 카드 안에 난이도 별로 모든 문제 담기
+  // 카드 안에 난이도 별로 모든 문제 담기 (adaptive 문제 출제)
   public void addAllProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROBLEM_NUM, 
                                    Integer MAX_PROBLEM_NUM) {
 
     List<ProblemSetListDTO> problemSetList = card.getProbIdSetList();
     Integer estimatedTime = card.getEstimatedTime();
 
-    // 최대 크기로 slice
+    // 최대 문제 수로 slice
     List<Problem> highProbList = sliceProbList(diffProbList.getHighProbList(), MAX_PROBLEM_NUM);
     List<Problem> middleProbList = sliceProbList(diffProbList.getMiddleProbList(), MAX_PROBLEM_NUM);
     List<Problem> lowProbList = sliceProbList(diffProbList.getLowProbList(), MAX_PROBLEM_NUM);
 
-    // Add
+    // Add problems
     problemSetList.add(ProblemSetListDTO.builder()
                                         .high(getIdListFromProbList(highProbList))
                                         .middle(getIdListFromProbList(middleProbList))
@@ -199,7 +203,8 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 카드 안에 난이도 확정 문제 비율 맞춰 담기
+  // 카드 안에 난이도 확정 & 문제 비율 맞춰 담기 (Adaptive 아닌 경우)
+  // probDiffRatio = 현재까지 담은 [상 문제수, 중 문제수, 하 문제수]
   public void addRatioProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROB_NUM,
                                      Integer MAX_PROB_NUM, List<Integer> probDiffRatio) {
 
@@ -211,14 +216,14 @@ public class CardGeneratorV2 extends CardConstants {
                                                         .max(MAX_PROB_NUM)
                                                         .build();
 
-    // 긴 순서 난이도 리턴. ex) ["상", "하", "중"]
     Integer probIdx = 0;
+    // 문제가 많은 순서의 난이도 부터 반복 ex) ["상", "하", "중"]
     for (Difficulty diff : diffProbList.getSizeOrderedDiffList()) {
 
       List<Problem> probList = diffProbList.getDiffProbList(diff);
 
       Integer diffIdx = diff.ordinal();
-      Integer DIFF_MAX_PROB = diff.getProbNums();
+      Integer DIFF_MAX_PROB = diff.getProbNums(); // 미리 정해진, 해당 난이도 문제 개수
 
       Integer currentProbNum = probDiffRatio.get(diffIdx);			
       if (currentProbNum < DIFF_MAX_PROB) {
@@ -227,6 +232,7 @@ public class CardGeneratorV2 extends CardConstants {
           if (PRINT_PROB_INFO)
             log.debug("\tAdd probId={} ({})", probList.get(i).getProbId(), diff.getDiffEng());
 
+          // Add problems
           probSetListDTO.addDiffProb(probList.get(i).getProbId(), diff);
 
           Float probDBTime = probList.get(i).getTimeRecommendation();
@@ -259,6 +265,7 @@ public class CardGeneratorV2 extends CardConstants {
             if (PRINT_PROB_INFO)	
               log.debug("\tAdd probId={} ({})", prob.getProbId(), diff.getDiffEng());
 
+            // Add problems
             probSetListDTO.addDiffProb(prob.getProbId(), diff);
 
             Float probDBTime = prob.getTimeRecommendation();
@@ -285,7 +292,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 빈출 유형 수 고려하여 문제 추출 모듈
+  // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 빈출 유형 수 고려하여 문제 추출
   public void addCurrProblemWithFrequent(CardDTOV2 card, CurrType superCurr, Integer probNum, boolean isAdaptive,
                                          List<Integer> probDiffRatio) {
 
@@ -293,6 +300,7 @@ public class CardGeneratorV2 extends CardConstants {
     Map<String, Integer> currentCurrProbNumMap = new HashMap<>();
     Map<String, Integer> totalCurrProbNumMap = new HashMap<>();
 
+    // get currId List ordered by count(type, frequent=true)
     switch (superCurr.name()) {
       case "section":
         freqOrderedCurrIdList = problemTypeRepo.findSubSectionIdListInSectionOrderByFreq(superCurr.getCurrId());
@@ -322,36 +330,39 @@ public class CardGeneratorV2 extends CardConstants {
     while (probCnt != probNum) {
       for (String currId : freqOrderedCurrIdList) {
 
+        // currId에 현재 할당된 문제 수
         Integer currProbNum = currentCurrProbNumMap.containsKey(currId) 
                             ? currentCurrProbNumMap.get(currId) : 0;
 
-        // currId 내 모든 문제 수
+        // currId 내 제공 가능한 모든 문제 수
         Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId) 
                                  ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet)
                                  : totalCurrProbNumMap.get(currId);
 
         totalCurrProbNumMap.put(currId, totalCurrProbNum);
 
-        // 한 문제 더 들어갈 문제가 있다
+        // 포함시킬 문제가 더 있으면 문제 수 + 1
         if (currProbNum < totalCurrProbNum) {
           currentCurrProbNumMap.put(currId, currProbNum + 1);
           probCnt += 1;
-        } else {
+        } else { // 문제가 없는 커리큘럼
           noProbCurrIdSet.add(currId);
         }
 
         if (probCnt == probNum)
           break;
       }
+
+      // break if all currId has no problems
       if (noProbCurrIdSet.size() == freqOrderedCurrIdList.size())
         break;
     }
 
-    // 커리큘럼 순서대로 카드 내 단원 문제들 배치
     CurrMasteryDTO currMastery;
     CurrType curr;
-    JsonObject cardDetailJson = new JsonObject();
+    JsonObject cardDetailJson = new JsonObject(); // 카드 상세 정보
 
+    // 커리큘럼 순서대로 카드 내 currId 문제들 배치
     for (String currId : curriculumRepo.sortByCurrSeq(currentCurrProbNumMap.keySet())) {
       Integer currProbNum = currentCurrProbNumMap.get(currId);
 
@@ -402,16 +413,16 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 이해도 고려하여 문제 추출 모듈
+  // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 이해도 고려하여 문제 추출
   public void addCurrProblemWithMastery(CardDTOV2 card, CurrType superCurr, Integer probNum) {
 
-    // superCurr 내의 모든 curr 불러오기
     List<CurrMasteryDTO> currMasteryList = new ArrayList<>();
     Map<String, Integer> currentCurrProbNumMap = new HashMap<>();
     Map<String, Integer> totalCurrProbNumMap = new HashMap<>();
     
     Map<String, Integer> currTypeNumMap = new HashMap<>();
 
+    // get currId List ordered by mastery
     switch (superCurr.name()) {
       case "section":
         currMasteryList = 
@@ -445,7 +456,8 @@ public class CardGeneratorV2 extends CardConstants {
     Set<String> fullCurrIdSet = new HashSet<>();
     JsonObject cardDetailJson = new JsonObject();
 
-    Integer probPerType = 1; // 유형마다 포함되는 최대 문제수 --> 최대한 많은 범위 커버를 위함
+    // define prob num for each currId
+    Integer probPerType = 1; // 유형마다 포함되는 최대 문제수, 1부터 시작하여 증가시킴 --> 최대한 넓은 범위 커버를 위함
     while (probCnt != probNum) {
       for (CurrMasteryDTO currMastery : currMasteryList) {
 
@@ -459,6 +471,7 @@ public class CardGeneratorV2 extends CardConstants {
         Integer currProbNum = currentCurrProbNumMap.containsKey(currId) 
                             ? currentCurrProbNumMap.get(currId) : 0;
 
+        // superCurr=section 이면, typeNum이 유효함
         if (superCurr.name().equals("section")) {
           typeNum = !currTypeNumMap.containsKey(currId)
                     ? problemTypeRepo.findTypeCntInSubSection(currId)
@@ -471,14 +484,14 @@ public class CardGeneratorV2 extends CardConstants {
         }
     
         if (currProbNum <= typeNum * probPerType) {
-          // currId 내 가능한 문제 수
+          // currId 내 제공 가능한 모든 문제 수
           Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId)
                                    ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet)
                                    : totalCurrProbNumMap.get(currId);
                                    
           totalCurrProbNumMap.put(currId, totalCurrProbNum);
 
-          // 한 문제 더 들어갈 문제가 있다
+          // 포함시킬 문제가 더 있으면 문제 수 + 1
           if (currProbNum < totalCurrProbNum) {
             currentCurrProbNumMap.put(currId, currProbNum + 1);
             cardDetailJson.addProperty(currName, mastery * 100.0f);
@@ -487,14 +500,14 @@ public class CardGeneratorV2 extends CardConstants {
           else // 문제가 없는 커리큘럼
             noProbCurrIdSet.add(currId);
         }        
-        else // 유형마다 포함되는 최대 문제수만큼 꽉차있는 소단원들
+        else // 유형마다 포함되는 최대 문제수 만큼 꽉차있는 소단원들
           fullCurrIdSet.add(currId);
 
         if (probCnt == probNum)
           break;
       }
 
-      // 더 이상 아무 문제도 포함 못시킴
+      // break if all currId has no problems
       if (currMasteryList.size() == noProbCurrIdSet.size())
         break;
 
@@ -503,7 +516,7 @@ public class CardGeneratorV2 extends CardConstants {
         probPerType += 1;
     }
     
-    // 커리큘럼 순서대로 카드 내 단원 문제들 배치
+    // 커리큘럼 순서대로 카드 내 currId 문제들 배치
     CurrType curr;
     for (String currId : curriculumRepo.sortByCurrSeq(currentCurrProbNumMap.keySet())) {
       Integer currProbNum = currentCurrProbNumMap.get(currId);
@@ -546,7 +559,7 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
 
-  // 소단원 내 문제 출제 모듈. 빈출 유형인 것들 중에 출제
+  // 소단원 내 문제 출제 모듈. 빈출 유형인 것들 중에서 출제
   public void addSubSectionProblemWithFrequent(CardDTOV2 card, String subSectionId, Integer probNum, boolean isAdaptive,
                                                List<Integer> probDiffRatio) {
 
@@ -560,22 +573,23 @@ public class CardGeneratorV2 extends CardConstants {
     while (probCnt != probNum) {
       for (Integer typeId : freqTypeIdList) {
 
+        // typeId 에 현재 할당된 문제 수
         Integer typeProbNum = currentTypeProbNumMap.containsKey(typeId)
                             ? currentTypeProbNumMap.get(typeId) : 0;
 
-        // typeId 내 모든 문제 수
+        // typeId 내 제공 가능한 모든 문제 수
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
                                  ? problemRepo.findProbCntInType(typeId, solvedProbIdSet)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
 
-        // 한 문제 더 들어갈 문제가 있다
+        // 포함시킬 문제가 더 있으면 문제 수 + 1
         if (typeProbNum < totalTypeProbNum) {
           currentTypeProbNumMap.put(typeId, typeProbNum + 1);
           probCnt += 1;
         } 
-        else {
+        else { // 문제가 없는 유형
           noProbTypeIdSet.add(typeId);
         }          
         if (probCnt == probNum)
@@ -586,20 +600,22 @@ public class CardGeneratorV2 extends CardConstants {
     }
 
     // 커리큘럼 순서대로 카드 내 유형 문제들 구성
-
     for (Integer typeId : problemTypeRepo.sortByTypeSeq(currentTypeProbNumMap.keySet())) {
       Integer typeProbNum = currentTypeProbNumMap.get(typeId);
 
       if (PRINT_TYPE_ID)
         log.info("\tType {} : {} problems. ", typeId, typeProbNum);
 
+      // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, solvedProbIdSet));
 
+      // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()){
         Float firstProbMastery = userKnowledgeRepo.findTypeMastery(userId, typeId).getMastery();
         card.setFirstProbLevel(getFirstProbLevel(firstProbMastery, diffProbList.getExistDiffStrList()));
       }
 
+      // Adaptive 여부에 따라 다른 모듈 call
       if (isAdaptive)
         addAllProblemSetList(card, diffProbList, typeProbNum, typeProbNum);
       else
@@ -631,22 +647,23 @@ public class CardGeneratorV2 extends CardConstants {
 
         Integer typeId = typeMastery.getTypeId();
 
+        // typeId 에 현재 할당된 문제 수
         Integer typeProbNum = currentTypeProbNumMap.containsKey(typeId) 
                             ? currentTypeProbNumMap.get(typeId) : 0;
 
-        // typeId 내 모든 문제 수
+        // typeId 내 제공 가능한 모든 문제 수
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
                                  ? problemRepo.findProbCntInType(typeId, solvedProbIdSet)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
         
-        // 한 문제 더 들어갈 문제가 있다
+        // 포함시킬 문제가 더 있으면 문제 수 + 1
         if (totalTypeProbNum > typeProbNum) {
           currentTypeProbNumMap.put(typeId, typeProbNum + 1);
           probCnt += 1;
         } 
-        else
+        else // 문제가 없는 유형
           noProbTypeIdSet.add(typeId);
 
         if (probCnt == probNum)
@@ -656,19 +673,23 @@ public class CardGeneratorV2 extends CardConstants {
         break;
     }
 
+    // 커리큘럼 순서대로 카드 내 유형 문제들 구성
     for (Integer typeId : problemTypeRepo.sortByTypeSeq(currentTypeProbNumMap.keySet())) {
       Integer typeProbNum = currentTypeProbNumMap.get(typeId);
 
       if (PRINT_TYPE_ID)
         log.info("\tType {} : {} problems. ", typeId, typeProbNum);
 
+      // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, solvedProbIdSet));
 
+      // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()) {
         Float firstProbMastery = userKnowledgeRepo.findTypeMastery(userId, typeId).getMastery();
         card.setFirstProbLevel(getFirstProbLevel(firstProbMastery, diffProbList.getExistDiffStrList()));
       }
 
+      // 항상 adaptive --> 모든 문제들을 난이도 별로 구성
       addAllProblemSetList(card, diffProbList, typeProbNum, typeProbNum);
     }
   }
@@ -698,8 +719,9 @@ public class CardGeneratorV2 extends CardConstants {
                                   .cardScore(mastery * 100)
                                   .build();
                                   
-    // 유형 내 문제들 리턴
+    // 유형 내 문제들
     List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
+    // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
     DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 
     addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
@@ -757,6 +779,7 @@ public class CardGeneratorV2 extends CardConstants {
 
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
+      // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
@@ -793,6 +816,7 @@ public class CardGeneratorV2 extends CardConstants {
 
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
+      // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
 
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);

@@ -58,13 +58,12 @@ public class CardConstants {
       this.probNums = probNums;
     }
 
+    // orderList (high=0, middle=1, low=2) 순서 대로 Difficulty 리스트 리턴
     public static List<Difficulty> getDiffListByOrder(Integer[] orderList){
       List<Difficulty> diffList = new ArrayList<>();
       
       for (Integer order: orderList){
-
         for (Difficulty diff: Difficulty.values()){
-
           if (diff.ordinal() == order)
             diffList.add(diff);
         }

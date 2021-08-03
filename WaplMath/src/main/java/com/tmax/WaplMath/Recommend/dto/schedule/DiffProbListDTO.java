@@ -75,6 +75,7 @@ public class DiffProbListDTO {
 		}
 	}
 	
+  // 문제가 있는 난이도 리스트 리턴
 	public List<String> getExistDiffStrList() {
 		List<String> diffList = new ArrayList<>();
 
@@ -86,6 +87,7 @@ public class DiffProbListDTO {
 		return diffList;
 	}
 
+  // 문제가 많은 순서대로 난이도 리턴
 	public List<Difficulty> getSizeOrderedDiffList() {
 
 		List<Integer> idxList = new ArrayList<>(Arrays.asList(0, 1, 2));
