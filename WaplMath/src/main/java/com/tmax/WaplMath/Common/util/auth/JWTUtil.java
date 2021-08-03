@@ -20,10 +20,12 @@ import com.tmax.WaplMath.Common.exception.JWTFieldNotFound;
 import com.tmax.WaplMath.Common.exception.JWTInvalidException;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
 public class JWTUtil {
     private static final String USER_ID_FIELD = "userID";
     private static final String SUB_FIELD = "sub";
@@ -31,9 +33,37 @@ public class JWTUtil {
     private static boolean DEBUG_MODE = true;
 
 
+    private static JWTUtil inst = null;
+
+
+    //Key for hs mode
+    private String hsSharedSecret;
+    private boolean restrictHSAlgo;
+    private RSAPublicKey rsaPublicKey;
+    private ECPublicKey ecPublicKey;
+
+    @Value("${auth.jwt.debugMode}")
+    private boolean debugMode;
+
+    //Constructor for singleton inst to get injection from beans
+    public JWTUtil(@Value("${auth.jwt.hs.secret}") String sharedSecret, 
+                   @Value("${auth.jwt.restrictHS}") boolean restrictHS) {
+        this.hsSharedSecret = sharedSecret;
+        this.restrictHSAlgo = restrictHS;
+
+        if(restrictHS)
+            log.info("Restricting use of HS jwt tokens");
+        else
+            log.info("Using {} for HS*'s shared secret key", sharedSecret);
+
+        JWTUtil.inst = this;
+    }
+
+    public static JWTUtil getInstance(){ return JWTUtil.inst;}
+
+    @Deprecated
     static public String getJWTPayloadField(String token, String fieldName){
         JsonObject jsonObj = null;
-
 
         if(token == null)
             throw new InvalidArgumentException("Token is null");
@@ -64,6 +94,11 @@ public class JWTUtil {
         return jsonObj.get(fieldName).getAsString();
     }
 
+    /**
+     * Token verification process for various types of token
+     * @since 2021-07-28
+     * @author Jonghyun seong
+     */
     static public boolean verifyToken(DecodedJWT jwt) {
         //get algorithm
         String algoString = jwt.getAlgorithm();
@@ -93,10 +128,14 @@ public class JWTUtil {
     }
 
     static private Algorithm getAlgorithm(String algoString){
-        RSAPublicKey rsaPublicKey = null;
-        ECPublicKey ecPublicKey = null;
+        RSAPublicKey rsaPublicKey = inst.rsaPublicKey;
+        ECPublicKey ecPublicKey = inst.ecPublicKey;
+        String secret = inst.hsSharedSecret;
 
-        String secret = "hello";
+
+        if(inst.restrictHSAlgo && algoString.startsWith("HS")){
+            throw new JWTInvalidException("HS algorithms are not allowed. current JWT algorithm is "+ algoString);
+        }
         
 
         switch(algoString){
@@ -141,7 +180,7 @@ public class JWTUtil {
         }
                 
         //If not verified. throw
-        if(!verifyToken(jwt) && doVerify){
+        if(doVerify && !verifyToken(jwt)){
             throw new JWTInvalidException("Token signature cannot be verified. Check token validity.");
         }
 
@@ -159,7 +198,7 @@ public class JWTUtil {
     }
 
     public static String getUserID(String token){
-        if(DEBUG_MODE)
+        if(inst.debugMode)
             return getUserID(token, false);
 
         return getUserID(token, true);

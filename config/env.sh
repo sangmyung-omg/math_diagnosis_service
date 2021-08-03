@@ -23,3 +23,9 @@ sed -i "s&%TRITON_HOST%&${TRITON_HOST}&g" /home/tmax/triton.properties
 
 if [ -z $LRS_HOST ]; then export LRS_HOST="http://192.168.153.132:8080"; fi
 sed -i "s&%LRS_HOST%&${LRS_HOST}&g" /home/tmax/lrs.properties
+
+if [ -z $JWT_DEBUG_MODE ]; then export JWT_DEBUG_MODE="true"; fi
+sed -i "s&%JWT_DEBUG_MODE%&${JWT_DEBUG_MODE}&g" /home/tmax/application.properties
+
+if [ -z $JWT_HS_SHARED_SECRET ]; then export JWT_HS_SHARED_SECRET="default"; fi
+sed -i "s&%JWT_HS_SHARED_SECRET%&${JWT_HS_SHARED_SECRET}&g" /home/tmax/application.properties
