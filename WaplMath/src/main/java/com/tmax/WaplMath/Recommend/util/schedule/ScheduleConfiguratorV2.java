@@ -74,17 +74,17 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   // user info vars
   private String userId;
   private String today;
-  private @Getter Set<Integer> solvedProbIdSet;
-  private @Getter Set<String> examSubSectionIdSet;
+  private @Getter Set<Integer> solvedProbIdSet; // 이미 푼 문제 Id set
+  private @Getter Set<String> examSubSectionIdSet; // 시험 범위 내 소단원 Id set
 
   // return vars
   private List<CardConfigDTO> cardConfigList;
-  private Set<String> addtlSubSectionIdSet;  
+  private Set<String> addtlSubSectionIdSet; // 완벽 학습을 위한 소단원 Id set (현재 사용 안함)
 
   // intermediate vars
   private Integer totalProbNum;  // config 내 문제 개수 합 (실력 향상)
-  private List<ProblemType> remainTypeList; // 앞으로 풀 uk들 (실력 향상)
-  private Set<String> validSectionIdSet; // 문제가 있는 중단원 목록 (시험 대비)
+  private List<ProblemType> remainTypeList; // 앞으로 풀 유형들 (실력 향상)
+  private Set<String> validSectionIdSet; // 제공할 문제가 있는 중단원 Id set (시험 대비)
 
 
   // initialize configurator variables
@@ -99,19 +99,19 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     this.solvedProbIdSet = getSolvedProbIdSet(userId);
     this.examSubSectionIdSet = new HashSet<>();
 
-    // set return vars
+    // init return vars
     this.cardConfigList = new ArrayList<>();
     this.addtlSubSectionIdSet = new HashSet<>();
 
-    // set intermediate vars
+    // init intermediate vars
     this.totalProbNum = 0;
     this.remainTypeList = new ArrayList<>();
     this.validSectionIdSet = new HashSet<>();
   }
 
 
-  public Set<Integer> getSolvedProbIdSet(String userId){		
-    // Get solved problem set
+  // 사용자가 이미 푼 문제 Id 리턴
+  public Set<Integer> getSolvedProbIdSet(String userId){
     List<String> sourceTypeList =
         new ArrayList<>(Arrays.asList(TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
                                       SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
@@ -123,6 +123,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // USER_MASTER TB 의 사용자 정보 리턴
   public User getValidUserInfo(String userId) {
     // Check whether userId is in USER_MASTER TB
     User userInfo = userRepo.findById(userId)
@@ -144,6 +145,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // USER_MASTER + USER_EXAM_SCOPE TB 의 사용자 시험 정보 리턴
   public UserExamScope getValidUserExamInfo(String userId) {
     // Check whether userId is in USER_MASTER TB
     UserExamScope userExamInfo = userExamScopeRepo.findById(userId)
@@ -165,8 +167,8 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
-  public void setExamSubSectionIdSet(UserExamScope userExamScopeInfo) {		
-    // sub-section list in exam
+  // (시험 대비) 시험 범위 내 소단원 Id set 설정
+  public void setExamSubSectionIdSet(UserExamScope userExamScopeInfo) {
     List<String> examSubSectionIdList = userExamScopeInfo.getExceptSubSectionIdList() != null
 
         ? curriculumRepo.findSubSectionListBetweenExcept(userExamScopeInfo.getStartSubSectionId(),
@@ -177,31 +179,24 @@ public class ScheduleConfiguratorV2 extends CardConstants {
         : curriculumRepo.findSubSectionListBetween(userExamScopeInfo.getStartSubSectionId(),
                                                    userExamScopeInfo.getEndSubSectionId());
 
+    // set variable
     this.examSubSectionIdSet = examSubSectionIdList.stream().collect(Collectors.toSet());
-
-    // 문제가 있는 중단원 목록
-    this.validSectionIdSet = this.examSubSectionIdSet.stream()
-                                                     .filter(
-            subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
-                                                     .map(subSection -> subSection.substring(0, 14))
-                                                     .collect(Collectors.toSet());
-
     log.info("Excepted sub section list = {}", userExamScopeInfo.getExceptSubSectionIdList());
     log.info("Total sub section list in exam = {}", this.examSubSectionIdSet);
   }
 
 
-  public List<String> getNormalSubSectionList(String userId) {
-    // get user info
-    User userInfo = getValidUserInfo(userId);
-    // 이번 학기 마지막까지
-    String endCurriculumId = 
-      ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
-
-    return curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId);
+  // (시험 대비) 시험 범위 내에서, 제공할 문제가 있는 중단원 Id set 설정
+  public void setValidSectionIdSet() {  
+    this.validSectionIdSet = this.examSubSectionIdSet.stream()
+                                                     .filter(
+            subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
+                                                     .map(subSection -> subSection.substring(0, 14))
+                                                     .collect(Collectors.toSet());
   }
 
 
+  // (시험 대비) 학생 시험 키워드 리턴 (학년-학기-시험종류)
   public String getUserExamKeyword(String userId) {
     // get user info
     User userInfo = getValidUserInfo(userId);
@@ -210,12 +205,27 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // (실력 평가) 현재 학기 내 소단원 Id 목록 리턴
+  public List<String> getNormalSubSectionIdList(String userId) {
+    // get user info
+    User userInfo = getValidUserInfo(userId);
+
+    // 이번 학기 마지막까지
+    String endCurriculumId = 
+      ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
+
+    return curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId);
+  }
+
+
+  // 유형-마스터리 정보 출력
   public void printTypeMasteryList(List<TypeMasteryDTO> typeMasteryList) {	
     for (TypeMasteryDTO typeMastery : typeMasteryList)		
       log.info("\tTypeId = {}, mastery = {}", typeMastery.getTypeId(), typeMastery.getMastery());
   }
 
 
+  // return schedule config
   public ScheduleConfigDTO getScheduleConfig() { 
     return ScheduleConfigDTO.builder()
                             .cardConfigList(this.cardConfigList)
@@ -224,13 +234,13 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // (실력 향상) 중단원 중간 평가 카드 여부 확인 및 생성
   public boolean checkSectionTestCard() {
-
-    // 학년 학기 내 소단원 목록들
-    List<String> subSectionIdList = getNormalSubSectionList(userId);
+    // 학년, 학기 내 소단원 목록들
+    List<String> subSectionIdList = getNormalSubSectionIdList(userId);
     log.info("Total sub section list = {}", subSectionIdList);
 
-    // 중간평가 판단 - 중단원들
+    // 제공할 문제가 있는 중단원들
     Set<String> sectionIdSet = subSectionIdList.stream()
                                                .filter(
         subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
@@ -238,17 +248,17 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                .collect(Collectors.toSet());
     log.info("1. Total section list : {}", sectionIdSet);
 
-    // 이미 푼 type들
+    // 유형 카드를 통해 이미 푼 유형들
     List<Integer> completedTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "",
             TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("2. Types already solved : {}", completedTypeIdList);
 
-    // 안푼 type들
+    // 안푼 유형들 = 앞으로 풀 유형 Id들
     this.remainTypeList = subSectionIdList.isEmpty() 
                         ? new ArrayList<>() 
                         : problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, completedTypeIdList);
 
-    // 안푼 중단원들
+    // 유형 카드가 남은 중단원들
     Set<String> notDoneSectionIdSet = completedTypeIdList.isEmpty() 
                                       ? new HashSet<>(sectionIdSet) 
                                       : remainTypeList.stream()
@@ -256,29 +266,29 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                       .collect(Collectors.toSet());
     log.info("3. Sections not solved : {}", notDoneSectionIdSet);
 
-    // sectionSet = 완벽히 푼 단원들
+    // sectionSet = 유형 카드를 완벽히 모두 푼 중단원들
     sectionIdSet.removeAll(notDoneSectionIdSet);
     log.info("4. Sections completely solved through TYPE cards : {}", sectionIdSet);
 
-    // 중간 평가 카드로 푼 중단원들
+    // 중간 평가 카드를 통해 이미 푼 중단원들
     Set<String> completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, today, 
             SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("5. Sections already solved through SECTION_TEST cards : {}", completedSectionIdSet);
 
-    // sectionSet = 완벽히 푼 단원들 - 이미 푼 중간평가 단원들
+    // sectionSet = 완벽히 푼 중단원들 - 이미 중간평가 진행한 중단원들
     sectionIdSet.removeAll(completedSectionIdSet); 
     log.info("6. Candidate sections for the SECTION_TEST card : {}", sectionIdSet);
 
-    // 완벽히 푼 단원이 있으면 중간 평가
+    // sectionSet 내 중단원으로 중간 평가 카드 구성
     if (!sectionIdSet.isEmpty()) {
       String sectionId = sectionIdSet.iterator().next();
       if (problemRepo.findProbCntInCurrId(sectionId, this.solvedProbIdSet) != 0) {
         log.info("\tSECTION_TEST card. : {}", sectionId);
 
         this.cardConfigList.add(CardConfigDTO.builder()
-                                            .cardType(SECTION_TEST_CARD_TYPESTR)
-                                            .curriculumId(sectionId)
-                                            .build());
+                                             .cardType(SECTION_TEST_CARD_TYPESTR)
+                                             .curriculumId(sectionId)
+                                             .build());
 
         this.addtlSubSectionIdSet.addAll(curriculumRepo.findSubSectionListInSection(sectionId));
       
@@ -289,21 +299,21 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
   
+  // (실력 향상) 보충 카드 여부 확인 및 생성
   public boolean checkSuppleCard() {
-
-    // 보충 카드로 푼 유형 리스트
+    // 보충 카드를 통해 푼 유형들
     List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "", 
             SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("7. Type list already solved through SUPPLE cards = {}", suppleTypeIdList);
 
-    // 가장 최근 보충 카드 이후, 유형 카드로서 푼 유형 리스트
+    // 가장 최근 보충 카드 이후, 유형 카드를 통해 푼 유형들
     List<Integer> solvedTypeIdList = historyManager.getCompletedTypeIdListAfterSuppleCard(userId, today);
 
-    // 보충 카드에 구성될 유형 후보들
+    // 최근 유형들 - 이미 보충한 유형들 = 보충 카드로 구성될 후보 유형들
     solvedTypeIdList.removeAll(suppleTypeIdList);
 
     if (!solvedTypeIdList.isEmpty()) {
-      // 마스터리가 낮고, 문제가 있는 유형 리스트
+      // 마스터리가 낮고, 제공할 문제가 있는 유형들
       List<TypeMasteryDTO> lowTypeMasteryList = 
         userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList, MASTERY_LOW_THRESHOLD)
             .stream()
@@ -313,7 +323,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
       log.info("8. Low type mastery list except solved through SUPPLE cards = ");
       printTypeMasteryList(lowTypeMasteryList);
 
-      // 보충 채울만큼 많으면 보충 카드 구성
+      // 보충 카드 채울 만큼 개수가 있으면, 보충 카드 구성
       if (lowTypeMasteryList.size() >= SUPPLE_CARD_TYPE_NUM) {
         log.info("\tSUPPLE card (1).");
 
@@ -330,7 +340,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
         this.addtlSubSectionIdSet.addAll(problemTypeRepo.findSubSectionListInTypeList(suppleCardTypeIdList));
         this.totalProbNum += SUPPLE_CARD_TYPE_NUM * SUPPLE_CARD_PROB_NUM_PER_TYPE;
 
-        // 한 장 더 채울 수 있으면 보충 카드 구성
+        // 한 장 더 채울 만큼 개수가 있으면, 보충 카드 추가 구성
         if (lowTypeMasteryList.size() >= SUPPLE_CARD_TYPE_NUM * 2) {
           log.info("\tSUPPLE card (2). ");
 
@@ -349,11 +359,11 @@ public class ScheduleConfiguratorV2 extends CardConstants {
         return true;
       }
 
-      // 많이 풀었는데 보충 조건이 안돼도 보충 카드 구성
+      // 진도를 많이 나갔는데 마스터리가 높은 경우에도, 보충 카드 구성
       else if (solvedTypeIdList.size() >= SUPPLE_CARD_TYPE_THRESHOLD) {
         log.info("\t{} types are high mastery --> SUPPLE card.", SUPPLE_CARD_TYPE_THRESHOLD);
 
-        // 이해도가 낮은 type mastery 가져오기
+        // 이해도가 낮은 순서 대로 유형 마스터리 가져오기
         List<TypeMasteryDTO> typeMasteryList = 
           userKnowledgeRepo.findTypeMasteryList(userId, solvedTypeIdList)
               .stream()
@@ -380,15 +390,16 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // (실력 향상) 유형 카드 여부 확인 및 생성
   public boolean checkTypeCard() {
-
-    // 문제가 없어서 생성하지 못한 type 카드 리스트
+    // 문제가 없어서 카드 생성하지 못한 유형 리스트
     List<Integer> noProbTypeIdList = new ArrayList<>();
 
-    // 공부 안한 유형uk가 있으면 유형 카드
+    // 앞으로 풀 유형이 있으면, 유형 카드 구성
     if (!this.remainTypeList.isEmpty()) {
       for (ProblemType type : this.remainTypeList) {
 
+        // 제공할 문제가 없으면 pass
         if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet) == 0) {
           noProbTypeIdList.add(type.getTypeId());
           continue;
@@ -407,6 +418,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
         this.totalProbNum += MAX_TYPE_CARD_PROB_NUM;
 
+        // 문제 개수가 하루 최대 제공 문제 수를 넘으면 true 리턴
         if (totalProbNum >= MAX_CARD_PROB_NUM) {
           log.info("Types couldn't make cards (no problems) : {} ", noProbTypeIdList);
           return true;
@@ -418,18 +430,17 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // (실력 향상) 유형 카드 여부 확인 및 생성
   public boolean checkAddtlSuppleCard() {
-
-    // 유형도 다풀었는데 문제가 안채워지면 추가 보충카드 제공
+    // 현재 학기 내 모든 유형을 풀었으나 문제가 채워지지 않으면, 추가 보충카드 제공
     if (this.totalProbNum < MAX_CARD_PROB_NUM) {
-
       String examKeyword = getUserExamKeyword(userId);
 
-      // 현재 시험 범위 내 각 type 마다 2문제씩 (보충 카드가 2문제 라서)
+      // 시험 범위 내 각 유형 마다 2문제씩 (보충 카드가 2문제)
       Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - totalProbNum) / 2.0);
       log.info("ADDTL_SUPPLE card with {} problems. ", addtiTypeNum);
 
-      // 문제가 존재하는 typeId만 선택
+      // 마스터리 낮은 순서 대로, 문제가 존재하는 유형만 선택
       List<TypeMasteryDTO> addtiTypeMasteryList = 
       userKnowledgeRepo.findTypeMasteryListBetween(userId, 
                         ExamScope.examScope.get(examKeyword).get(0),
@@ -457,9 +468,9 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
 
+  // (시험 대비) 모의고사 카드 여부 확인 및 생성
   public boolean checkTrialExamCard(Integer totalDays, Integer remainDays) {
-
-    // 모의고사 카드 개수 정하기
+    // 모의고사 카드 개수
     Integer numTrialExamCards = totalDays <= this.validSectionIdSet.size() + 1 ? 1 : 2;
     log.info("Num of TRIAL_EXAM cards = {}", numTrialExamCards);
 
@@ -481,9 +492,9 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
   
-  public boolean checkFullScopeExamCard(Integer totalDays, boolean isRemainCard) {
-    
-    // 중단원보다 적은 기간일 때, FULL_SCOPE_EXAM 카드 제공
+  // (시험 대비) 전체 범위 시험 대비 카드 여부 확인 및 생성
+  public boolean checkFullScopeExamCard(Integer totalDays, boolean isRemainCard) {    
+    // 1. 중단원 개수 보다 기간이 적을 때, FULL_SCOPE_EXAM 카드 제공
     if (totalDays <= this.validSectionIdSet.size()) {
       log.info("\tTotal {} days, {} sections --> FULL_SCOPE_EXAM card.", totalDays, this.validSectionIdSet.size());
       Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / this.validSectionIdSet.size());
@@ -503,7 +514,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
       return true;
     }
 
-    // section exam card 다 풀고 남은 기간 동안 FULL_SCOPE_EXAM 카드 제공
+    // 2. section exam card 다 풀고 남은 기간 동안 FULL_SCOPE_EXAM 카드 제공
     if (isRemainCard) {
       Integer fullScopeCardProbNum = (int) Math.round((double) MAX_CARD_PROB_NUM / this.validSectionIdSet.size());
 
@@ -525,23 +536,23 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   }
 
   
-  public boolean checkSectionExamCard(Integer totalDays) {
-    
+  // (시험 대비) 중단원 시험 대비 카드 여부 확인 및 생성
+  public boolean checkSectionExamCard(Integer totalDays) {    
     // SECTION_EXAM 카드 제공되는 개수
     Integer numTrialExamCards = totalDays <= this.validSectionIdSet.size() + 1 ? 1 : 2;
     Integer numSectionExamCards = Math.floorDiv(totalDays - numTrialExamCards, this.validSectionIdSet.size());
 
-    // section exam cards per section
+    // 각 중단원 별 카드 개수
     Map<String, Integer> sectionExamCardsNum = new HashMap<>();    
     this.validSectionIdSet.forEach(sectionId -> sectionExamCardsNum.put(sectionId, numSectionExamCards));
     log.info("2. Number of SECTION_EXAM cards per section : {} ", sectionExamCardsNum);
 
-    // already completed section exam cards per section
+    // 각 중단원 별 이미 푼 카드 개수
     Map<String, Integer> completedSectionExamCardsNum = historyManager.getCompletedSectionNum(
         userId, today, SECTION_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("3. Number of SECTION_EXAM cards already solved : {} ", completedSectionExamCardsNum);
 
-    // sectionExamCardsNum = sectionExamCardsNum - completedSectionExamCardsNum
+    // 각 중단원 별 앞으로 풀 카드 개수 계산
     for (Map.Entry<String, Integer> entry : sectionExamCardsNum.entrySet()) {
       if (completedSectionExamCardsNum.containsKey(entry.getKey())) {
         Integer remainCardCnt = entry.getValue() - completedSectionExamCardsNum.get(entry.getKey());
@@ -554,7 +565,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     }
     log.info("4. Number of SECTION_EXAM cards to be offered in future : {} ", sectionExamCardsNum);
 
-    // if sectionExamCardsNum valid --> SECTION_EXAM_CARD
+    // 카드 제공할 중단원이 있으면, 중단원 시험 대비 카드 제공
     if (!sectionExamCardsNum.keySet().isEmpty()) {
       String sectionId = curriculumRepo.sortByCurrSeq(sectionExamCardsNum.keySet()).get(0);
       log.info("SECTION_EXAM card (Section : {})", sectionId);
@@ -604,6 +615,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     // get user exam info
     UserExamScope userExamScopeInfo = getValidUserExamInfo(userId);
     setExamSubSectionIdSet(userExamScopeInfo);
+    setValidSectionIdSet();
 
     if (this.validSectionIdSet.isEmpty())
       throw new RecommendException(RecommendErrorCode.NO_PROBS_ERROR, "EXAM_SCHEDULE_CONFIGS");
@@ -641,14 +653,14 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
   
 
-  // set to dummy --> 실력향상 카드 + 모의고사 카드 1장씩 return
+  // (실력향상) 중간평가, 보충, 유형, 추가보충, (시험대비) 모의고사 카드 1장씩 dummy로 제공, 실제 서비스 X
   public ScheduleConfigDTO getDummyScheduleConfig() {
 
     String examKeyword = getUserExamKeyword(userId);
 
     // get section id, remain type list
     String sectionId = getValidUserInfo(userId).getCurrentCurriculumId().substring(0, 14);
-    List<ProblemType> typeList = problemTypeRepo.NfindRemainTypeIdList(getNormalSubSectionList(userId), null);
+    List<ProblemType> typeList = problemTypeRepo.NfindRemainTypeIdList(getNormalSubSectionIdList(userId), null);
 
 
     // 유형카드 : 첫 번째 유형
