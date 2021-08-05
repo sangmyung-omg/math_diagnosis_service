@@ -33,11 +33,11 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	UserInfoServiceV0 userService;
 	
 	@Autowired
-  @Qualifier("RE-DiagnosisProblemRepo")
+  	@Qualifier("RE-DiagnosisProblemRepo")
 	DiagnosisProblemRepo diagnosisProblemRepository;
 	
 	@Autowired
-  @Qualifier("RE-CurriculumRepo")
+  	@Qualifier("RE-CurriculumRepo")
 	CurriculumRepo curriculumRepository;
 	
 	@Autowired
@@ -82,17 +82,22 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 		
 		List<String> errOrderList = new ArrayList<String>();
 		
+		int idx = 0;
+
 		for (String partName : partList) {
 			// 해당하는 영역(파트)에 따른 대단원들 DB에서 불러오기
-			List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
+			// List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPart(partName);
+			List<Curriculum> currQueryResult = curriculumRepository.findChaptersByPartIncludingElementary(partName);
 			List<String> chapterIdList = new ArrayList<String>();
 			for (Curriculum curr : currQueryResult){
 				chapterIdList.add(curr.getCurriculumId());
 			}
-			log.info(partName + " 에 해당하는 대단원 : " + chapterIdList.toString());
+			log.info(partName + " 에 해당하는 중등 대단원 & 초등 중단원 : " + chapterIdList.toString());
 
 			// 진단 범위에 해당하는 대단원들 select - 현재 학기에서 2학기 전부터 현재 배우고 있는 단원 바로 이전까지 (가장 최근에 다 배운 단원 까지)
 			List<String> available_chaps = new ArrayList<String>();
+			List<String> elementary_chaps = new ArrayList<String>();
+			List<String> middle_chaps = new ArrayList<String>();
 			
 			for (String chap : chapterIdList) {					// chap : 진단 범위 후보 대단원들 , limit_chapter : 학생의 현재 진도 대단원
 				int chap_grade = Integer.parseInt(chap.substring(4,5));
@@ -111,43 +116,56 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 //					}
 					available_chaps.add(chap);
 				}
-			}
-			log.info("available_chaps : " + available_chaps.toString());
-			
-			// available_chaps가 null이면, 각 영역에서 첫 단원 출제
-			String selected_chapter = "";
-			if (available_chaps.size() != 0 && available_chaps != null) {
-//				Collections.shuffle(available_chaps);
-				selected_chapter = available_chaps.get(available_chaps.size()-1);
-				log.info("Available_chaps exist and selected : " + selected_chapter);
-			} else {
-				log.info("Available_chaps not exist");
 
-				selected_chapter = chapterIdList.get(0);				
-				log.info("No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-//				if (resultMap.containsKey("error")) {
-//					resultMap.replace("error", resultMap.get("error") + "\n" + "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-//				} else {
-//					resultMap.put("error", "No available chapter for the part, may because the given grade was 1, so first chapter of the part is given : " + selected_chapter);
-//				}
+				if (chap.substring(0,2).equalsIgnoreCase("초등")) {
+					elementary_chaps.add(chap);
+				} else {
+					middle_chaps.add(chap);
+				}
+			}
+
+			List<String> query_chapters = new ArrayList<String>();
+
+			// 중1 이라서 partName에 해당하는 (중등) 단원들 중 배운 단원 없을 때 : 초등 범위 포함
+			if (available_chaps.size() == 0 && dao.getGrade().equalsIgnoreCase("1")) {
+				Collections.shuffle(elementary_chaps);
+				available_chaps = elementary_chaps;
+				query_chapters = available_chaps;				// 문제 수 적고, 초등 단원 일부는 꼼꼼만, 일부는 간단만 존재하는 경우 있어서 전체에서 서치
+				log.info("No available chapters in middle school, So adjusted to elementary search range : " + available_chaps.toString());
+
+			} else if (available_chaps.size() != 0) {			// 중등 단원 존재하면, 그 중 최근 단원 선택 (모든 단원마다 문제 존재 & 문제 수 많아서 단원 1개로 쿼리 가능)
+				query_chapters = Arrays.asList(available_chaps.get(available_chaps.size()-1));
+				log.info("Available_chaps exist and selected : " + available_chaps.get(available_chaps.size()-1));
+
+			} else {											// 1학년이 아닌데 서치 범위 단원이 존재 X : 무언가 단단히 잘못됨.
+				log.info("Available_chaps not exist");
+				query_chapters = Arrays.asList(middle_chaps.get(0));
+				log.info("[Warning] Check the range of diagnosis again. Available_chaps not exist, so first middle chapter chosen : " + query_chapters.toString());
 			}
 			
 			// 해당하는 단원에 대한 문제 set 가져오기
 			log.info("Getting problem set...");
 			DiagnosisProblem result;
-			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType);
+			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapterInIncludingElementary(query_chapters, diagType);
 			List<Integer> prob_list = new ArrayList<Integer>();
 			
 			if (queryResult.size() != 0 && queryResult != null) {
 				// log.info("Available problem sets for the selected chapter : " + queryResult.toString());
-				log.info("# of available problem sets for the selected chapter : " + Integer.toString(queryResult.size()) + " sets");
+				log.info("# of available problem sets for the selected chapter range : " + Integer.toString(queryResult.size()) + " sets");
 				Collections.shuffle(queryResult);
 				result = queryResult.get(0);
+				result.getBasicProblem().getProblemType().getCurriculumId();
 
-				String logs = "One random problem set chosen : Set_Id " + Integer.toString(result.getDiagnosisProbId()) 
+				String logs = "";
+				if (idx == 0) logs = "1st";
+				else if (idx == 1) logs = "2nd";
+				else logs = Integer.toString(idx+1) + "th";
+
+				logs = logs + " random problem set chosen for " + partName +" : Set_Id " + Integer.toString(result.getDiagnosisProbId()) 
 																+ " / Basic " + Integer.toString(result.getBasicProbId()) 
 																+ " / Upper " + Integer.toString(result.getUpperProbId());
 				if (result.getLowerProbId() != null) logs += " / Lower " + Integer.toString(result.getLowerProbId());
+				logs += " (" + result.getBasicProblem().getProblemType().getCurriculumId() + ")";
 				log.info(logs);
 			
 				
@@ -173,12 +191,13 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 				errOrderList.add(order);
 
 				// No problem set for the selected_chapter
-				log.info("No ACCEPTED problem set found for the selected_chapter : " + selected_chapter + " (part : " + partName + ")");
+				log.info("No ACCEPTED problem set found for the selected_chapter : " + query_chapters.toString() + " (part : " + partName + ")");
 
 				// 임시 err 처리 (dummy)
 				// 삭제
 			}
 			diagnosisProblems.add(prob_list);
+			idx += 1;
 		}
 		
 		if (errOrderList.size() != 0) {
