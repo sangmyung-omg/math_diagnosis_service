@@ -269,6 +269,7 @@ public class LRSAPIManager {
    * @param userID
    * @return
    */
+  @Deprecated
   public List<LRSStatementResultDTO> getUserStatementDiagnosis(String userID) {
     return getUserStatement(userID, Arrays.asList("submit", "start"), Arrays.asList("diagnosis"));
   }

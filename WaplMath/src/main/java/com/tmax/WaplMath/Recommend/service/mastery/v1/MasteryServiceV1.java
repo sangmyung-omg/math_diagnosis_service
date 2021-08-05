@@ -20,6 +20,9 @@ import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.lrs.ActionType;
+import com.tmax.WaplMath.Common.util.lrs.LRSManager;
+import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
@@ -29,7 +32,6 @@ import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepo;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepo;
-import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 
@@ -44,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MasteryServiceV1 implements MasteryServiceBaseV1{   
     //LRS API Manager
     @Autowired
-    LRSAPIManager lrsapiManager;
+    LRSManager lrsManager;
 
     @Autowired
     MasteryAPIManager masteryAPIManager;
@@ -221,10 +223,10 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
      * @return
      */
     private ProblemSolveListDTO getLrsWithoutDuplicate(String userID){
-        List<String> actionTypeList = LRSAPIManager.ActionType.getAllActionTypes();
-        List<String> sourceTypeList = LRSAPIManager.SourceType.getAllSourceTypes();
+        List<String> actionTypeList = ActionType.getAllActionTypes();
+        List<String> sourceTypeList = SourceType.getAllSourceTypes();
 
-        List<LRSStatementResultDTO> resultList =  lrsapiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
+        List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
 
         //Result probIdList + correctList
         List<String> probIdList = new ArrayList<>();

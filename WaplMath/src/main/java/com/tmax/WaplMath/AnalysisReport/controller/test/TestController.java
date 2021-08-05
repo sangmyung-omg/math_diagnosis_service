@@ -7,6 +7,7 @@ import java.util.Arrays;
 // import java.util.Arrays;
 // import java.util.List;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 // import com.google.gson.JsonObject;
@@ -28,6 +29,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServic
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
+import com.tmax.WaplMath.AnalysisReport.util.triton.WAPLScoreTriton;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.redis.RedisStringData;
@@ -35,10 +37,16 @@ import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.lrs.ActionType;
+import com.tmax.WaplMath.Common.util.lrs.LRSManagerInterface;
+import com.tmax.WaplMath.Common.util.lrs.SourceType;
+import com.tmax.WaplMath.Common.util.lrs.TestLRSManager;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
+import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceV1;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
+import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,13 +185,13 @@ public class TestController {
 
 
     @Autowired
-    private LRSAPIManager lrsApiManager;
+    private LRSManagerInterface lrsManager;
 
     @GetMapping("/getLRS")
     ResponseEntity<Object> getLRS(@RequestParam("userID") String userID) {
-        List<String> actionTypeList = LRSAPIManager.ActionType.getAllActionTypes();
-        List<String> sourceTypeList = LRSAPIManager.SourceType.getAllSourceTypes();
-        List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
+        List<String> actionTypeList = ActionType.getAllActionTypes();
+        List<String> sourceTypeList = SourceType.getAllSourceTypes();
+        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
         return new ResponseEntity<>(statementList, HttpStatus.OK);
     }
 
@@ -260,6 +268,39 @@ public class TestController {
                 }
                 idx++;
             }            
+        }
+
+        return new ResponseEntity<>("done", HttpStatus.OK);
+    }
+
+    @Autowired
+    WaplScoreManagerV1 waplScoreManagerV1;
+
+    @Autowired
+    WAPLScoreTriton waplScoreTriton;
+
+    @GetMapping("/simulateWaplScore")
+    ResponseEntity<Object> simulateWaplScore(@RequestParam("debugkey") String debugkey, 
+                                            //  @RequestParam("score") Integer currentScore, 
+                                             @RequestParam("daysleft") Integer daysLeft,
+                                             @RequestParam(name = "targetexam") String targetExam,
+                                             @RequestParam(name = "currid") String currentCurriculumId) {
+        if(debugkey.equals("debugtest223344")){
+
+            WaplScoreProbListDTO data = waplScoreManagerV1.getWaplScoreProbList(targetExam, currentCurriculumId, daysLeft);
+            List<Map<Integer, Float>> ukMasteryMapSeq = waplScoreTriton.calculateFromSequenceList(data.getProbList() , "");
+
+            //Get last map
+            Map<Integer, Float> lastMap = ukMasteryMapSeq.get(ukMasteryMapSeq.size() - 1);
+            
+            float score = (float)0.0f;
+            int count = 0;
+            for(Map.Entry<Integer, Float> entry : lastMap.entrySet()){
+                score += entry.getValue();
+                count++;
+            }
+
+            return new ResponseEntity<>((double)score/count, HttpStatus.OK);
         }
 
         return new ResponseEntity<>("done", HttpStatus.OK);
