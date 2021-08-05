@@ -1,8 +1,14 @@
 package com.tmax.WaplMath.Recommend.dto.lrs;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LRSStatementResultDTO {
     private String userId;
     private String actionType;

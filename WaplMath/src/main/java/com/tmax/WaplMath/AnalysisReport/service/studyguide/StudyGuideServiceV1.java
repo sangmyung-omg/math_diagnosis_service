@@ -20,8 +20,8 @@ import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
+import com.tmax.WaplMath.Common.util.lrs.LRSManager;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
-import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -54,7 +54,7 @@ public class StudyGuideServiceV1 implements StudyGuideServiceBase{
     UserKnowledgeRepo userKnowledgeRepo;
 
     @Autowired
-    LRSAPIManager lrsApiManager;
+    LRSManager lrsManager;
 
     @Autowired
     CurriculumServiceV0 currSvc;
@@ -69,7 +69,7 @@ public class StudyGuideServiceV1 implements StudyGuideServiceBase{
         List<String> actionTypeList = Arrays.asList("submit", "start");
         List<String> sourceTypeList = Arrays.asList("diagnosis", "diagnosis_simple");
 
-        List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
+        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
 
         //Build a chapter ID set from diagnosis data
         Set<String> diagnosisSecIdSet = new HashSet<>();

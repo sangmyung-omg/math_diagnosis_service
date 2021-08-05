@@ -34,6 +34,7 @@ import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
+import com.tmax.WaplMath.Common.util.lrs.LRSManager;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 
@@ -78,7 +79,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     private ExamScopeUtil examScopeUtil;
 
     @Autowired
-    private LRSAPIManager lrsApiManager;
+    private LRSManager lrsManager;
 
     @Autowired
     private ProblemRepo probRepo;
@@ -423,7 +424,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                     "addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question",
                                                     "retry_question","wrong_answer_question","starred_question");
 
-        List<LRSStatementResultDTO> statementList = lrsApiManager.getUserStatement(userID, actionTypeList, sourceTypeList);
+        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
 
         //If size == 0  retry with hyphened version TEMP. FIXME. only try if uuid is a 32 sized one;
         if(userID.length() == 32 && statementList.size() == 0){
@@ -432,7 +433,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                                     userID.substring(12,16),
                                                                     userID.substring(16,20),
                                                                     userID.substring(20, 32));
-            statementList = lrsApiManager.getUserStatement(formatedUserID, actionTypeList, sourceTypeList);                                                  
+            statementList = lrsManager.getStatementList(formatedUserID, actionTypeList, sourceTypeList);                                                  
         }
         
 

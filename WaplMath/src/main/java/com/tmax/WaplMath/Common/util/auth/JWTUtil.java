@@ -3,25 +3,28 @@ package com.tmax.WaplMath.Common.util.auth;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
+import java.util.Date;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.Common.exception.InvalidArgumentException;
-import com.tmax.WaplMath.Common.exception.InvalidTokenException;
 import com.tmax.WaplMath.Common.exception.JWTFieldNotFound;
 import com.tmax.WaplMath.Common.exception.JWTInvalidException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -29,9 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 public class JWTUtil {
     private static final String USER_ID_FIELD = "userID";
     private static final String SUB_FIELD = "sub";
-
-    private static boolean DEBUG_MODE = true;
-
 
     private static JWTUtil inst = null;
 
@@ -44,6 +44,22 @@ public class JWTUtil {
 
     @Value("${auth.jwt.debugMode}")
     private boolean debugMode;
+
+
+    enum JWTVerifyCode {
+        SUCCESS("Success."),
+        SIGNITURE_INVALID("Signature is invalid."),
+        EXPIRED("Token has expired."),
+        UNSUPPORTED_ALGO("Unsupported algorithm."),
+        GENERAL_ERROR("Token is invalid (general error).");
+
+        @Getter
+        private String message;
+
+        private JWTVerifyCode(String message){
+            this.message = message;
+        }
+    }
 
     //Constructor for singleton inst to get injection from beans
     public JWTUtil(@Value("${auth.jwt.hs.secret}") String sharedSecret, 
@@ -99,7 +115,7 @@ public class JWTUtil {
      * @since 2021-07-28
      * @author Jonghyun seong
      */
-    static public boolean verifyToken(DecodedJWT jwt) {
+    static public JWTVerifyCode verifyToken(DecodedJWT jwt) {
         //get algorithm
         String algoString = jwt.getAlgorithm();
 
@@ -107,9 +123,11 @@ public class JWTUtil {
         if(algoString == null)
             throw new JWTInvalidException("Algorithm not found.");
 
+        //Get algorithm from string
         Algorithm algorithm = getAlgorithm(algoString);
+        if(algorithm == null) {return JWTVerifyCode.UNSUPPORTED_ALGO;}
 
-        //Check based on algorithm only. TODO. add iat checks too
+        //Check based on algorithm only.
         JWTVerifier verifier = JWT.require(algorithm).build();
 
         try {
@@ -117,16 +135,29 @@ public class JWTUtil {
         }
         catch (SignatureVerificationException e){
             log.error("Token signature not verified");
-            return false;
+            return JWTVerifyCode.SIGNITURE_INVALID;
+        }
+        catch (TokenExpiredException e){
+            log.error("Token has expired");
+            return JWTVerifyCode.EXPIRED;
+        }
+        catch (JWTVerificationException e){
+            log.error("JWT verification failed");
+            return JWTVerifyCode.GENERAL_ERROR;
         }
         catch(Throwable e){
             log.error("Error token verification");
-            return false;
-        }    
+            return JWTVerifyCode.GENERAL_ERROR;
+        } 
 
-        return true;
+        return JWTVerifyCode.SUCCESS;
     }
 
+    /**
+     * Method to get algorithm from given string
+     * @param algoString Algorithm string in the JWT token
+     * @return Algorithm inst of the given string. null if not found
+     */
     static private Algorithm getAlgorithm(String algoString){
         RSAPublicKey rsaPublicKey = inst.rsaPublicKey;
         ECPublicKey ecPublicKey = inst.ecPublicKey;
@@ -180,8 +211,11 @@ public class JWTUtil {
         }
                 
         //If not verified. throw
-        if(doVerify && !verifyToken(jwt)){
-            throw new JWTInvalidException("Token signature cannot be verified. Check token validity.");
+        if(doVerify){
+            JWTVerifyCode resultCode = verifyToken(jwt);
+
+            if(resultCode != JWTVerifyCode.SUCCESS)
+                throw new JWTInvalidException("Token verification failed. Check token validity. " + resultCode.getMessage());
         }
 
         //Try user id field => "userID" -> "sub"
