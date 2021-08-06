@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DiagnosisController {
 	@Autowired
 	@Qualifier("ProblemServiceV0")
+	// @Qualifier("ProblemServiceV1")				// 중1 진입 : 안 배운 파트들은 초등 범위 문제 출제
 	ProblemServiceBase problemService;
 	/*
 	@Autowired
