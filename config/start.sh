@@ -9,4 +9,4 @@ apk del tzdata
 . /home/tmax/script/env.sh
 
 # run java
-exec java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod -Duser.timezone=Asia/Seoul -jar /home/tmax/app.jar
+exec java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=prod${ADDITIONAL_PROFILE_LIST} -Duser.timezone=Asia/Seoul -jar /home/tmax/app.jar

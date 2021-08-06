@@ -30,6 +30,8 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsSe
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.triton.WAPLScoreTriton;
+import com.tmax.WaplMath.Common.exception.UserNotFoundException;
+import com.tmax.WaplMath.Common.exception.UserOrientedException;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.redis.RedisStringData;
@@ -37,6 +39,10 @@ import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
+import com.tmax.WaplMath.Common.util.error.CommonErrorCode;
+import com.tmax.WaplMath.Common.util.kafka.KafkaEventLevel;
+import com.tmax.WaplMath.Common.util.kafka.KafkaEventType;
+import com.tmax.WaplMath.Common.util.kafka.KafkaPublisher;
 import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManagerInterface;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
@@ -61,6 +67,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static net.logstash.logback.argument.StructuredArguments.*;
 
 
 /**
@@ -304,5 +312,27 @@ public class TestController {
         }
 
         return new ResponseEntity<>("done", HttpStatus.OK);
+    }
+
+
+    @Autowired
+    KafkaPublisher kafkaPublisher;
+
+    @GetMapping("/testkafka")
+    ResponseEntity<Object> testkafka(@RequestParam("message") String message) {
+        kafkaPublisher.publishMessage("mkkang", KafkaEventType.USER_EXCEPTION,"normal_message",message, KafkaEventLevel.INFO);
+
+        kafkaPublisher.publishMessage("mkkang2", KafkaEventType.USER_EXCEPTION, "json_message","{\"test\" : \"message\"}",KafkaEventLevel.WARN);
+
+        throw new UserNotFoundException("testuser14");
+
+        // return new ResponseEntity<>("done", HttpStatus.OK);
+    }
+
+    @GetMapping("/usererror")
+    ResponseEntity<Object> usererror(@RequestParam("userID") String userID) {
+        log.info("test {} {}", kv("test", userID));
+
+        throw new UserOrientedException(CommonErrorCode.GENERIC_ERROR, userID);
     }
 }

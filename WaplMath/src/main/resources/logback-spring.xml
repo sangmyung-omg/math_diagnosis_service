@@ -31,16 +31,18 @@
 			<layout class="ch.qos.logback.classic.PatternLayout">
 				<Pattern>${LOG_PATTERN}</Pattern>
 			</layout>
-		</appender>
+		</appender>		
+	</springProfile>
 
+	<springProfile name="useLogstashTCP">
 		<!-- logstash appender -->
-		<!-- <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+		<appender name="LOGSTASHTCP" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
 			<remoteHost>${logstash_host}</remoteHost>
 			<port>${logstash_port}</port>
 			<encoder class="net.logstash.logback.encoder.LogstashEncoder">
 				<customFields>{"appname" : "${appname}", "hostname" : "${HOSTNAME}"}</customFields>
 			</encoder>
-		</appender> -->
+		</appender>
 	</springProfile>
 
 	<!-- File Appender -->
@@ -173,10 +175,6 @@
 			<appender-ref ref="FILE_ALL" />
 			<appender-ref ref="ERROR" />
 		</springProfile>
-		
-		<!-- <springProfile name="default, dev, prod">
-			<appender-ref ref="LOGSTASH" />
-		</springProfile> -->
 	</root>
 
   <!-- WaplMath logger stdout -->
@@ -185,6 +183,13 @@
       <appender-ref ref="STDOUT" />
     </logger>
   </springProfile>
+
+  	<!-- Logstash logger -->
+	<springProfile name="useLogstashTCP">
+		<logger name="com.tmax.WaplMath" level="${SERVICE_LOG_LEVEL}" additivity="false">
+				<appender-ref ref="LOGSTASHTCP" />
+		</logger>
+  	</springProfile>
 
 	<springProfile name="prod">
 	  <!-- Recommend logger -->
