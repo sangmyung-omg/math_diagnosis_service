@@ -28,7 +28,7 @@ public enum ARErrorCode implements ErrorCodeBase {
 
     INVALID_PARAMETER("0011", "Invalid parameter."),
 
-    INVALID_STATISTICS_ERROR("0012", "Invalid statistics data"),
+    INVALID_STATISTICS_ERROR("0012", "Invalid statistics data."),
 
     WAPL_SCORE_TRITON_DATA_ERROR("0013", "Invalid waplscore infer response from triton server. please check triton model status."),
 

@@ -75,7 +75,7 @@ public class CommentaryService {
             lowList = null;
             highList = null;
         }
-        else if(sortedList.size() > 4){
+        else if(sortedList.size() >= 4){
             //Two from each side
             lowList.add(sortedList.get(0));
             lowList.add(sortedList.get(1));
@@ -101,13 +101,28 @@ public class CommentaryService {
     private List<CurriculumSimpleDTO> getSortedPartList(User user){
         //Get commentary
         String currentCurriculum = String.format("중등-중%s-%s학", user.getGrade(), user.getSemester());
-        List<ChapterDetailDTO> resultList = chapterSvcv1.getChapterListOfUserInRange(user.getUserUuid(), "year", currentCurriculum + "*partinc", true);
+        List<ChapterDetailDTO> resultListRaw = chapterSvcv1.getChapterListOfUserInRange(user.getUserUuid(), "year", currentCurriculum + "*partinc", true);
+
+        //filter name
+        Set<String> nameFilterSet = new HashSet<>();
+        List<ChapterDetailDTO> resultList = new ArrayList<>();
+        resultListRaw.stream().forEach(result -> {
+            if(nameFilterSet.contains(result.getName())){
+                return;
+            }
+
+            nameFilterSet.add(result.getName());
+            resultList.add(result);
+        });
 
         //sort list
         resultList.sort((a,b) -> new Double(a.getSkillData().getUser()).compareTo(b.getSkillData().getUser()) );
 
         return resultList.stream().map(chap -> CurriculumSimpleDTO.builder()
                                                                   .name(chap.getName())
+                                                                  .id(chap.getId())
+                                                                  .type(chap.getType())
+                                                                  .seq(chap.getSequence())
                                                                   .build())
                                                                   .collect(Collectors.toList());
     }

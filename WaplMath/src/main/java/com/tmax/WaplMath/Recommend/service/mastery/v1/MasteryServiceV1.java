@@ -16,6 +16,7 @@ import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.problem.ProblemUkRel;
+import com.tmax.WaplMath.Common.model.redis.RedisObjectData;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
@@ -23,6 +24,8 @@ import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManager;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
+import com.tmax.WaplMath.Common.util.redis.RedisIdGenerator;
+import com.tmax.WaplMath.Common.util.redis.RedisUtil;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
@@ -70,10 +73,23 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
     @Autowired
     UserRepo userRepo;
 
+    @Autowired
+    RedisUtil redisUtil;
+
 
     //Event publisher
     @Autowired
     MasteryEventPublisher masteryEventPublisher;
+
+    enum ResultMessage {
+        SUCCESS("Update successfull"),
+        FAILED("Update failed");
+
+        private String message;
+        private ResultMessage(String message){this.message = message;}
+
+        public String toString(){return this.message;}
+    }
 
 
     //Scaler for uk mastery
@@ -89,6 +105,15 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     @Override
     public ResultMessageDTO updateMastery(String userId, List<String> probIdList, List<String> correctList) {
+
+        //Redis cache checker
+        String redisID = RedisIdGenerator.userOrientedID(this.getClass().getSimpleName(), userId, probIdList, correctList);
+        if( redisUtil.hasID(redisID) ){
+            //skip mastery
+            log.info("Found identical user's mastery created from same lrs record. ({}). skipping mastery+stat update", userId);
+            return new ResultMessageDTO(ResultMessage.SUCCESS.toString());
+        }
+
         log.info("Updating mastery for user " + userId);
 
         //Throw condition. Major error
@@ -206,7 +231,10 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         //Propagate update event to inform mastery update
         masteryEventPublisher.publishChangeEvent(userId);
 
-        return new ResultMessageDTO("Update successfull");
+        //Save redis key -> lifetime = 12hours = 12*60*60sec
+        redisUtil.saveWithExpire(RedisObjectData.builder().id(redisID).data(1).build(), 12*60*60);
+
+        return new ResultMessageDTO(ResultMessage.SUCCESS.toString());
     }
 
     @Override
@@ -222,12 +250,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
      * @author jonghyun seong
      * @return
      */
-    private ProblemSolveListDTO getLrsWithoutDuplicate(String userID){
-        List<String> actionTypeList = ActionType.getAllActionTypes();
-        List<String> sourceTypeList = SourceType.getAllSourceTypes();
-
-        List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
-
+    private ProblemSolveListDTO getLrsWithoutDuplicate(String userID, List<LRSStatementResultDTO> resultList){
         //Result probIdList + correctList
         List<String> probIdList = new ArrayList<>();
         List<String> correctList = new ArrayList<>();
@@ -311,7 +334,11 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         // ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);    
         
         //FIXME: duplicate filter temp.
-        ProblemSolveListDTO result = getLrsWithoutDuplicate(userID);
+        List<String> actionTypeList = ActionType.getAllActionTypes();
+        List<String> sourceTypeList = SourceType.getAllSourceTypes();
+
+        List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
+        ProblemSolveListDTO result = getLrsWithoutDuplicate(userID, resultList);
 
         return this.updateMastery(userID, result.getProbIdList(), result.getCorrectList());
     }

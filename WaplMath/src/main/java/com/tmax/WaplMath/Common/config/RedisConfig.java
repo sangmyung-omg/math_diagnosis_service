@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -16,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 public class RedisConfig {
 
+    @Getter
     @Value("${spring.redis.host}")
     private String redisHost;
 
+    @Getter
     @Value("${spring.redis.port}")
     private int redisPort;
 

@@ -238,13 +238,13 @@ public class ChapterServiceV1 implements ChapterServiceBase{
                 currList =  currInfoRepo.getChaptersLikeId(subrangeList.get(0));    
         }
         
-        List<ChapterDetailDTO> output = new ArrayList<>();
+        // List<ChapterDetailDTO> output = new ArrayList<>();
 
         //Fill the output list from the output
         //Get curr mastery map first get call
         Map<String, Float> currMasteryMap = getUserCurriculumMasteryMap(userID);
-        currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap, isLightMode)));
-
+        // currList.forEach( curr -> output.add(getChapterDetailFromCurriculum(userID, curr, currMasteryMap, isLightMode)));
+        List<ChapterDetailDTO> output = currList.stream().parallel().map(curr -> getChapterDetailFromCurriculum(userID, curr, currMasteryMap, isLightMode)).collect(Collectors.toList());
 
         return output;
     }

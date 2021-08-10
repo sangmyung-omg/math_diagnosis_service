@@ -307,8 +307,13 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             historyList = new ArrayList<>();
         
         //Append score if last result is not same as before or empty
+        final long PRECISION_COMPARE_LEVEL = (long)Math.pow(10, 7);
         if( historyList.size() == 0 ||  
-           (historyList.size() > 0 && historyList.get(historyList.size() - 1) != examScopeScore) 
+           (
+                historyList.size() > 0 && 
+                (
+                   (long)(historyList.get(historyList.size() - 1).floatValue() * PRECISION_COMPARE_LEVEL) != (long)(examScopeScore.floatValue())*PRECISION_COMPARE_LEVEL ) 
+                ) 
            ){
             historyList.add(examScopeScore);
             output.add(statsToAnalyticsUser(userID, 

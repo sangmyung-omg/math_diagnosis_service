@@ -27,7 +27,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsSe
 import com.tmax.WaplMath.AnalysisReport.service.userknowledge.UserKnowledgeServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
+import com.tmax.WaplMath.Common.exception.UserOrientedException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Common.model.uk.Uk;
@@ -143,7 +143,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
                 searchTerm += "고등-고";
                 break;
             default:
-                throw new GenericInternalException(ARErrorCode.INVALID_PARAMETER, "Unsupported school type. " + schoolType);
+                throw new UserOrientedException(ARErrorCode.INVALID_PARAMETER,  userID, "Unsupported school type. " + schoolType);
         }
 
         return searchWithConditions(userID, searchTerm + year, typeRange, null, null, true, order, excludeSet);
@@ -160,7 +160,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
         Statistics recentCurrStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_RECENT_CURR_ID_LIST);
         if(recentCurrStat == null){
             log.error("[{}] Recent curriculum list not found in stat table. Please check if LRS info.", userID);
-            throw new GenericInternalException(ARErrorCode.INVALID_STATISTICS_ERROR, 
+            throw new UserOrientedException(ARErrorCode.INVALID_STATISTICS_ERROR, userID,
                                                "Recent curriculum list not found in stat table. Please check if LRS info is properly submitted.");
         }
 
