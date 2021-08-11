@@ -2,6 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.util.statistics;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,13 +12,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.redis.RedisObjectData;
+import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.model.user.User;
+import com.tmax.WaplMath.Common.util.redis.RedisIdGenerator;
+import com.tmax.WaplMath.Common.util.redis.RedisUtil;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +36,17 @@ import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
+@Data
+@AllArgsConstructor
 @NoArgsConstructor
-class Mastery {
+class Mastery implements Serializable {
     private Float mastery = 0.0f;
     private int count = 0;
     private Map<Integer, Float> map = new HashMap<>();
@@ -102,6 +114,9 @@ public class IScreamEduDataReader {
 
     private String externalConfigURL;
 
+    @Autowired
+    RedisUtil redisUtil;
+
 
     //Hyper param for iscream edu data calibration
     // private static final Double PARAM_SCALE = 0.65079;
@@ -140,7 +155,9 @@ public class IScreamEduDataReader {
         
         this.externalConfigURL = externalConfigURL;
         this.useIScreamData = useIScreamData;
-        
+    }
+    
+    public void loadData() {
         if(useIScreamData){
             log.info("Using I-scream data");
 
@@ -319,6 +336,27 @@ public class IScreamEduDataReader {
 
 
         this.wholeData = output;
+
+        // // Test save to redis
+        // if(redisUtil.isUseRedis()){
+        //     try {
+        //         ObjectMapper mapper = new ObjectMapper();
+        //         String data = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(wholeData);
+        //         String key = RedisIdGenerator.domainedID(this.getClass().getSimpleName(), "wholedata");
+        //         redisUtil.saveWithExpire(
+        //                     RedisStringData.builder()
+        //                                     .id(key)
+        //                                     .data(data)
+        //                                     .build(),
+        //                     300);
+        //         RedisStringData data2 = redisUtil.get(key);
+        //         log.info(data2.getData());
+        //     }
+        //     catch(JsonProcessingException e){
+        //         log.error(e.getMessage());
+        //     }
+        // }
+
         return output;
     }
 

@@ -4,6 +4,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
+import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryChangeEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class StatisticsEventListener {
 
     @Autowired
     UKStatisticsServiceBase ukStatSvc;
+
+    @Autowired
+    IScreamEduDataReader iScreamEduDataReader;
 
     /**
      * Handler to call services that run on mastery change
@@ -62,6 +66,10 @@ public class StatisticsEventListener {
      */
     @EventListener
     public void startupStatisticsProcessor(ApplicationStartedEvent event){
+        //load iscream edu data
+        iScreamEduDataReader.loadData();
+
+
         log.info("Checking statistics status");
         boolean result = currStatSvc.updateStatistics(false);
 

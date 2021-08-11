@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import com.tmax.WaplMath.Common.model.redis.RedisObjectData;
+import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.repository.redis.RedisObjectRepository;
+import com.tmax.WaplMath.Common.repository.redis.RedisStringRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RedisUtil {
     @Autowired
-    private RedisObjectRepository redisRepo;
+    private RedisObjectRepository redisObjRepo;
+
+    @Autowired
+    private RedisStringRepository redisStrRepo;
 
     @Getter
     private boolean useRedis = false;
@@ -44,7 +49,7 @@ public class RedisUtil {
         if(!useRedis)
             return false;
 
-        Optional<RedisObjectData> object =  redisRepo.findById(id);
+        Optional<RedisStringData> object =  redisStrRepo.findById(id);
         return object.isPresent();
     }
 
@@ -60,13 +65,44 @@ public class RedisUtil {
 
         data.setTimeout(expireTime);
 
+        //Convert to String data
+
         try {
-            redisRepo.save(data);
+            redisObjRepo.save(data);
         }
         catch (IllegalArgumentException e){
             return -1;
         }
 
         return 0;
+    }
+
+    public int saveWithExpire(RedisStringData data, long expireTime){
+        if(!useRedis)
+            return 0;
+
+        data.setTimeout(expireTime);
+
+        //Convert to String data
+
+        try {
+            redisStrRepo.save(data);
+        }
+        catch (IllegalArgumentException e){
+            return -1;
+        }
+
+        return 0;
+    }
+
+    public RedisStringData get(String key) {
+        if(!useRedis)
+            return null;
+
+        Optional<RedisStringData> result = redisStrRepo.findById(key);
+        if(!result.isPresent())
+            return null;
+
+        return result.get();
     }
 }
