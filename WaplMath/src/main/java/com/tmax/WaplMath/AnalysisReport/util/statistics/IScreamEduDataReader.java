@@ -3,6 +3,7 @@ package com.tmax.WaplMath.AnalysisReport.util.statistics;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,20 +12,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
-import com.tmax.WaplMath.Common.model.redis.RedisObjectData;
-import com.tmax.WaplMath.Common.model.redis.RedisStringData;
 import com.tmax.WaplMath.Common.model.user.User;
-import com.tmax.WaplMath.Common.util.redis.RedisIdGenerator;
 import com.tmax.WaplMath.Common.util.redis.RedisUtil;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
 
@@ -37,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 class Mastery implements Serializable {
@@ -55,6 +55,16 @@ class Mastery implements Serializable {
         this.count++;
         this.mastery += mastery;
         this.map.put(ukID, mastery);
+    }
+
+    //Method to update passively
+    public void updateMastery() {
+        this.count = map.size();
+        this.mastery = 0.0f; //clear
+
+        for(Map.Entry<Integer, Float> entry : this.map.entrySet()){
+            this.mastery += entry.getValue();
+        }
     }
 
     public Float getAverage() {
@@ -70,6 +80,9 @@ class Mastery implements Serializable {
     }
 }
 
+@Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 class UserData {
     private Float mastery = 0.0f;
@@ -93,6 +106,31 @@ class UserData {
     public Map<String, Float> getMap() {
         return this.map;
     }
+
+    //Method to update passively
+    public void updateMastery() {
+        this.count = map.size();
+        this.mastery = 0.0f; //clear
+
+        for(Map.Entry<String, Float> entry : this.map.entrySet()){
+            this.mastery += entry.getValue();
+        }
+    }
+}
+
+@Data
+@AllArgsConstructor
+class UkLUT {
+    private Integer id;
+    private Integer map;
+}
+
+
+@Data
+@AllArgsConstructor
+class DataTable {
+    private String username;
+    private List<Float> ukMasteryList;
 }
 
 /**
@@ -125,6 +163,11 @@ public class IScreamEduDataReader {
     private Map<String, Mastery> wholeData = null;
     private Map<Integer, UserData> ukData = null;
 
+
+    //Uk LUT
+    private Map<Integer, Integer> ukLUT = null;
+    private Map<String, List<Float>> dataTable = null;
+
     //Public static map for year translation
     public static Map<Integer, Integer> yearTransLUT;
     static {
@@ -156,23 +199,134 @@ public class IScreamEduDataReader {
         this.externalConfigURL = externalConfigURL;
         this.useIScreamData = useIScreamData;
     }
-    
-    public void loadData() {
-        if(useIScreamData){
-            log.info("Using I-scream data");
-
-            log.info("Preload all UK data");
-            this.getAllUKData();
-
-            log.info("Preload all User mastery data");
-            this.getAllUserMasteryData();
-        }
-    }
 
     public boolean useIScreamData(){
         return this.useIScreamData;
     }
 
+    public void loadData() {
+        if(useIScreamData){
+            log.info("Using I-scream data");
+
+            log.info("Load uk LUT and data table");
+            this.loadUkLUT();
+            this.loadDataTable();
+
+            log.info("Parse all User mastery data");
+            this.parseUserMasteryMap();
+
+            log.info("Parse all UK data");
+            this.parseUkMap();
+        }
+    }
+
+    private void loadUkLUT() {
+        //get UK LUT
+        Path path = null;
+        String filepathSuffix = "statistics/uk_lut.json";
+        try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
+        catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
+
+        if(path == null){ //external file read
+            try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+            catch (FileNotFoundException e) {log.error("File also not found externally.: "+ filepathSuffix);}
+        }
+
+        FileReader reader = null;
+        try {
+            reader = new FileReader(path.toString());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        JsonObject result = (JsonObject)JsonParser.parseReader(reader);
+        
+        this.ukLUT = result.entrySet().stream()
+                            .parallel()
+                            .map(entry -> new UkLUT(   Integer.parseInt(entry.getKey()) - 1, //for java index matching. lut file start from index 1 
+                                                       Integer.parseInt(entry.getValue().getAsString()) 
+                                                    ) 
+                            ).collect(Collectors.toMap(UkLUT::getId, UkLUT::getMap));
+        
+        return;
+    }
+
+    private void loadDataTable() {
+        //get UK LUT
+        Path path = null;
+        String filepathSuffix = "statistics/data_table.json";
+        try {path = ResourceUtils.getFile("classpath:" + filepathSuffix).toPath();}
+        catch (FileNotFoundException e) {log.debug("File not found internally: "+ filepathSuffix);}
+
+        if(path == null){ //external file read
+            try {path = ResourceUtils.getFile("file:" + externalConfigURL + "/" + filepathSuffix).toPath();} 
+            catch (FileNotFoundException e) {log.error("File also not found externally.: "+ filepathSuffix);}
+        }
+
+        FileReader reader = null;
+        try {
+            reader = new FileReader(path.toString());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        JsonObject result = (JsonObject)JsonParser.parseReader(reader);
+        
+        this.dataTable = result.entrySet().stream()
+                                .parallel()
+                                .map(entry -> {
+                                    //Get ukList
+                                    Type listType = new TypeToken<List<Float>>(){}.getType();
+                                    List<Float> ukMasteryList = new Gson().fromJson(entry.getValue(), listType);
+
+                                    return new DataTable(
+                                                entry.getKey(),
+                                                ukMasteryList
+                                            );
+                                })
+                                .collect(Collectors.toMap(DataTable::getUsername, DataTable::getUkMasteryList));
+        
+        return;
+    }
+
+    private void parseUserMasteryMap() {
+        //TODO: optimize flow more
+        //Parse to Map<String, Mastery> . dataTable + ukLut
+        this.wholeData = this.dataTable.entrySet().stream()
+                             .parallel()
+                             .collect(Collectors.toMap(entry -> entry.getKey(), entry -> {
+                                List<Float> masteryList = entry.getValue(); // +ukLUT will become the map
+                                Map<Integer,Float> masteryMap = new HashMap<>();
+
+                                IntStream.range(0, entry.getValue().size())
+                                        .forEach(idx -> masteryMap.put(this.ukLUT.get(idx), masteryList.get(idx)));
+
+                                Mastery mastery =  Mastery.builder()
+                                                        .map(masteryMap)
+                                                        .build();
+                                mastery.updateMastery();
+                                return mastery;
+                             }));
+        return;
+    }
+
+    private void parseUkMap() {
+        //TODO: optimize flow more
+        //Parse to Map<String, Mastery> . dataTable + ukLut
+        this.ukData = this.ukLUT.entrySet().stream().parallel()
+                          .collect(Collectors.toMap(entry -> entry.getValue(), entry -> {
+                                int ukindex = entry.getKey();
+
+                                UserData userdata =  new UserData();
+
+                                for(Map.Entry<String,List<Float>> dataEntry : this.dataTable.entrySet()){
+                                    userdata.add(dataEntry.getKey(),dataEntry.getValue().get(ukindex));
+                                }                      
+
+                                return userdata;
+                          }));
+        return;
+    }
     /**
      * Return user year of iscream user from the iscream userID
      * @param userID
@@ -279,6 +433,7 @@ public class IScreamEduDataReader {
         return output;
     }
 
+    @Deprecated
     private Map<String, Mastery> getAllUserMasteryData() {
         //If cached data exists
         if(this.wholeData != null)
@@ -360,6 +515,7 @@ public class IScreamEduDataReader {
         return output;
     }
 
+    @Deprecated
     private Map<Integer, UserData> getAllUKData() {
         //If cached data exists
         if(this.ukData != null)
