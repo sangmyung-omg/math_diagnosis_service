@@ -1,10 +1,14 @@
 package com.tmax.WaplMath.AnalysisReport.event.statistics;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
+import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryChangeEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +35,9 @@ public class StatisticsEventListener {
 
     @Autowired
     IScreamEduDataReader iScreamEduDataReader;
+
+    @Autowired
+    ShedLockUtil shedLockUtil;
 
     /**
      * Handler to call services that run on mastery change
@@ -85,31 +92,103 @@ public class StatisticsEventListener {
     }
 
     @Scheduled(cron="0 0 0 * * *")
-    @SchedulerLock(name="Stat_Update_Curriculum", lockAtLeastFor = "PT5M")
+    // @SchedulerLock(name="Stat_Update_Curriculum", lockAtLeastFor = "PT5M")
     public void updateCurriculumStats(){
+        String lockname = "Stat_Update_Curriculum";
+        if(!shedLockUtil.tryLock(lockname, Duration.ofMinutes(30)) ){
+            log.info("Schedule run for {} is already taken by another cluster", lockname);
+            return;
+        }
+
+
         log.info("======= Nightly Curr statistics update START ========");
-        log.info("Curriculum");
+        // log.info("Curriculum");
         currStatSvc.updateStatistics();
         log.info("======= Nightly statistics update DONE ========");   
+
+        //Release lock
+        shedLockUtil.releaseLock(lockname);
     }
 
     @Scheduled(cron="0 0 0 * * *")
-    @SchedulerLock(name="Stat_Update_User", lockAtLeastFor = "PT5M")
+    // @SchedulerLock(name="Stat_Update_User", lockAtLeastFor = "PT5M")
     public void updateUserStats(){
+        String lockname = "Stat_Update_User";
+        if(!shedLockUtil.tryLock(lockname, Duration.ofMinutes(30)) ){
+            log.info("Schedule run for {} is already taken by another cluster", lockname);
+            return;
+        }
+
+
         log.info("======= Nightly User statistics update START ========");
-        log.info("User");
+        // log.info("User");
         userStatSvc.updateAllUsers();     
-        log.info("======= Nightly User statistics update DONE ========");   
+        log.info("======= Nightly User statistics update DONE ========");
+        
+        
+        //Release lock
+        shedLockUtil.releaseLock(lockname);
     }
 
     @Scheduled(cron="0 0 0 * * *")
-    @SchedulerLock(name="Stat_Update_UK", lockAtLeastFor = "PT5M")
+    // @SchedulerLock(name="Stat_Update_UK", lockAtLeastFor = "PT5M")
     public void updateUkStats(){
+        String lockname = "Stat_Update_UK";
+        if(!shedLockUtil.tryLock(lockname, Duration.ofMinutes(30)) ){
+            log.info("Schedule run for {} is already taken by another cluster", lockname);
+            return;
+        }
+        
         log.info("======= Nightly UK statistics update START ========");
-        log.info("UK");
+        // log.info("UK");
         ukStatSvc.updateAllStatistics();    
         log.info("======= Nightly UK statistics update DONE ========");   
+
+        //Release lock
+        shedLockUtil.releaseLock(lockname);
     }
+
+    // @Scheduled(cron="*/1 * * * * *")
+    // // @SchedulerLock(name="test", lockAtLeastFor = "PT2M")
+    // public void testshedlock(){
+    //     //try and check fail
+    //     if(!shedLockUtil.tryLock("test", Duration.ofMinutes(1))){
+    //         log.info("test is already locked");
+    //         try {
+    //             TimeUnit.SECONDS.sleep(5);
+    //         } catch (InterruptedException e) {
+    //             // TODO Auto-generated catch block
+    //             e.printStackTrace();
+    //         }   
+    //         return;
+    //     }
+
+    //     log.info("======= test shedlock START ========");
+    //     log.info("======= test shedlock DONE ========");   
+
+    //     // shedLockUtil.removeLock("test");
+    // }
+
+    // @Scheduled(cron="*/1 * * * * *")
+    // // @SchedulerLock(name="test", lockAtLeastFor = "PT2M")
+    // public void testshedlock2(){
+    //     //try and check fail
+    //     if(!shedLockUtil.tryLock("test", Duration.ofMinutes(1))){
+    //         log.info("test2 is already locked");
+    //         try {
+    //             TimeUnit.SECONDS.sleep(5);
+    //         } catch (InterruptedException e) {
+    //             // TODO Auto-generated catch block
+    //             e.printStackTrace();
+    //         }   
+    //         return;
+    //     }
+        
+    //     log.info("======= test shedlock2 START ========"); 
+    //     log.info("======= test shedlock2 DONE ========");   
+
+    //     // shedLockUtil.removeLock("test");
+    // }
 
     @Autowired
     WaplScoreServiceV0 waplScoreSvc;

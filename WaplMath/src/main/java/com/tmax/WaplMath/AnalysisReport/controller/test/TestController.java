@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.controller.test;
 
 import java.io.FileNotFoundException;
+import java.time.Duration;
 import java.util.Arrays;
 // import java.io.FileReader;
 // import java.nio.file.Path;
@@ -47,6 +48,7 @@ import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManagerInterface;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Common.util.lrs.TestLRSManager;
+import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
 import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
@@ -334,5 +336,17 @@ public class TestController {
         log.info("test {} {}", kv("test", userID));
 
         throw new UserOrientedException(CommonErrorCode.GENERIC_ERROR, userID);
+    }
+
+    @Autowired
+    ShedLockUtil shedlockUtil;
+
+    @GetMapping("/shedlocktest")
+    ResponseEntity<Object> shedlocktest(@RequestParam("lockname") String lockname) {
+        shedlockUtil.setLock(lockname, Duration.ofMinutes(5));
+
+
+        boolean locked = shedlockUtil.isLocked(lockname);
+        return ResponseEntity.ok("done: " + locked );
     }
 }
