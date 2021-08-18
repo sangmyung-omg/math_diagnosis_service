@@ -18,6 +18,7 @@ public interface ProblemRepo extends CrudRepository<UserKnowledge,String>{
 			" from Problem p"+
 			" where p.probId not in(:probIdList)"+
 			" and p.problemType.curriculumId in(:curriculumIdList)"+
+			" and p.status =('ACCEPT')"+
 			" and (p.frequent =('true') or p.frequent is null)")
 	List<Problem> getFrequentNotProvidedProblemByCurri(@Param("probIdList") Set<Integer> probIdList, 
 																@Param("curriculumIdList") List<String> curriculumIdList);
@@ -28,6 +29,7 @@ public interface ProblemRepo extends CrudRepository<UserKnowledge,String>{
 			" from Problem p"+
 			" where p.probId in(:probIdList)"+
 			" and p.problemType.curriculumId in(:curriculumIdList)"+
+			" and p.status =('ACCEPT')"+
 			" and (p.frequent =('true') or p.frequent is null)")
 	List<Problem> getFrequentProvidedProblemByCurri(@Param("probIdList") Set<Integer> probIdList, 
 																	@Param("curriculumIdList") List<String> curriculumIdList);
@@ -37,6 +39,7 @@ public interface ProblemRepo extends CrudRepository<UserKnowledge,String>{
 			" from Problem p"+
 			" where p.problemType.curriculumId in(:curriculumIdList)"+
 			" and p.probId not in(:probIdList)"+
+			" and p.status =('ACCEPT')"+
 			" and (p.frequent =('true') or p.frequent is null)")
 	List<Problem> getFrequentAllProblemByCurri(@Param("probIdList") Set<Integer> probIdList,  @Param("curriculumIdList") List<String> curriculumIdList);
 }
