@@ -430,14 +430,14 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, ActionType.getAllActionTypes(), SourceType.getAllSourceTypes());
 
         //If size == 0  retry with hyphened version TEMP. FIXME. only try if uuid is a 32 sized one;
-        // if(userID.length() == 32 && statementList.size() == 0){
-        //     String formatedUserID = String.format("%s-%s-%s-%s-%s", userID.substring(0,8),
-        //                                                             userID.substring(8, 12),
-        //                                                             userID.substring(12,16),
-        //                                                             userID.substring(16,20),
-        //                                                             userID.substring(20, 32));
-        //     statementList = lrsManager.getStatementList(formatedUserID, actionTypeList, sourceTypeList);                                                  
-        // }
+        if(userID.length() == 32 && statementList.size() == 0){
+            String formatedUserID = String.format("%s-%s-%s-%s-%s", userID.substring(0,8),
+                                                                    userID.substring(8, 12),
+                                                                    userID.substring(12,16),
+                                                                    userID.substring(16,20),
+                                                                    userID.substring(20, 32));
+            statementList = lrsManager.getStatementList(formatedUserID, ActionType.getAllActionTypes(), SourceType.getAllSourceTypes());                                                  
+        }
         
 
         //if still null --> then return. do not create a update set
