@@ -45,6 +45,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 													  @Param("probIdSet") Set<Integer> probIdSet);
 
 	// CardGenerator v1
+	// 2021-08-18 Modified by Guik Jung. Get Only Accept Status Problem
 	@Query("select p from Problem p where p.problemType.curriculumId=:subSectionId and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet)) and p.status = ('ACCEPT')")
 	public List<Problem> NfindProbListBySubSection(@Param("subSectionId") String subSectionId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
@@ -67,4 +68,35 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 	//2021-06-17 Added by Jonghyun Seong. gets Problem List from probIDList
 	@Query("select p from Problem p where p.probId in :probIdList")
 	public List<Problem> getProblemsByProbIdList(@Param("probIdList") List<Integer> probIdList);
+
+	//2021-08-19 Added by Guik Jung. gets Frequent Problem List in Exam
+	@Query("select count(p)"+
+			" from Problem p"+
+			" where p.problemType.curriculumId like concat(:currId, '%')"+
+			" and (coalesce(:solvedProbIdSet, null) is null"+
+			" or p.probId not in (:solvedProbIdSet))"+
+			" and p.category not in ('간단', '꼼꼼')"+
+			" and p.status = ('ACCEPT')"+
+			" and p.frequent is null or p.frequent = 'true'")
+	public Integer findExamProbCntInCurrId(@Param("currId") String currId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+
+	@Query("select count(p) from Problem p"+
+			" where p.typeId=:typeId"+
+			" and (coalesce(:solvedProbIdSet, null) is null"+
+			" or p.probId not in (:solvedProbIdSet))"+
+			" and p.category not in ('간단', '꼼꼼')"+
+			" and p.status = ('ACCEPT')"+
+			" and p.frequent is null or p.frequent = 'true'")
+	public Integer findExamProbCntInType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+
+	@Query("select p from Problem p"+
+			" where p.typeId=:typeId"+
+			" and (coalesce(:solvedProbIdSet, null) is null"+
+			" or p.probId not in (:solvedProbIdSet))"+
+			" and p.category not in ('간단', '꼼꼼')"+
+			" and p.status = ('ACCEPT')"+
+			" and p.frequent is null or p.frequent = 'true'")
+	public List<Problem> NfindExamProbListByType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
+
+
 }

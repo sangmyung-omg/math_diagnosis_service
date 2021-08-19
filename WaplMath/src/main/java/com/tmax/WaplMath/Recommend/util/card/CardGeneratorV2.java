@@ -485,8 +485,10 @@ public class CardGeneratorV2 extends CardConstants {
     
         if (currProbNum <= typeNum * probPerType) {
           // currId 내 제공 가능한 모든 문제 수
+          // 2021-08-19 Guik Jung
+          // problemRepo.findProbCntInCurrId -> problemRepo.findExamProbCntInCurrId
           Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId)
-                                   ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet)
+                                   ? problemRepo.findExamProbCntInCurrId(currId, solvedProbIdSet)
                                    : totalCurrProbNumMap.get(currId);
                                    
           totalCurrProbNumMap.put(currId, totalCurrProbNum);
@@ -652,8 +654,10 @@ public class CardGeneratorV2 extends CardConstants {
                             ? currentTypeProbNumMap.get(typeId) : 0;
 
         // typeId 내 제공 가능한 모든 문제 수
+        // 2021-08-19 Guik Jung
+        // problemRepo.findProbCntInType -> problemRepo.findExamProbCntInType
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
-                                 ? problemRepo.findProbCntInType(typeId, solvedProbIdSet)
+                                 ? problemRepo.findExamProbCntInType(typeId, solvedProbIdSet)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
@@ -681,7 +685,9 @@ public class CardGeneratorV2 extends CardConstants {
         log.info("\tType {} : {} problems. ", typeId, typeProbNum);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, solvedProbIdSet));
+      // 2021-08-19 Guik Jung
+      // problemRepo.NfindProbListByType -> problemRepo.NfindExamProbListByType
+      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindExamProbListByType(typeId, solvedProbIdSet));
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()) {

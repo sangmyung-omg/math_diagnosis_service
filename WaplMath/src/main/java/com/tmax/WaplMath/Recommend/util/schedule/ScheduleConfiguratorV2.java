@@ -187,10 +187,12 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
 
   // (시험 대비) 시험 범위 내에서, 제공할 문제가 있는 중단원 Id set 설정
+  // 2021-08-19 Guik Jung
+  // problemRepo.findProbCntInCurrId -> problemRepo.findExamProbCntInCurrId
   public void setValidSectionIdSet() {  
     this.validSectionIdSet = this.examSubSectionIdSet.stream()
                                                      .filter(
-            subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
+            subSection -> problemRepo.findExamProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
                                                      .map(subSection -> subSection.substring(0, 14))
                                                      .collect(Collectors.toSet());
   }
