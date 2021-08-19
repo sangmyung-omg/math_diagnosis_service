@@ -34,6 +34,7 @@ public class UserDataControllerV2 {
     public ResponseEntity<Object> getStudyStats(@RequestHeader("token") String token, 
                                                 @RequestBody List<String> userIDList,
                                                 @RequestParam(name="exclude", defaultValue = "") String exclude) {
+        // String userID  = JWTUtil.getUserID(token);
         
         //split to get exclude list
         Set<String> excludeSet = new HashSet<>(Arrays.asList(exclude.split(",")));

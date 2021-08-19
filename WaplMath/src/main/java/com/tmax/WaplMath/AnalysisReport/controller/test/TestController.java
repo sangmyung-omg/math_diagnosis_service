@@ -31,6 +31,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsSe
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.studyguide.StudyGuideServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.triton.WAPLScoreTriton;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.exception.UserOrientedException;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
@@ -49,7 +50,6 @@ import com.tmax.WaplMath.Common.util.lrs.LRSManagerInterface;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Common.util.lrs.TestLRSManager;
 import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceV1;

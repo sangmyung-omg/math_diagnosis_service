@@ -16,12 +16,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementRequestDTO;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Recommend.dto.GetStatementInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.StatementDTO;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementRequestDTO;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;

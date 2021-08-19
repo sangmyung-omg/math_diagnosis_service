@@ -16,6 +16,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
+import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserLRSRecordSimpleDTO;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUserKey;
 import com.tmax.WaplMath.AnalysisReport.repository.curriculum.CurriculumInfoRepo;
@@ -29,14 +30,16 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServic
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreData;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
+import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManager;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
-import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
+// import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
+import com.tmax.WaplMath.Common.util.lrs.SourceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -424,22 +427,17 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
 
         //Get LRS statement list for user
-        List<String> actionTypeList = Arrays.asList("submit", "start");
-        List<String> sourceTypeList = Arrays.asList("diagnosis", "diagnosis_simple", "type_question", "supple_question", "section_test_question","chapter_test_question",
-                                                    "addtl_supple_question","section_exam_question","full_scope_exam_question","trial_exam_question",
-                                                    "retry_question","wrong_answer_question","starred_question");
-
-        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
+        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, ActionType.getAllActionTypes(), SourceType.getAllSourceTypes());
 
         //If size == 0  retry with hyphened version TEMP. FIXME. only try if uuid is a 32 sized one;
-        if(userID.length() == 32 && statementList.size() == 0){
-            String formatedUserID = String.format("%s-%s-%s-%s-%s", userID.substring(0,8),
-                                                                    userID.substring(8, 12),
-                                                                    userID.substring(12,16),
-                                                                    userID.substring(16,20),
-                                                                    userID.substring(20, 32));
-            statementList = lrsManager.getStatementList(formatedUserID, actionTypeList, sourceTypeList);                                                  
-        }
+        // if(userID.length() == 32 && statementList.size() == 0){
+        //     String formatedUserID = String.format("%s-%s-%s-%s-%s", userID.substring(0,8),
+        //                                                             userID.substring(8, 12),
+        //                                                             userID.substring(12,16),
+        //                                                             userID.substring(16,20),
+        //                                                             userID.substring(20, 32));
+        //     statementList = lrsManager.getStatementList(formatedUserID, actionTypeList, sourceTypeList);                                                  
+        // }
         
 
         //if still null --> then return. do not create a update set
@@ -606,6 +604,65 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                       .data(recentCurrSet.toString())
                                                       .build(), 
                                             ts));
+
+        //Save the lrs statement list to user history DB (near RAW DATA)
+        List<UserLRSRecordSimpleDTO> recordList = 
+                statementList.stream().parallel()
+                             .flatMap(statement -> {
+                                 try{
+                                    //Get basic info
+                                    Integer probID = Integer.parseInt(statement.getSourceId());
+                                    // String userId = statement.getUserId();
+
+                                    //Get duration info
+                                    String durationRaw = statement.getDuration();
+                                    Long duration = Long.parseLong(durationRaw == null ? "0" : (String)durationRaw);
+
+                                    //Get
+                                    Integer isCorrect = statement.getIsCorrect();
+                                    String userAnswer = statement.getUserAnswer();
+
+                                    String correct = ""; // c / p / w
+                                    if(userAnswer.toUpperCase().equals("PASS")){
+                                        correct = "p";
+                                    }
+                                    else {
+                                        correct = isCorrect == null || isCorrect == 0 ? "w": "c";
+                                    }
+
+                                    //Difficulty
+                                    String difficulty = null;
+                                    String diffRaw = probDiffMap.get(probID);
+                                    if(diffRaw.equals("상"))
+                                        difficulty = "l";
+                                    else if(diffRaw.equals("중"))
+                                        difficulty = "m";
+                                    else if(diffRaw.equals("하"))
+                                        difficulty = "h";
+                                    else
+                                        difficulty = "u"; //unknown
+
+                                    return Stream.of(UserLRSRecordSimpleDTO.builder().pID(probID)
+                                                                                    // .userID(userId)
+                                                                                    .diff(difficulty)
+                                                                                    .dur(duration).corr(correct).build());
+                                 }
+                                 catch(Exception e){
+                                     log.error("LRS error at {}. {}.", statement.toString(), e.getMessage());
+                                     return Stream.empty();
+                                 }
+                             })
+                             .collect(Collectors.toList());
+
+        String userLRSRecordJson = new Gson().toJson(recordList);
+        updateSet.add(statsToAnalyticsUser( userID, 
+                                            Statistics.builder()
+                                                    .name(STAT_LRS_STATEMENT_HISTORY)
+                                                    .type(Statistics.Type.STRING)
+                                                    .data(userLRSRecordJson)
+                                                    .build(), 
+                                            ts));           
+
         return updateSet;
     }
     

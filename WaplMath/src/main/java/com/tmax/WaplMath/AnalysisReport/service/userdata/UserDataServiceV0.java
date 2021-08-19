@@ -7,20 +7,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+// import java.util.stream.Stream;
 
+import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.BasicProblemStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.CorrectRateDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.uk.UkDataDTO;
+import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserLRSRecordSimpleDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserMasteryDataListDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserStudyDataDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserUKKnowledgeDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userknowledge.UkUserKnowledgeScoreDTO;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.userknowledge.UserKnowledgeServiceBase;
-import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
+// import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.uk.Uk;
@@ -28,7 +32,7 @@ import com.tmax.WaplMath.Common.repository.knowledge.UserKnowledgeRepo;
 import com.tmax.WaplMath.Common.repository.uk.UkRepo;
 import com.tmax.WaplMath.Common.util.error.CommonErrorCode;
 
-import com.tmax.WaplMath.AnalysisReport.dto.statistics.BasicProblemStatDTO;
+// import com.tmax.WaplMath.AnalysisReport.dto.statistics.BasicProblemStatDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.CustomStatDataDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +60,14 @@ public class UserDataServiceV0 implements UserDataServiceBase {
 
     @Override
     public List<UserStudyDataDTO> getStudyStatList(List<String> userIDList, Set<String> excludeSet) {
+        //TEMP: TODO: Map for median emulation. l -> 2min 30s, m -> 3min, h -> 3min 30s
+        Map<String, Long> durMap = new HashMap<>();
+        durMap.put("l", (long)(2*60 + 30)*1000); //low
+        durMap.put("m", (long)(3*60 + 0)*1000); //mid
+        durMap.put("h", (long)(3*60 + 30)*1000); //high
+        durMap.put("u", (long)-1); //unknown
+
+      
         List<UserStudyDataDTO> result = 
             userIDList.stream()
                       .parallel()
@@ -79,26 +91,66 @@ public class UserDataServiceV0 implements UserDataServiceBase {
                                 wrong = correctRate.getProblemcount() - correct;
                             }
 
-                            double random1 = Math.random();
-                            double random2 = random1 * Math.random();
-                            double random3 = (1-random1) * Math.random();
+                            BasicProblemStatDTO basic = BasicProblemStatDTO.builder()
+                                                                            .correct(correct)
+                                                                            .wrong(wrong)
+                                                                            .pass(pass)
+                                                                            .totalcnt(totalcnt)
+                                                                            .build();
+                            
+
+                            //Get the simple lrs history stat
+                            CustomStatDataDTO custom = null;
+                            Statistics userLrsHistory = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_LRS_STATEMENT_HISTORY);
+                            if(userLrsHistory != null){
+                                //Prepare tally fields
+                                int pick = 0;
+                                int unknown = 0;
+                                int difficult = 0;
+                                int miss = 0;
+
+                                //Convert back to Object
+                                UserLRSRecordSimpleDTO[] historyList = new Gson().fromJson(userLrsHistory.getData(),UserLRSRecordSimpleDTO[].class);
+                                for(UserLRSRecordSimpleDTO record : historyList){
+                                    String diff = record.getDiff();
+                                    Long median = durMap.get(diff);
+                                    
+                                    //Pick: under 3000ms
+                                    if(record.getDur() < 3000)
+                                        pick++;
+
+                                    //Unknown: case 1) w AND duration > median 2) PASS
+                                    if(record.getCorr().equals("p") && median > 0 && record.getDur() >= median)
+                                            unknown++;
+
+                                    if(record.getCorr().equals("w")){
+                                        //Difficult: w AND over total time 20 min
+                                        if(record.getDur() > 20 * 60* 1000 )
+                                            difficult++;
+
+                                        //Miss : w AND duration under 3000ms or over median
+                                        if(record.getDur() < 3000 || (median > 0 && record.getDur() >= median ) )
+                                            miss++;
+                                    }
+                                }
+
+                                custom = CustomStatDataDTO.builder()
+                                                          .pick(pick)
+                                                          .difficult(difficult)
+                                                          .unknown(unknown)
+                                                          .miss(miss)
+                                                          .notfocused(miss)
+                                                          .notserious(difficult) //temp for compat
+                                                          .build();
+                            }
+                            else{
+                                log.warn("No LRS history stat for {}", id);
+                            }
 
                             return UserStudyDataDTO.builder()
                                                 .userID(id)
-                                                .basic(BasicProblemStatDTO.builder()
-                                                                        .correct(correct)
-                                                                        .wrong(wrong)
-                                                                        .pass(pass)
-                                                                        .totalcnt(totalcnt)
-                                                                        .build()
-                                                                        )
-                                                .custom(CustomStatDataDTO.builder()
-                                                                         .pick((int)(totalcnt * random1))
-                                                                         .unknown((int)(totalcnt * random2))
-                                                                         .notfocused((int)(totalcnt * random3))
-                                                                         .notserious((int)(totalcnt * (1-random3)))
-                                                                         .build()
-                                                                         )
+                                                .basic(basic)
+                                                .custom(custom)
                                                 .build();
                 }).collect(Collectors.toList());
 

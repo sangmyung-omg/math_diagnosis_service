@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 public class CustomStatDataDTO {
     private Integer pick;
     private Integer unknown;
-    private Integer notserious;
-    private Integer notfocused;
+    private Integer difficult;
+    private Integer miss;
+    @Deprecated private Integer notserious;
+    @Deprecated private Integer notfocused;
 }

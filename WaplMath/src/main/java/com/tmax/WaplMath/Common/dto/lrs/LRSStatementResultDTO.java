@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.dto.lrs;
+package com.tmax.WaplMath.Common.dto.lrs;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

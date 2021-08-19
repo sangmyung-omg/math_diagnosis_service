@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.time.Duration;
 
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementRequestDTO;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementRequestDTO;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;

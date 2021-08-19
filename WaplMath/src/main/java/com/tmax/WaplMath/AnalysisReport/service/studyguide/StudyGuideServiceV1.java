@@ -20,8 +20,8 @@ import com.tmax.WaplMath.AnalysisReport.repository.user.UserExamScopeInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.util.lrs.LRSManager;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

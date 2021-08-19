@@ -46,4 +46,6 @@ public interface UserStatisticsServiceBase {
 
     public static final String STAT_RECENT_CURR_ID_LIST = "recent_curr_list";
     public static final String STAT_RECENT_DIAGNOSIS_CURR_ID_LIST = "recent_diag_curr_list";
+
+    public static final String STAT_LRS_STATEMENT_HISTORY = "lrs_statement_list";
 }

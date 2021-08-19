@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.LRSStatementEmptyException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
@@ -28,7 +29,6 @@ import com.tmax.WaplMath.Common.util.redis.RedisIdGenerator;
 import com.tmax.WaplMath.Common.util.redis.RedisUtil;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;

@@ -9,9 +9,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementRequestDTO;
+import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.util.error.CommonErrorCode;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementRequestDTO;
-import com.tmax.WaplMath.Recommend.dto.lrs.LRSStatementResultDTO;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
