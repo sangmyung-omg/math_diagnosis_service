@@ -77,26 +77,27 @@ public class UserDataServiceV0 implements UserDataServiceBase {
                             int wrong = 0;
                             int pass = 0;
 
+                            BasicProblemStatDTO basic = null;
                             try {
                                 correct = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_CORRECT_CNT).getAsInt();
                                 pass = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_PASS_CNT).getAsInt();
                                 wrong = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_WRONG_CNT).getAsInt();
                                 totalcnt = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_RATE_PROBLEM_COUNT).getAsInt();
+
+                                basic = BasicProblemStatDTO.builder()
+                                                            .correct(correct)
+                                                            .wrong(wrong)
+                                                            .pass(pass)
+                                                            .totalcnt(totalcnt)
+                                                            .build();
                             }
                             catch (Throwable e){
-                                log.error("Count Stats not found. fallback to old stat");
+                                log.error("Count Stats not found. Check LRS or stat data of user {}. {}", id, e.getMessage());
                                 CorrectRateDTO correctRate = scoreSvc.getCorrectRate(id, excludeSet);
                                 totalcnt = correctRate.getProblemcount();
                                 correct = (int)(correctRate.getCorrectrate() * correctRate.getProblemcount());
                                 wrong = correctRate.getProblemcount() - correct;
                             }
-
-                            BasicProblemStatDTO basic = BasicProblemStatDTO.builder()
-                                                                            .correct(correct)
-                                                                            .wrong(wrong)
-                                                                            .pass(pass)
-                                                                            .totalcnt(totalcnt)
-                                                                            .build();
                             
 
                             //Get the simple lrs history stat
