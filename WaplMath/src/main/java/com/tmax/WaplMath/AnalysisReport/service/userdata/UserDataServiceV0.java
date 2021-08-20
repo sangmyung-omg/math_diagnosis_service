@@ -93,10 +93,6 @@ public class UserDataServiceV0 implements UserDataServiceBase {
                             }
                             catch (Throwable e){
                                 log.error("Count Stats not found. Check LRS or stat data of user {}. {}", id, e.getMessage());
-                                CorrectRateDTO correctRate = scoreSvc.getCorrectRate(id, excludeSet);
-                                totalcnt = correctRate.getProblemcount();
-                                correct = (int)(correctRate.getCorrectrate() * correctRate.getProblemcount());
-                                wrong = correctRate.getProblemcount() - correct;
                             }
                             
 
