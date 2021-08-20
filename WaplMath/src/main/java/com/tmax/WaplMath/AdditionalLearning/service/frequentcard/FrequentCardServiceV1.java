@@ -63,6 +63,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 		String todayEnd = ZonedDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		String minusDays14 = ZonedDateTime.now().minusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		
+		
 		List<String> sourceTypeListDiagnosis = new ArrayList<String>(
 				Arrays.asList("diagnosis","diagnosis_simple"));
 		List<String> sourceTypeListTodaycards = new ArrayList<String>(
@@ -104,6 +105,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			log.info("\nDiagnosis probId List  : " + diagnosisSolvedProbIdList);
 			
 			if(diagnosisSolvedProbIdList.isEmpty()) {
+				log.info("\nERR-AL-003 : Diagnosis data is not found in LRS.");
 				throw new GenericInternalException("ERR-AL-003","Diagnosis data is not found in LRS.");
 			}
 			
@@ -139,7 +141,9 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 				List<FreqProbCurriDTO> diagnosisFreqProbCurriList = problemService.getNotProvidedFreqProbListBySubsection(solvedProbIdList, diagnosisSubsectionList);
 				
 				if(diagnosisFreqProbCurriList.isEmpty()) {
+					log.info("\nERR-AL-003  : There is no frequent problem in learned diagnosis subsection.");
 					throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned diagnosis subsection.");
+					
 				}
 				log.info("\nDiagnosis Subsection with frequent problem  : " + getSubsecListWithFreqProb(diagnosisFreqProbCurriList));
 				log.info("\nFrequent problem count in Diagnosis Subsection : " + diagnosisFreqProbCurriList.size());
@@ -164,6 +168,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 					
 					
 					if(todaycardSolvedProbIdList.isEmpty()) {
+						log.info("\nERR-AL-003  : Todaycards data is not found in LRS");
 						throw new GenericInternalException("ERR-AL-003","Todaycards data is not found in LRS.");
 					}
 					
@@ -176,6 +181,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 
 					
 					if(todaycardFreqProbCurriList.isEmpty()) {
+						log.info("\nERR-AL-003  : There is no frequent problem in learned todaycards subsection.");
 						throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned todaycards subsection.");
 					}
 					
@@ -189,6 +195,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 					frequentProblemList.addAll(todayRecommendFreqProbList);
 				}
 				else {
+					log.info("\nERR-AL-003 : The problem exists, but the subsection does not exist. Check user mastery. User ID =" + userId);
 					throw new GenericInternalException("ERR-AL-003","The problem exists, but the subsection does not exist. Check user mastery. User ID = "+userId);
 				}
 			}	
@@ -213,6 +220,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			log.info("\nTodaycards probId List  : " + todaycardSolvedProbIdList);
 			
 			if(todaycardSolvedProbIdList.isEmpty()) {
+				log.info("\nERR-AL-003  : Todaycards data is not found in LRS.");
 				throw new GenericInternalException("ERR-AL-003","Todaycards data is not found in LRS.");
 			}
 			
@@ -233,9 +241,9 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			
 			
 			
-			if((!todaycardSolvedProbIdList.isEmpty()&&todaycardSubsectionList.isEmpty())||(!recentSolvedProbIdList.isEmpty()&&recentSubsectionList.isEmpty())) {
-				throw new GenericInternalException("ERR-AL-003","The problem exists, but the subsection does not exist. Check user mastery. User ID = "+userId);
-			}
+//			if((!todaycardSolvedProbIdList.isEmpty()&&todaycardSubsectionList.isEmpty())||(!recentSolvedProbIdList.isEmpty()&&recentSubsectionList.isEmpty())) {
+//				throw new GenericInternalException("ERR-AL-003","The problem exists, but the subsection does not exist. Check user mastery. User ID = "+userId);
+//			}
 			
 			
 			
@@ -249,7 +257,19 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			log.info("\nFrequent problem count in Todaycards Subsection : " + todaycardFreqProbCurriList.size());
 			
 			List<FrequentProblemDTO> todayRecommendFreqProbList = problemService.SortingAndRecommend(todaycardFreqProbCurriList, todaycardSubsectionList, 1);
+			
 			frequentProblemList.addAll(todayRecommendFreqProbList);
+			
+			
+			//오늘의학습카드에서 학습한 소단원의 출제한 적 있는 빈출문제 - 오류 방지..
+			List<FrequentProblemDTO> todayRecommendFreqProbListNotSolved = problemService.SortingAndRecommend(todaycardFreqProbCurriList, todaycardSubsectionList, 1);
+			
+			if(todayRecommendFreqProbList.isEmpty()) {
+			frequentProblemList.addAll(todayRecommendFreqProbListNotSolved);
+			}
+			
+			
+			
 			
 			//오늘 소단원에서 출제할 문제는, 최근 공부 소단원에서 출제할 문제와 중복되면 안됨.
 			Set<Integer> solvedProbIdListAndTodayRec = new HashSet<Integer>();
@@ -296,8 +316,8 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 					recommendList.add(0);
 				}
 				
-				recentSubsectionList.sort(null);
-				List<String> AnotherSubsectionList = sectionService.getSubsectionListByCurriScope(userId, ExamScope.get(0), recentSubsectionList.get(0));
+				todaycardSubsectionList.sort(null);
+				List<String> AnotherSubsectionList = sectionService.getSubsectionListByCurriScope(userId, ExamScope.get(0), todaycardSubsectionList.get(0));
 				List<FreqProbCurriDTO> AnotherFreqProbCurriList = problemService.getAllFreqProbListBySubsection(recommendList,AnotherSubsectionList);
 				List<FrequentProblemDTO> AnotherRecommendFreqProbList = problemService.SortingAndRecommend(AnotherFreqProbCurriList, AnotherSubsectionList, 3-firstRecommendNum);
 				frequentProblemList.addAll(AnotherRecommendFreqProbList);
@@ -309,7 +329,8 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 
 				
 				if(todaycardFreqProbCurriList.size()+allRecentFreqProbCurriList.size()+AnotherFreqProbCurriList.size()==0) {
-					throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned subsection.");
+					log.info("\nERR-AL-003 : There is no frequent problem in learned subsection.");
+					//throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned subsection.");
 				}
 			}
 			
