@@ -77,7 +77,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 			" or p.probId not in (:solvedProbIdSet))"+
 			" and p.category not in ('간단', '꼼꼼')"+
 			" and p.status = ('ACCEPT')"+
-			" and p.frequent is null or p.frequent = 'true'")
+			" and (p.frequent is null or p.frequent = 'true')")
 	public Integer findExamProbCntInCurrId(@Param("currId") String currId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 	@Query("select count(p) from Problem p"+
@@ -86,7 +86,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 			" or p.probId not in (:solvedProbIdSet))"+
 			" and p.category not in ('간단', '꼼꼼')"+
 			" and p.status = ('ACCEPT')"+
-			" and p.frequent is null or p.frequent = 'true'")
+			" and (p.frequent is null or p.frequent = 'true')")
 	public Integer findExamProbCntInType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 	@Query("select p from Problem p"+
@@ -95,7 +95,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 			" or p.probId not in (:solvedProbIdSet))"+
 			" and p.category not in ('간단', '꼼꼼')"+
 			" and p.status = ('ACCEPT')"+
-			" and p.frequent is null or p.frequent = 'true'")
+			" and (p.frequent is null or p.frequent = 'true')")
 	public List<Problem> NfindExamProbListByType(@Param("typeId") Integer typeId, @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet);
 
 
