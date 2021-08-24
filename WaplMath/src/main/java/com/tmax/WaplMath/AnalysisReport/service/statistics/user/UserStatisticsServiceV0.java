@@ -644,6 +644,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
                                     return Stream.of(UserLRSRecordSimpleDTO.builder().pID(probID)
                                                                                     // .userID(userId)
+                                                                                    .time(statement.getTimestamp())
                                                                                     .diff(difficulty)
                                                                                     .dur(duration).corr(correct).build());
                                  }

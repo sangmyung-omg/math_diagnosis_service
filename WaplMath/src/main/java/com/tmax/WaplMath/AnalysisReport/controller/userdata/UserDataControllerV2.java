@@ -62,7 +62,10 @@ public class UserDataControllerV2 {
         //remove duplicates from userID List
         Set<String> userIDSet = new HashSet<>(userIDList);
 
-        List<UserStudyDataDTO> result = userDataSvc.getStudyStatList(new ArrayList<>(userIDSet), excludeSet);
+        String from = reqBody.getTimeRange() != null ? reqBody.getTimeRange().getFrom() : null;
+        String until = reqBody.getTimeRange() != null ? reqBody.getTimeRange().getUntil() : null;
+
+        List<UserStudyDataDTO> result = userDataSvc.getStudyStatList(new ArrayList<>(userIDSet), from, until, excludeSet);
         
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

@@ -1,7 +1,10 @@
 package com.tmax.WaplMath.Common.util.lrs;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.time.Duration;
 
@@ -37,6 +40,10 @@ public class LRSManager implements LRSManagerInterface {
 
     private HttpClient httpClient;
     private WebClient webClient;
+
+
+    @Value("${waplmath.lrs.duplcatefilter}")
+    private boolean useDuplicateFilter;
 
 
     public LRSManager(@Value("${waplmath.recommend.lrs.host}") String host) {
@@ -76,6 +83,9 @@ public class LRSManager implements LRSManagerInterface {
         //Convert output to result
         List<LRSStatementResultDTO> result = Arrays.asList(info.block());
 
+        if(useDuplicateFilter)
+            return getLrsWithoutDuplicate(result);
+
         return result;
     }
 
@@ -88,5 +98,47 @@ public class LRSManager implements LRSManagerInterface {
                                                       .sourceTypeList(sourceTypeList)
                                                       .build()
                                                       );
+    }
+
+
+    /**
+     * Added to get lrs and filter duplicates
+     * @param userID
+     * @since 2021-08-24
+     * @author jonghyun seong
+     * @return
+     */
+    private List<LRSStatementResultDTO> getLrsWithoutDuplicate(List<LRSStatementResultDTO> resultList){
+        //Set to save identity(duplicate id set)
+        Set<String> identitySet = new HashSet<>();
+
+        //Result set
+        List<LRSStatementResultDTO> output = new ArrayList<>();
+
+        for(LRSStatementResultDTO lrsStatement : resultList){
+            //build id list
+            String identity = buildIdentityString(lrsStatement);
+
+            //If in identity (duplicate continue and skip)
+            if(identitySet.contains(identity))
+                continue;
+
+            //Add if not exist
+            identitySet.add(identity);
+
+            output.add(lrsStatement);
+        }
+
+
+        return output;
+    }
+
+    private String buildIdentityString(LRSStatementResultDTO input){
+        return String.format("%s/%s/%s/%s/%s/%s",   input.getUserId(),
+                                                    input.getActionType(), 
+                                                    input.getSourceType(), 
+                                                    input.getSourceId(), 
+                                                    input.getTimestamp(), 
+                                                    input.getPlatform());
     }
 }

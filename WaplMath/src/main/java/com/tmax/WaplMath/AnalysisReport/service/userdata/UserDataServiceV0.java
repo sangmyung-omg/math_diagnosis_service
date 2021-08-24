@@ -1,17 +1,19 @@
 package com.tmax.WaplMath.AnalysisReport.service.userdata;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-// import java.util.stream.Stream;
+import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.BasicProblemStatDTO;
-import com.tmax.WaplMath.AnalysisReport.dto.statistics.CorrectRateDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.uk.UkDataDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserLRSRecordSimpleDTO;
@@ -59,7 +61,7 @@ public class UserDataServiceV0 implements UserDataServiceBase {
     UserStatisticsServiceV0 userStatSvc;
 
     @Override
-    public List<UserStudyDataDTO> getStudyStatList(List<String> userIDList, Set<String> excludeSet) {
+    public List<UserStudyDataDTO> getStudyStatList(List<String> userIDList, String from, String until, Set<String> excludeSet) {
         //TEMP: TODO: Map for median emulation. l -> 2min 30s, m -> 3min, h -> 3min 30s
         Map<String, Long> durMap = new HashMap<>();
         durMap.put("l", (long)(2*60 + 30)*1000); //low
@@ -71,18 +73,76 @@ public class UserDataServiceV0 implements UserDataServiceBase {
         List<UserStudyDataDTO> result = 
             userIDList.stream()
                       .parallel()
-                      .map(id -> {
-                            int totalcnt = 0;
-                            int correct = 0;
-                            int wrong = 0;
-                            int pass = 0;
-
+                      .flatMap(id -> {
                             BasicProblemStatDTO basic = null;
+                            CustomStatDataDTO custom = null;                           
+
+                            //Get the simple lrs history stat
+                            Statistics userLrsHistory = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_LRS_STATEMENT_HISTORY);
+                            if(userLrsHistory == null){
+                                log.warn("No LRS history stat for {}", id);
+                                return Stream.empty();
+                            }
+
+                            //Convert back to Object
+                            List<UserLRSRecordSimpleDTO> historyList = Arrays.asList(new Gson().fromJson(userLrsHistory.getData(),UserLRSRecordSimpleDTO[].class));
+
+                            //Filter the data by date range (if given)
+                            if(from != null || until != null){
+                                LocalDate fromTime = from != null ? LocalDate.parse(from) : null;
+                                LocalDate untilTime = until != null ? LocalDate.parse(until) : null;
+
+                                historyList = historyList.stream().filter(history -> {
+                                    //True if time exists and is within range
+                                    if(history.getTime() == null)
+                                        return false;
+
+
+                                    //Parse the times
+                                    LocalDateTime time = LocalDateTime.parse(history.getTime());
+                                    
+                                    //From 00:00 of from
+                                    if(from != null && time.compareTo(fromTime.atTime(0,0)) < 0){
+                                        return false;
+                                    }
+                                    
+                                    //Until 23:59 of until date
+                                    if(until != null && time.compareTo(untilTime.atTime(23,59)) > 0) {
+                                        return false;
+                                    }
+
+                                    return true;
+                                }).collect(Collectors.toList());
+                            }
+
+                            //Basic counter
                             try {
-                                correct = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_CORRECT_CNT).getAsInt();
-                                pass = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_PASS_CNT).getAsInt();
-                                wrong = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_WRONG_CNT).getAsInt();
-                                totalcnt = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_RATE_PROBLEM_COUNT).getAsInt();
+                                int totalcnt = 0;
+                                int correct = 0;
+                                int wrong = 0;
+                                int pass = 0;
+
+                                // correct = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_CORRECT_CNT).getAsInt();
+                                // pass = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_PASS_CNT).getAsInt();
+                                // wrong = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_WRONG_CNT).getAsInt();
+                                // totalcnt = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_RATE_PROBLEM_COUNT).getAsInt();
+                                for(UserLRSRecordSimpleDTO record : historyList){
+                                    switch(record.getCorr()){
+                                        case "c":
+                                            correct++;
+                                            break;
+                                        case "p":
+                                            pass++;
+                                            break;
+                                        case "w":
+                                            wrong++;
+                                            break;
+                                        default:
+                                            continue;
+                                    }
+
+                                    totalcnt++;
+                                }
 
                                 basic = BasicProblemStatDTO.builder()
                                                             .correct(correct)
@@ -94,61 +154,55 @@ public class UserDataServiceV0 implements UserDataServiceBase {
                             catch (Throwable e){
                                 log.error("Count Stats not found. Check LRS or stat data of user {}. {}", id, e.getMessage());
                             }
-                            
 
-                            //Get the simple lrs history stat
-                            CustomStatDataDTO custom = null;
-                            Statistics userLrsHistory = userStatSvc.getUserStatistics(id, UserStatisticsServiceBase.STAT_LRS_STATEMENT_HISTORY);
-                            if(userLrsHistory != null){
-                                //Prepare tally fields
-                                int pick = 0;
-                                int unknown = 0;
-                                int difficult = 0;
-                                int miss = 0;
 
-                                //Convert back to Object
-                                UserLRSRecordSimpleDTO[] historyList = new Gson().fromJson(userLrsHistory.getData(),UserLRSRecordSimpleDTO[].class);
-                                for(UserLRSRecordSimpleDTO record : historyList){
-                                    String diff = record.getDiff();
-                                    Long median = durMap.get(diff);
-                                    
-                                    //Pick: under 3000ms
-                                    if(record.getDur() < 3000)
-                                        pick++;
+                            //Custom fields
+                            //INFO: Do not merge historyList loop for maintainance modularity
 
-                                    //Unknown: case 1) w AND duration > median 2) PASS
-                                    if(record.getCorr().equals("p") && median > 0 && record.getDur() >= median)
-                                            unknown++;
+                            //Prepare tally fields
+                            int pick = 0;
+                            int unknown = 0;
+                            int difficult = 0;
+                            int miss = 0;
 
-                                    if(record.getCorr().equals("w")){
-                                        //Difficult: w AND over total time 20 min
-                                        if(record.getDur() > 20 * 60* 1000 )
-                                            difficult++;
+                            for(UserLRSRecordSimpleDTO record : historyList){
+                                String diff = record.getDiff();
+                                Long median = durMap.get(diff);
+                                
+                                //Pick: under 3000ms
+                                if(record.getDur() < 3000)
+                                    pick++;
 
-                                        //Miss : w AND duration under 3000ms or over median
-                                        if(record.getDur() < 3000 || (median > 0 && record.getDur() >= median ) )
-                                            miss++;
-                                    }
+                                //Unknown: case 1) w AND duration > median 2) PASS
+                                if(record.getCorr().equals("p") && median > 0 && record.getDur() >= median)
+                                        unknown++;
+
+                                if(record.getCorr().equals("w")){
+                                    //Difficult: w AND over total time 20 min
+                                    if(record.getDur() > 20 * 60* 1000 )
+                                        difficult++;
+
+                                    //Miss : w AND duration under 3000ms or over median
+                                    if(record.getDur() < 3000 || (median > 0 && record.getDur() >= median ) )
+                                        miss++;
                                 }
-
-                                custom = CustomStatDataDTO.builder()
-                                                          .pick(pick)
-                                                          .difficult(difficult)
-                                                          .unknown(unknown)
-                                                          .miss(miss)
-                                                          .notfocused(miss)
-                                                          .notserious(difficult) //temp for compat
-                                                          .build();
-                            }
-                            else{
-                                log.warn("No LRS history stat for {}", id);
                             }
 
-                            return UserStudyDataDTO.builder()
+                            custom = CustomStatDataDTO.builder()
+                                                        .pick(pick)
+                                                        .difficult(difficult)
+                                                        .unknown(unknown)
+                                                        .miss(miss)
+                                                        .notfocused(miss)
+                                                        .notserious(difficult) //temp for compat
+                                                        .build();
+
+
+                            return Stream.of(UserStudyDataDTO.builder()
                                                 .userID(id)
                                                 .basic(basic)
                                                 .custom(custom)
-                                                .build();
+                                                .build());
                 }).collect(Collectors.toList());
 
         return result;
@@ -206,6 +260,11 @@ public class UserDataServiceV0 implements UserDataServiceBase {
                                      .userDataList(!excludeSet.contains("userDataList") ? createUserDataList(userIDKnowledgeMap) : null)
                                      .ukDataList(!excludeSet.contains("ukDataList") ? createUkDataList(ukSet, ukIDMasteryListMap) : null)
                                      .build();
+    }
+
+    @Override
+    public List<UserStudyDataDTO> getStudyStatList(List<String> userIDList, Set<String> excludeSet) {
+        return getStudyStatList(userIDList, null, null, excludeSet);
     }
 
     private List<UserUKKnowledgeDTO> createUserDataList(Map<String, List<UserKnowledge>> userIDKnowledgeMap){
