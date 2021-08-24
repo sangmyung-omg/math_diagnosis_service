@@ -38,6 +38,10 @@ public class Statistics {
             this.value = value;
         }
 
+        public String toString(){
+            return this.value;
+        }
+
         //LUT to get type from
         private static final Map<String, Type> valueMap = new HashMap<>();
         public static Type getFromValue(String value) {

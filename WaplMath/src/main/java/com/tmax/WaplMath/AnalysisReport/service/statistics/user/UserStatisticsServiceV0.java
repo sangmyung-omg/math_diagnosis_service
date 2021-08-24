@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import javax.transaction.Transactional;
+
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserLRSRecordSimpleDTO;
 import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
@@ -442,7 +444,18 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
         //if still null --> then return. do not create a update set
         if(statementList.size()==0){
-            log.warn("No valid statement found. Unable to create LRS stats");
+            log.warn("No valid statement found. Unable to create LRS stats.");// Removing existing stats");
+
+            //Clear all LRS stats if no statements are found
+            // clearUserStatistics(userID, Arrays.asList(STAT_CORRECT_RATE,
+            //                                           STAT_SOLVING_SPEED_SATISFY_RATE,
+            //                                           STAT_RATE_PROBLEM_COUNT,
+            //                                           STAT_CORRECT_CNT,
+            //                                           STAT_PASS_CNT,
+            //                                           STAT_WRONG_CNT,
+            //                                           STAT_RECENT_CURR_ID_LIST,
+            //                                           STAT_LRS_STATEMENT_HISTORY));
+            
             return updateSet;
         }
 
@@ -499,9 +512,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             String durationRaw = statement.getDuration();
 
             //If null --> consider as fail
-            if(durationRaw == null){
-                continue; 
-            }
+            if(durationRaw == null){continue;}
 
             
             Integer duration = Integer.valueOf(durationRaw);
@@ -526,23 +537,12 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             }
 
             //Get correct histogram
-            if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){
-                correctTally++;
-            }
-
-            if(statement.getUserAnswer() != null && statement.getUserAnswer().equals("PASS")){
-                passTally++;
-            }
-
-            if(difficulty.equals("상") && duration < (3 * 60 + 30 )* 1000){
-                speedSatisfyTally++;
-            }
-            else if(difficulty.equals("중") && duration < (3 * 60 + 0 )* 1000){
-                speedSatisfyTally++;
-            }
-            else if(difficulty.equals("하") && duration < (2 * 60 + 30 )* 1000){
-                speedSatisfyTally++;
-            }
+            if(statement.getIsCorrect() != null && statement.getIsCorrect() > 0){correctTally++;}
+            if(statement.getUserAnswer() != null && statement.getUserAnswer().equals("PASS")){passTally++;}
+            
+            if(difficulty.equals("상") && duration < (3 * 60 + 30 )* 1000){speedSatisfyTally++;}
+            else if(difficulty.equals("중") && duration < (3 * 60 + 0 )* 1000){speedSatisfyTally++;}
+            else if(difficulty.equals("하") && duration < (2 * 60 + 30 )* 1000){speedSatisfyTally++;}
 
             totalTally++;
         }
@@ -667,4 +667,24 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         return updateSet;
     }
     
+
+    @Override
+    // @Transactional
+    public boolean clearUserStatistics(String userID, Iterable<String> statNames) {
+        //TODO: iterable 
+
+        //Create key set to delete from stat table
+        // Set<StatsAnalyticsUserKey> keySet = new HashSet<>();
+
+        for(String stat: statNames){
+            // keySet.add(new StatsAnalyticsUserKey(userID, stat));
+
+            log.debug("Deleting user ({})'s stat {}", userID, stat);
+            statisticUserRepo.deleteById(new StatsAnalyticsUserKey(userID, stat));
+        }
+
+        // statisticUserRepo.deleteAllById(keySet);
+        
+        return false;
+    }
 }

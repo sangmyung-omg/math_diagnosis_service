@@ -21,6 +21,8 @@ public interface UserStatisticsServiceBase {
 
     public boolean hasUserStatistics(String userID, String statName);
 
+    public boolean clearUserStatistics(String userID, Iterable<String> statNames);
+
 
 
     public static final String STAT_TOTAL_MASTERY_MEAN = "total_mastery_mean";
