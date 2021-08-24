@@ -465,6 +465,10 @@ public class CardGeneratorV2 extends CardConstants {
         String currName = currMastery.getCurrName();
         Float mastery = currMastery.getMastery();
 
+        // 2021-08-24 Guik Jung
+        // No Consider if no Problem
+        if (noProbCurrIdSet.contains(currId))
+          continue;
         Integer typeNum;
 
         // currId 에 현재 할당된 문제 수
@@ -514,8 +518,12 @@ public class CardGeneratorV2 extends CardConstants {
         break;
 
       // 유형마다 포함되는 최대 문제수 + 1
-      if (currMasteryList.size() == fullCurrIdSet.size())
+      // 2021-08-24 Guik Jung
+      // 모든 커리큘럼 내의 모든 유형을 채우고도 문제가 남아있을 경우 유형별 문제 추가
+      if (currMasteryList.size() == (fullCurrIdSet.size() + noProbCurrIdSet.size())){
+        fullCurrIdSet.clear();
         probPerType += 1;
+      }
     }
     
     // 커리큘럼 순서대로 카드 내 currId 문제들 배치
