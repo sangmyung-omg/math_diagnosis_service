@@ -206,7 +206,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 		}
 		
 		/*CASE2. 일반적인 접근*/
-		else {
+		/*else {
 			
 			log.info("\nRecommend frequent card - Learned subsection. User ID : " + userId);
 			//오늘의학습카드에서 학습한 문제 id 리스트
@@ -329,6 +329,106 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 
 				
 				if(todaycardFreqProbCurriList.size()+allRecentFreqProbCurriList.size()+AnotherFreqProbCurriList.size()==0) {
+					log.info("\nERR-AL-003 : There is no frequent problem in learned subsection.");
+					//throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned subsection.");
+				}
+			}
+			
+			if(!frequentProblemList.isEmpty()) {
+				frequentCard.setResultMessage("Successfully return frequent card.");
+			}
+		}*/
+		
+		else {
+		
+			log.info("\nRecommend frequent card - Learned subsection. User ID : " + userId);
+			//오늘의학습카드에서 학습한 문제 id 리스트
+			Set<Integer> todaycardSolvedProbIdList = new HashSet<Integer>();
+			//최근(과거 14일전 ~ 오늘) 학습한 문제 id 리스트
+			Set<Integer> recentSolvedProbIdList = new HashSet<Integer>();
+			
+	
+			todaycardSolvedProbIdList.addAll(lrsProbRecord.getLRSProblemIdList(userId, todayEnd, todayStart, sourceTypeListTodaycards)); 
+			log.info("\nTodaycards probId List  : " + todaycardSolvedProbIdList);
+			
+			if(todaycardSolvedProbIdList.isEmpty()) {
+				log.info("\nERR-AL-003  : Todaycards data is not found in LRS.");
+				//throw new GenericInternalException("ERR-AL-003","Todaycards data is not found in LRS.");
+			}
+			
+			
+			recentSolvedProbIdList.addAll(lrsProbRecord.getLRSProblemIdList(userId, todayEnd, minusDays14, sourceTypeListTodaycards)); 
+			log.info("\nThe number of recent 14 days and today probId List  : " + recentSolvedProbIdList.size());
+			
+			
+	
+			
+			//최근(과거 14일전 ~ 오늘) 학습한 소단원(시험범위 고려)
+			List<String> recentSubsectionList = sectionService.getSubsectionListByProblemWithScope(userId, recentSolvedProbIdList, ExamScope.get(0), "중등-중4");
+			log.info("\nRecent 14 days and today Subsection List  : " + recentSubsectionList);
+			
+			
+			
+			
+			//최근(과거 14일전 ~ 오늘) 학습한 소단원의 출제한 적 없는 빈출문제
+			List<FreqProbCurriDTO> recentFreqProbCurriList = problemService.getNotProvidedFreqProbListBySubsection(solvedProbIdList, recentSubsectionList);
+	
+			List<FrequentProblemDTO> recentRecommendFreqProbList;
+			if(!recentFreqProbCurriList.isEmpty()) {
+			recentRecommendFreqProbList= problemService.SortingAndRecommend(recentFreqProbCurriList, recentSubsectionList, 3);
+			frequentProblemList.addAll(recentRecommendFreqProbList);
+			}
+			
+			//최근(과거 14일전 ~ 오늘) 학습한 소단원의 출제한 적 있는 빈출문제
+			List<FreqProbCurriDTO> providedRecentFreqProbCurriList = problemService.getProvidedFreqProbListBySubsection(solvedProbIdList, recentSubsectionList);
+			
+			List<FrequentProblemDTO> providedRecentRecommendFreqProbList;
+			if(!providedRecentFreqProbCurriList.isEmpty()) {
+				providedRecentRecommendFreqProbList = problemService.SortingAndRecommend(providedRecentFreqProbCurriList, recentSubsectionList, 2);
+				frequentProblemList.addAll(providedRecentRecommendFreqProbList);
+			}
+			
+			
+			//
+			//List<FreqProbCurriDTO> allRecentFreqProbCurriList = new ArrayList<FreqProbCurriDTO>();
+			//allRecentFreqProbCurriList.addAll(recentFreqProbCurriList);
+			//allRecentFreqProbCurriList.addAll(providedRecentFreqProbCurriList);
+			
+			//log.info("\nRecent 14 days and today Subsection with frequent problem  : " + getSubsecListWithFreqProb(allRecentFreqProbCurriList));
+			log.info("\nFrequent problem count in Recent 14 days and today Subsection - NotProvided : " + recentFreqProbCurriList.size());
+			log.info("\nFrequent problem count in Recent 14 days and today Subsection - Provided : " + providedRecentFreqProbCurriList.size());
+			
+			
+	
+			
+			//오늘+최근 학습한 범위에서 추천된 빈출문제 개수 < 3 이면, 범위를 더 늘림(타겟시험 시작 ~ )
+			int firstRecommendNum = frequentProblemList.size();
+			
+			if(firstRecommendNum<3) {
+				log.info("\n Recommend frequent problem count < 3");
+				Set<Integer> recommendList = new HashSet<Integer>();
+				if(firstRecommendNum!=0) {
+					for(FrequentProblemDTO dto :frequentProblemList) {
+						int probId = dto.getProblemId();
+						recommendList.add(probId);
+					}
+				}else {
+					recommendList.add(0);
+				}
+				
+				recentSubsectionList.sort(null);
+				List<String> AnotherSubsectionList = sectionService.getSubsectionListByCurriScope(userId, ExamScope.get(0), recentSubsectionList.get(0));
+				List<FreqProbCurriDTO> AnotherFreqProbCurriList = problemService.getAllFreqProbListBySubsection(recommendList,AnotherSubsectionList);
+				List<FrequentProblemDTO> AnotherRecommendFreqProbList = problemService.SortingAndRecommend(AnotherFreqProbCurriList, AnotherSubsectionList, 5-firstRecommendNum);
+				frequentProblemList.addAll(AnotherRecommendFreqProbList);
+				
+				//log.info("\nAnother Subsection with frequent problem  : " + getSubsecListWithFreqProb(AnotherFreqProbCurriList));
+				log.info("\nFrequent problem count in Another Subsection : " + AnotherFreqProbCurriList.size());
+				
+				
+	
+				
+				if(frequentProblemList.size()==0) {
 					log.info("\nERR-AL-003 : There is no frequent problem in learned subsection.");
 					//throw new GenericInternalException("ERR-AL-003","There is no frequent problem in learned subsection.");
 				}
