@@ -56,3 +56,19 @@ fi
 if [ ! -z $USE_LOGSTASH_TCP ]; 
 then export ADDITIONAL_PROFILE_LIST=${ADDITIONAL_PROFILE_LIST}",useLogstashTCP"; 
 fi
+
+#HIKARI
+if [ -z $HIKARI_MIN_IDLE ]; then export HIKARI_MIN_IDLE="5"; fi
+sed -i "s&%HIKARI_MIN_IDLE%&${HIKARI_MIN_IDLE}&g" /home/tmax/application.properties
+
+if [ -z $HIKARI_MAX_POOL ]; then export HIKARI_MAX_POOL="50"; fi
+sed -i "s&%HIKARI_MAX_POOL%&${HIKARI_MAX_POOL}&g" /home/tmax/application.properties
+
+if [ -z $HIKARI_IDLE_TIMEOUT ]; then export HIKARI_IDLE_TIMEOUT="30000"; fi
+sed -i "s&%HIKARI_IDLE_TIMEOUT%&${HIKARI_IDLE_TIMEOUT}&g" /home/tmax/application.properties
+
+if [ -z $HIKARI_MAX_LIFETIME ]; then export HIKARI_MAX_LIFETIME="2000000"; fi
+sed -i "s&%HIKARI_MAX_LIFETIME%&${HIKARI_MAX_LIFETIME}&g" /home/tmax/application.properties
+
+if [ -z $HIKARI_CONNECTION_TIMEOUT ]; then export HIKARI_CONNECTION_TIMEOUT="30000"; fi
+sed -i "s&%HIKARI_CONNECTION_TIMEOUT%&${HIKARI_CONNECTION_TIMEOUT}&g" /home/tmax/application.properties
