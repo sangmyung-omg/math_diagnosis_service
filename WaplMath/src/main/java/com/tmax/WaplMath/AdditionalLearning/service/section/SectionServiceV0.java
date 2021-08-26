@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.tmax.WaplMath.AdditionalLearning.dto.CurriAndAvgMasteryDTO;
 import com.tmax.WaplMath.AdditionalLearning.dto.SubsectionMasteryDTO;
 import com.tmax.WaplMath.AdditionalLearning.repository.SectionRepo;
 
@@ -27,10 +28,10 @@ public class SectionServiceV0 implements SectionServiceBaseV0{
 	public List<String> getSubsectionListByProblem(String userId, Set<Integer> probIdList) {
 		
 		List<String> subSectionList = new ArrayList<String>();
-		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbId(userId,probIdList);
+		List<CurriAndAvgMasteryDTO> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbId(userId,probIdList);
 		
-		for(String str : subSectionAndMastery) {
-			subSectionList.add(str.split(",")[0]);
+		for(CurriAndAvgMasteryDTO dto : subSectionAndMastery) {
+			subSectionList.add(dto.getCurriculumId());
 			//subSectionList.add(str);
 		}
 		
@@ -42,10 +43,10 @@ public class SectionServiceV0 implements SectionServiceBaseV0{
 	public List<String> getSubsectionListByProblemWithScope(String userId, Set<Integer> probIdList, String scopeStart, String scopeEnd) {
 		List<String> subSectionList = new ArrayList<String>();
 		
-		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbIdWithScope(userId,probIdList, scopeStart, scopeEnd);
+		List<CurriAndAvgMasteryDTO> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByProbIdWithScope(userId,probIdList, scopeStart, scopeEnd);
 		
-		for(String str : subSectionAndMastery) {
-			subSectionList.add(str.split(",")[0]);
+		for(CurriAndAvgMasteryDTO dto : subSectionAndMastery) {
+			subSectionList.add(dto.getCurriculumId());
 			//subSectionList.add(str);
 		}
 		
@@ -57,10 +58,10 @@ public class SectionServiceV0 implements SectionServiceBaseV0{
 	public List<String> getSubsectionListByCurriScope(String userId, String scopeStart, String scopeEnd) {
 		List<String> subSectionList = new ArrayList<String>();
 		
-		List<String> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByCurriScope(userId, scopeStart, scopeEnd);
+		List<CurriAndAvgMasteryDTO> subSectionAndMastery =  sectionRepo.getCurriculumAndMasteryByCurriScope(userId, scopeStart, scopeEnd);
 		
-		for(String str : subSectionAndMastery) {
-			subSectionList.add(str.split(",")[0]);
+		for(CurriAndAvgMasteryDTO dto : subSectionAndMastery) {
+			subSectionList.add(dto.getCurriculumId());
 			//subSectionList.add(str);
 		}
 		
@@ -72,13 +73,13 @@ public class SectionServiceV0 implements SectionServiceBaseV0{
 		
 		List<SubsectionMasteryDTO> subSectionList = new ArrayList<SubsectionMasteryDTO>();
 		
-		List<String> subSectionAndMastery =  sectionRepo.getSubsectionAndMasteryByProbId(userId,probIdList);
+		List<CurriAndAvgMasteryDTO> subSectionAndMastery =  sectionRepo.getSubsectionAndMasteryByProbId(userId,probIdList);
 		
-		for(String str : subSectionAndMastery) {
-			SubsectionMasteryDTO dto = new SubsectionMasteryDTO();
-			dto.setSubsection(str.split(",")[0]);
-			dto.setMastery(Float.parseFloat(str.split(",")[1]));
-			subSectionList.add(dto);
+		for(CurriAndAvgMasteryDTO dto : subSectionAndMastery) {
+			SubsectionMasteryDTO SubsectionMasterydto = new SubsectionMasteryDTO();
+			SubsectionMasterydto.setSubsection(dto.getCurriculumId());
+			SubsectionMasterydto.setMastery(dto.getUkMastery());
+			subSectionList.add(SubsectionMasterydto);
 		}
 		
 		return subSectionList;

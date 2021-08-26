@@ -458,6 +458,7 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			}
 		}
 		
+		log.info("\nFinal estimatedTime : " + estimatedTime);
 		frequentCard.setEstimatedTime(estimatedTime);
 
 		
@@ -470,9 +471,11 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 			RecommendProbList.add(probId);
 		}
 		subsectionMasteryList = sectionService.getSubsectionMasteryListByProblem(userId, RecommendProbList);
+		log.info("\nFinal subsectionMasteryList : " + subsectionMasteryList);
 		frequentCard.setSubsectionSetList(subsectionMasteryList);
 		
 		
+		log.info("\nreturn frequentCard success");
 		return frequentCard;
 	}
 	
