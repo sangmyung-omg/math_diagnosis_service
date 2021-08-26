@@ -4,7 +4,7 @@ package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+// import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.transaction.Transactional;
+// import javax.transaction.Transactional;
 
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.userdata.UserLRSRecordSimpleDTO;
@@ -53,19 +53,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service("UserStatisticsServiceV0")
 public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     @Autowired
-    private UserRepo userRepository;
-
-
-    @Autowired
     @Qualifier("AR-UserKnowledgeRepo")
     private UserKnowledgeRepo userKnowledgeRepo;
 
     @Autowired
     @Qualifier("UKStatisticsServiceV0")
     private UKStatisticsServiceBase ukStatSvc;
-
-    @Autowired
-    private StatisticUserRepo statisticUserRepo;
 
     @Autowired
     @Qualifier("CurrStatisticsServiceV0")
@@ -83,14 +76,11 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     @Qualifier("AR-ExamScopeUtil")
     private ExamScopeUtil examScopeUtil;
 
-    @Autowired
-    private LRSManager lrsManager;
-
-    @Autowired
-    private ProblemRepo probRepo;
-
-    @Autowired
-    private WaplScoreServiceV0 waplScoreSvc;
+    @Autowired private UserRepo userRepository;
+    @Autowired private StatisticUserRepo statisticUserRepo;
+    @Autowired private LRSManager lrsManager;
+    @Autowired private ProblemRepo probRepo;
+    @Autowired private WaplScoreServiceV0 waplScoreSvc;
 
     /*
     *      ┌─────────────┐
@@ -145,34 +135,35 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     }
 
     @Override
-    public void updateSpecificUser(String userID) {
-        updateSpecificUser(userID, true);
-    }
+    public void updateSpecificUser(String userID) {updateSpecificUser(userID, true);}
 
-    //Indexed stat selector for parallel processing
+    /**
+     * Split way for parallel running of statistic collector
+     * @param userID userID of user
+     * @param ts timestamp of the update set
+     * @param funcIdx function number
+     * @return
+     */
     private Set<StatsAnalyticsUser> parallelRunner(String userID, Timestamp ts, Integer funcIdx) {
         Set<StatsAnalyticsUser> output = null;
-        
         switch(funcIdx) {
-            case 0:
-                output = getUKGlobalStats(userID, ts);
-                break;
-            case 1:
-                output = getPerCurriculumStats(userID, ts);
-                break;
-            case 2:
-                output = getExamScopeStats(userID, ts);
-                break;
-            case 3:
-                output = getLRSStatistics(userID, ts);
-                break;
-            default:
-                output = new HashSet<>();
+            case 0: output = getUKGlobalStats(userID, ts); break;
+            case 1: output = getPerCurriculumStats(userID, ts); break;
+            case 2: output = getExamScopeStats(userID, ts); break;
+            case 3: output = getLRSStatistics(userID, ts); break;
+            default: output = new HashSet<>();
         }
 
         return output;
     }
 
+    /**
+     * Function to get wapl score of given user
+     * @param userID userID of user
+     * @param examScopeScore the exam score of user.
+     * @param ts timestamp for the update time
+     * @return
+     */
     private Set<StatsAnalyticsUser> getWaplScoreStats(String userID, Float examScopeScore, Timestamp ts){
         //Check if wapl score and mastery exists
         if(hasUserStatistics(userID, STAT_WAPL_SCORE) && hasUserStatistics(userID, STAT_WAPL_SCORE_MASTERY)){
@@ -189,26 +180,20 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
         //Create stat statements and add to set
         //waplscore
-        updateSet.add(StatsAnalyticsUser.builder()
-                                        .userId(userID)
-                                        .name(STAT_WAPL_SCORE)
-                                        .type(Statistics.Type.FLOAT.getValue())
-                                        .data(data.getScore().toString())
-                                        .lastUpdate(ts)
-                                        .build()
-                                         );
+        updateSet.add(userStatBuilder(userID, STAT_WAPL_SCORE, Type.FLOAT, data.getScore().toString(), ts));
+
         //waplscore mastery data
-        updateSet.add(StatsAnalyticsUser.builder()
-                                        .userId(userID)
-                                        .name(STAT_WAPL_SCORE_MASTERY)
-                                        .type(Statistics.Type.FLOAT.getValue())
-                                        .data(data.getMasteryJson())
-                                        .lastUpdate(ts)
-                                        .build()
-                                        );
+        updateSet.add(userStatBuilder(userID, STAT_WAPL_SCORE_MASTERY, Type.FLOAT, data.getMasteryJson(), ts));
+        
         return updateSet;
     }
 
+    /**
+     * Method for getting uk mastery stats of user
+     * @param userID userID of given user
+     * @param ts timestamp for update time
+     * @return
+     */
     private Set<StatsAnalyticsUser> getUKGlobalStats(String userID, Timestamp ts){
         log.debug("Creating global uk stats for user: " + userID);
 
@@ -224,26 +209,22 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             return updateSet;
         }
 
-
         //Parallel stream
         List<Float> masteryList = knowledgeList.stream().parallel().map(UserKnowledge::getUkMastery).collect(Collectors.toList());
 
-
-        //Calc each UK statistics and push to set
-        //mean of mastery --> current score
-        updateSet.add(statsToAnalyticsUser(userID, 
-                                            new Statistics(STAT_TOTAL_MASTERY_MEAN, Statistics.Type.FLOAT, ukStatSvc.getMean(masteryList).toString()), 
-                                            ts));
-
-        updateSet.add(statsToAnalyticsUser(userID, 
-                                            new Statistics(STAT_TOTAL_MASTERY_STD, Statistics.Type.FLOAT, ukStatSvc.getSTD(masteryList).toString()), 
-                                            ts));
-
-                                            
+        //Calc each UK statistics and push to set. mean of mastery --> current score
+        updateSet.add(userStatBuilder(userID, STAT_TOTAL_MASTERY_MEAN, Type.FLOAT, ukStatSvc.getMean(masteryList).toString(), ts));
+        updateSet.add(userStatBuilder(userID, STAT_TOTAL_MASTERY_STD, Type.FLOAT, ukStatSvc.getSTD(masteryList).toString(), ts));                                            
 
         return updateSet;
     }
 
+    /**
+     * Method for getting stat for every curriculum existing in db
+     * @param userID userID of given user
+     * @param ts ts for update time
+     * @return
+     */
     private Set<StatsAnalyticsUser> getPerCurriculumStats(String userID, Timestamp ts) {
         log.debug("Creating curriculum stats for user: " + userID);
 
@@ -256,17 +237,17 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         String mapJson = new Gson().toJson(currMasteryMap);
 
         //Build update set.
-        output.add(statsToAnalyticsUser(userID,
-                                        Statistics.builder()
-                                                .name(STAT_CURRICULUM_MASTERY_MAP)
-                                                .type(Statistics.Type.JSON)
-                                                .data(mapJson)
-                                                .build(),
-                                        ts) );
+        output.add(userStatBuilder(userID, STAT_CURRICULUM_MASTERY_MAP, Type.JSON, mapJson, ts));
 
         return output;
     }
 
+    /**
+     * 
+     * @param userID
+     * @param ts
+     * @return
+     */
     private Set<StatsAnalyticsUser> getExamScopeStats(String userID, Timestamp ts){
         log.debug("Creating examscope stats stats for user: " + userID);
 
@@ -280,12 +261,8 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         //Get userknowledge list with currList scope
         List<UserKnowledge> knowledgeList = userKnowledgeRepo.getByUserUuidScoped(userID, currIDList);
 
-        // List<Float> masteryList = new ArrayList<>();
-        // knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
-        List<Float> masteryList = knowledgeList.stream()
-                                                .parallel()
-                                                .map(UserKnowledge::getUkMastery)
-                                                .collect(Collectors.toList());
+        // List<Float> masteryList = new ArrayList<>(); knowledgeList.forEach(uknow -> masteryList.add(uknow.getUkMastery()));
+        List<Float> masteryList = knowledgeList.stream().parallel().map(UserKnowledge::getUkMastery).collect(Collectors.toList());
 
         Float examScopeScore = ukStatSvc.getMean(masteryList);
 
@@ -294,13 +271,10 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             return output;
         }
 
-        output.add(statsToAnalyticsUser(userID, 
-                                            new Statistics(STAT_EXAMSCOPE_SCORE, Statistics.Type.FLOAT, examScopeScore.toString()), 
-                                            ts));
+        output.add(userStatBuilder(userID, STAT_EXAMSCOPE_SCORE, Type.FLOAT, examScopeScore.toString(), ts));
 
 
-        //Update score history (DEBUG use)
-        //Get if exist
+        //Update score history (DEBUG use). get if exist
         List<Float> historyList = null;
         Statistics historyStat = getUserStatistics(userID, STAT_EXAMSCOPE_SCORE_HISTORY);
         if(historyStat != null){
@@ -321,11 +295,8 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                 ) 
            ){
             historyList.add(examScopeScore);
-            output.add(statsToAnalyticsUser(userID, 
-                                            Statistics.builder().name(STAT_EXAMSCOPE_SCORE_HISTORY).type(Type.FLOAT_LIST).data(historyList.toString()).build(),
-                                            ts));
+            output.add(userStatBuilder(userID, STAT_EXAMSCOPE_SCORE_HISTORY, Type.FLOAT_LIST, historyList.toString(), ts));
         }
-
 
         //Run waplscore get here (examscore dependent)
         output.addAll(getWaplScoreStats(userID, examScopeScore, ts));
@@ -367,10 +338,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     @Override
     public int updateCustomUserStat(String userID, String statName, Statistics.Type dataType, String data){
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        statisticUserRepo.save(statsToAnalyticsUser(
-                                                    userID, 
-                                                    new Statistics(statName, dataType, data), 
-                                                    now));
+        statisticUserRepo.save(userStatBuilder(userID, statName, dataType, data, now));
         return 0;
     }
     
@@ -386,6 +354,16 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                 .name(prefix + stats.getName())
                                 .type(stats.getType().getValue())
                                 .data(stats.getData())
+                                .lastUpdate(ts)
+                                .build();
+    }
+
+    private StatsAnalyticsUser userStatBuilder(String userID, String statname, Type type, String data, Timestamp ts){
+        return StatsAnalyticsUser.builder()
+                                .userId(userID)
+                                .name(statname)
+                                .type(type.getValue())
+                                .data(data)
                                 .lastUpdate(ts)
                                 .build();
     }
@@ -407,6 +385,11 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                       .data(stat.getData())
                                       .build();
         return output;    
+    }
+
+    @Override
+    public Optional<Statistics> getUserStatisticsOpt(String userID, String statName) {
+        return Optional.ofNullable(getUserStatistics(userID, statName));
     }
 
     @Override
@@ -460,12 +443,9 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         }
 
         // build set for problem info query
-        Set<Integer> probIDSet = statementList.stream()
-                                              .parallel()
+        Set<Integer> probIDSet = statementList.stream().parallel()
                                               .flatMap(s -> {
-                                                  try {
-                                                    return Stream.of( Integer.valueOf( s.getSourceId() ) );
-                                                  }
+                                                  try { return Stream.of( Integer.valueOf( s.getSourceId() ) );}
                                                   catch (Exception e){
                                                       log.warn("Source ID invalid. user {}. {}", userID, s.toString());
                                                       return Stream.empty();
@@ -474,30 +454,22 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                               .collect(Collectors.toSet());
 
         //Get the probList and create map to get difficulty
-        Map<Integer, String> probDiffMap = 
-            ((List<Problem>)probRepo.findAllById(probIDSet))
-                                           .stream()
-                                           .parallel()
-                                           .collect(Collectors.toMap(Problem::getProbId, Problem::getDifficulty));
+        Map<Integer, String> probDiffMap = ((List<Problem>)probRepo.findAllById(probIDSet))
+                                            .stream().parallel().collect(Collectors.toMap(Problem::getProbId, Problem::getDifficulty));
         
 
         //Tallys for correct rate and duration count
         Integer correctTally = 0;
         Integer passTally = 0;
-        // Integer wrongTally = 0; //wrong = total - correct - pass
         Integer speedSatisfyTally = 0;
-
         Integer totalTally = 0;
 
         Set<String> recentCurrSet = new LinkedHashSet<>();
         Set<String> diagRecentCurrSet = new LinkedHashSet<>();
-        // List<String> recentCurrList = new ArrayList<>();
 
         for(LRSStatementResultDTO statement: statementList){
-            //Get source ID and validate it
+            //Get source ID and validate it. Skip if invalid
             String srcID = statement.getSourceId();
-
-            //Skip if invalid
             if(srcID == null){log.warn("Invalid src ID. {} {}", userID, statement.toString()); continue;}
 
             //Get probID with exception
@@ -511,10 +483,8 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             //Get the raw duration string(as it canbe null)
             String durationRaw = statement.getDuration();
 
-            //If null --> consider as fail
-            if(durationRaw == null){continue;}
-
-            
+            //If duration is null --> consider as fail
+            if(durationRaw == null){continue;}       
             Integer duration = Integer.valueOf(durationRaw);
             String difficulty = probDiffMap.get(probID);
 
@@ -532,8 +502,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                 recentCurrSet.add(currID);
 
                 //If diag. add to diag recent too
-                if(Arrays.asList("diagnosis", "diagnosis_simple").contains( statement.getSourceType() ) )
-                    diagRecentCurrSet.add(currID);
+                if(SourceType.getDiagnosisOnly().contains( statement.getSourceType())){diagRecentCurrSet.add(currID);}
             }
 
             //Get correct histogram
@@ -547,64 +516,6 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             totalTally++;
         }
 
-
-        //Make the statistics
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_CORRECT_RATE)
-                                                      .type(Statistics.Type.FLOAT)
-                                                      .data(Float.toString((float)correctTally / totalTally))
-                                                      .build(), 
-                                            ts));
-
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_SOLVING_SPEED_SATISFY_RATE)
-                                                      .type(Statistics.Type.FLOAT)
-                                                      .data(Float.toString((float)speedSatisfyTally / totalTally))
-                                                      .build(), 
-                                            ts));
-
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_RATE_PROBLEM_COUNT)
-                                                      .type(Statistics.Type.INT)
-                                                      .data(Integer.toString(totalTally))
-                                                      .build(), 
-                                            ts));
-        
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_CORRECT_CNT)
-                                                      .type(Statistics.Type.INT)
-                                                      .data(Integer.toString(correctTally))
-                                                      .build(), 
-                                            ts));
-
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_PASS_CNT)
-                                                      .type(Statistics.Type.INT)
-                                                      .data(Integer.toString(passTally))
-                                                      .build(), 
-                                            ts));
-
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_WRONG_CNT)
-                                                      .type(Statistics.Type.INT)
-                                                      .data(Integer.toString(totalTally - correctTally - passTally))
-                                                      .build(), 
-                                            ts));
-        
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                      .name(STAT_RECENT_CURR_ID_LIST)
-                                                      .type(Statistics.Type.STRING_LIST)
-                                                      .data(recentCurrSet.toString())
-                                                      .build(), 
-                                            ts));
-
         //Save the lrs statement list to user history DB (near RAW DATA)
         List<UserLRSRecordSimpleDTO> recordList = 
                 statementList.stream().parallel()
@@ -612,38 +523,27 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                  try{
                                     //Get basic info
                                     Integer probID = Integer.parseInt(statement.getSourceId());
-                                    // String userId = statement.getUserId();
 
                                     //Get duration info
-                                    String durationRaw = statement.getDuration();
-                                    Long duration = Long.parseLong(durationRaw == null ? "0" : (String)durationRaw);
+                                    Long duration = Long.parseLong(statement.getDuration() == null ? "0" : (String)statement.getDuration());
 
                                     //Get
                                     Integer isCorrect = statement.getIsCorrect();
                                     String userAnswer = statement.getUserAnswer();
 
                                     String correct = ""; // c / p / w
-                                    if(userAnswer.toUpperCase().equals("PASS")){
-                                        correct = "p";
-                                    }
-                                    else {
-                                        correct = isCorrect == null || isCorrect == 0 ? "w": "c";
-                                    }
+                                    if(userAnswer.toUpperCase().equals("PASS")){correct = "p";}
+                                    else { correct = isCorrect == null || isCorrect == 0 ? "w": "c";}
 
                                     //Difficulty
-                                    String difficulty = null;
+                                    String difficulty = "u"; //unknown
                                     String diffRaw = probDiffMap.get(probID);
-                                    if(diffRaw.equals("상"))
-                                        difficulty = "l";
-                                    else if(diffRaw.equals("중"))
-                                        difficulty = "m";
-                                    else if(diffRaw.equals("하"))
-                                        difficulty = "h";
-                                    else
-                                        difficulty = "u"; //unknown
+
+                                    if(diffRaw.equals("상")) difficulty = "l";
+                                    else if(diffRaw.equals("중")) difficulty = "m";
+                                    else if(diffRaw.equals("하")) difficulty = "h";
 
                                     return Stream.of(UserLRSRecordSimpleDTO.builder().pID(probID)
-                                                                                    // .userID(userId)
                                                                                     .time(statement.getTimestamp())
                                                                                     .diff(difficulty)
                                                                                     .dur(duration).corr(correct).build());
@@ -656,13 +556,18 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                              .collect(Collectors.toList());
 
         String userLRSRecordJson = new Gson().toJson(recordList);
-        updateSet.add(statsToAnalyticsUser( userID, 
-                                            Statistics.builder()
-                                                    .name(STAT_LRS_STATEMENT_HISTORY)
-                                                    .type(Statistics.Type.STRING)
-                                                    .data(userLRSRecordJson)
-                                                    .build(), 
-                                            ts));           
+
+
+        //Make the statistics
+        updateSet.add(userStatBuilder(userID, STAT_CORRECT_RATE, Type.FLOAT, Float.toString((float)correctTally / totalTally), ts));
+        updateSet.add(userStatBuilder(userID, STAT_SOLVING_SPEED_SATISFY_RATE, Type.FLOAT, Float.toString((float)speedSatisfyTally / totalTally), ts));
+        updateSet.add(userStatBuilder(userID, STAT_RATE_PROBLEM_COUNT, Type.INT, Integer.toString(totalTally), ts));
+        updateSet.add(userStatBuilder(userID, STAT_CORRECT_CNT, Type.INT, Integer.toString(correctTally), ts));
+        updateSet.add(userStatBuilder(userID, STAT_PASS_CNT, Type.INT, Integer.toString(passTally), ts));
+        updateSet.add(userStatBuilder(userID, STAT_WRONG_CNT, Type.INT, Integer.toString(totalTally - correctTally - passTally), ts));
+        updateSet.add(userStatBuilder(userID, STAT_RECENT_CURR_ID_LIST, Type.STRING_LIST, recentCurrSet.toString(), ts));
+        updateSet.add(userStatBuilder(userID, STAT_RECENT_DIAGNOSIS_CURR_ID_LIST, Type.STRING_LIST, diagRecentCurrSet.toString(), ts));
+        updateSet.add(userStatBuilder(userID, STAT_LRS_STATEMENT_HISTORY, Type.STRING, userLRSRecordJson, ts));           
 
         return updateSet;
     }
