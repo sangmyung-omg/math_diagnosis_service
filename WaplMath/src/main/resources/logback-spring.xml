@@ -39,7 +39,7 @@
 		<appender name="LOGSTASHTCP" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
 			<remoteHost>${logstash_host}</remoteHost>
 			<port>${logstash_port}</port>
-			<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+			<encoder class="net.logstash.logback.encoder.LogstashEncoder"> 
 				<customFields>{"appname" : "${appname}", "hostname" : "${HOSTNAME}"}</customFields>
 			</encoder>
 		</appender>
@@ -50,7 +50,8 @@
 		<appender name="FILE_ALL"
 			class="ch.qos.logback.core.rolling.RollingFileAppender">
 			<!-- 파일경로 설정 -->
-			<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+			<!-- 2021-08-27 live 경로 폴더 추가 -->
+			<file>${LOG_PATH}/live/${HOSTNAME}/${LOG_FILE_NAME}.log</file>
 			<!-- 출력패턴 설정 -->
 			<encoder
 				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -60,7 +61,8 @@
 			<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 				<!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
-				<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<!-- <fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> -->
+				<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}_%i/${HOSTNAME}/${LOG_FILE_NAME}.log</fileNamePattern>
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<!-- 파일당 최고 용량 kb, mb, gb -->
@@ -76,14 +78,15 @@
 	<!-- File Appender for Recommend -->
 	<springProfile name="prod">
 		<appender name="FILE_RECOMMEND" class="ch.qos.logback.core.rolling.RollingFileAppender">
-			<file>${LOG_PATH}/Recommend/${LOG_FILE_NAME}.log</file>
+			<file>${LOG_PATH}/live/${HOSTNAME}/Recommend/${LOG_FILE_NAME}.log</file>
 			<encoder
 				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 				<pattern>${LOG_PATTERN}</pattern>
 			</encoder>
 			<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-				<fileNamePattern>${LOG_PATH}/Recommend/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<!-- <fileNamePattern>${LOG_PATH}/Recommend/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> -->
+				<fileNamePattern>${LOG_PATH}/history/%d{yyyy-MM-dd}_%i/${HOSTNAME}/Recommend/${LOG_FILE_NAME}.log</fileNamePattern>
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
@@ -96,14 +99,15 @@
 	<!-- File Appender for AnalysisReport -->
 	<springProfile name="prod">
 		<appender name="FILE_AR" class="ch.qos.logback.core.rolling.RollingFileAppender">
-			<file>${LOG_PATH}/AnalysisReport/${LOG_FILE_NAME}.log</file>
+			<file>${LOG_PATH}/live/${HOSTNAME}/AnalysisReport/${LOG_FILE_NAME}.log</file>
 			<encoder
 				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 				<pattern>${LOG_PATTERN}</pattern>
 			</encoder>
 			<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-				<fileNamePattern>${LOG_PATH}/AnalysisReport/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<!-- <fileNamePattern>${LOG_PATH}/AnalysisReport/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> -->
+				<fileNamePattern>${LOG_PATH}/history/%d{yyyy-MM-dd}_%i/${HOSTNAME}/AnalysisReport/${LOG_FILE_NAME}.log</fileNamePattern>
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
@@ -116,14 +120,15 @@
 	<!-- File Appender for AdditionalLearning -->
 	<springProfile name="prod">
 		<appender name="FILE_AL" class="ch.qos.logback.core.rolling.RollingFileAppender">
-			<file>${LOG_PATH}/AdditionalLearning/${LOG_FILE_NAME}.log</file>
+			<file>${LOG_PATH}/live/${HOSTNAME}/AdditionalLearning/${LOG_FILE_NAME}.log</file>
 			<encoder
 				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 				<pattern>${LOG_PATTERN}</pattern>
 			</encoder>
 			<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-				<fileNamePattern>${LOG_PATH}/AdditionalLearning/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<!-- <fileNamePattern>${LOG_PATH}/AdditionalLearning/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> -->
+				<fileNamePattern>${LOG_PATH}/history/%d{yyyy-MM-dd}_%i/${HOSTNAME}/AdditionalLearning/${LOG_FILE_NAME}.log</fileNamePattern>
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
@@ -143,7 +148,7 @@
 				<onMismatch>DENY</onMismatch>
 			</filter>
 			<!-- 파일경로 설정 -->
-			<file>${LOG_PATH}/${ERR_LOG_FILE_NAME}.log</file>
+			<file>${LOG_PATH}/live/${HOSTNAME}/${ERR_LOG_FILE_NAME}.log</file>
 			<!-- 출력패턴 설정 -->
 			<encoder
 				class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -153,7 +158,8 @@
 			<rollingPolicy
 				class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 				<!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
-				<fileNamePattern>${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+				<!-- <fileNamePattern>${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern> -->
+				<fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}_%i/${HOSTNAME}/${ERR_LOG_FILE_NAME}.log</fileNamePattern>
 				<timeBasedFileNamingAndTriggeringPolicy
 					class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 					<!-- 파일당 최고 용량 kb, mb, gb -->
