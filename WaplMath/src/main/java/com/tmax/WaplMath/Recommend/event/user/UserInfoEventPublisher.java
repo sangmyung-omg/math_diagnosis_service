@@ -47,4 +47,19 @@ public class UserInfoEventPublisher {
                                                                 );
     }
 	
+
+    public void publishUserDelete(final String userID){
+        log.info("User {} deleted", userID);
+        applicationEventPublisher.publishEvent(new UserDeleteEvent(userID));
+
+        //Publish kafka event too
+        KafkaPublisher.getInstance().publishMessage(KafkaEvent.builder()
+                                                                .eventType(KafkaEventType.USER_EVENT)
+                                                                .eventCode(UserDeleteEvent.class.getSimpleName())
+                                                                .eventLevel(KafkaEventLevel.INFO)
+                                                                .eventMsg("user delete event event")
+                                                                .sourceUser(userID)
+                                                                .build()
+                                                                );
+    }
 }

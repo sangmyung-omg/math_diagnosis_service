@@ -10,6 +10,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreSe
 import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
 import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryChangeEvent;
+import com.tmax.WaplMath.Recommend.event.user.UserDeleteEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -91,6 +92,16 @@ public class StatisticsEventListener {
         log.info("Statistics module ready");
     }
 
+    @EventListener
+    public void userDeleteStatisticCleaner(UserDeleteEvent event){
+        String userID = event.getUserID();
+
+        if(userID == null) return;
+
+        log.info("Delete stats for user {}", userID);
+        userStatSvc.clearAllUserStatistics(userID);
+    }
+
     @Scheduled(cron="0 0 0 * * *")
     // @SchedulerLock(name="Stat_Update_Curriculum", lockAtLeastFor = "PT5M")
     public void updateCurriculumStats(){
@@ -147,48 +158,6 @@ public class StatisticsEventListener {
         //Release lock
         shedLockUtil.releaseLock(lockname);
     }
-
-    // @Scheduled(cron="*/1 * * * * *")
-    // // @SchedulerLock(name="test", lockAtLeastFor = "PT2M")
-    // public void testshedlock(){
-    //     //try and check fail
-    //     if(!shedLockUtil.tryLock("test", Duration.ofMinutes(1))){
-    //         log.info("test is already locked");
-    //         try {
-    //             TimeUnit.SECONDS.sleep(5);
-    //         } catch (InterruptedException e) {
-    //             // TODO Auto-generated catch block
-    //             e.printStackTrace();
-    //         }   
-    //         return;
-    //     }
-
-    //     log.info("======= test shedlock START ========");
-    //     log.info("======= test shedlock DONE ========");   
-
-    //     // shedLockUtil.removeLock("test");
-    // }
-
-    // @Scheduled(cron="*/1 * * * * *")
-    // // @SchedulerLock(name="test", lockAtLeastFor = "PT2M")
-    // public void testshedlock2(){
-    //     //try and check fail
-    //     if(!shedLockUtil.tryLock("test", Duration.ofMinutes(1))){
-    //         log.info("test2 is already locked");
-    //         try {
-    //             TimeUnit.SECONDS.sleep(5);
-    //         } catch (InterruptedException e) {
-    //             // TODO Auto-generated catch block
-    //             e.printStackTrace();
-    //         }   
-    //         return;
-    //     }
-        
-    //     log.info("======= test shedlock2 START ========"); 
-    //     log.info("======= test shedlock2 DONE ========");   
-
-    //     // shedLockUtil.removeLock("test");
-    // }
 
     @Autowired
     WaplScoreServiceV0 waplScoreSvc;

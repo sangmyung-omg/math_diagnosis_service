@@ -69,6 +69,14 @@ public interface UserStatisticsServiceBase {
      */
     public boolean clearUserStatistics(String userID, Iterable<String> statNames);
 
+    /**
+     * 
+     * method to remove ALL of user's statistics
+     * @param userID
+     * @return did succeed
+     */
+    public boolean clearAllUserStatistics(String userID);
+
 
     //Constants for stat name
     public static final String STAT_TOTAL_MASTERY_MEAN = "total_mastery_mean";

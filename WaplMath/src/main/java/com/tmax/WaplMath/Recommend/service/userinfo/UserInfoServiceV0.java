@@ -307,6 +307,10 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
   public ResultMessageDTO deleteUserInfo(String userId) {
     if(userRepo.existsById(userId)) {
       userRepo.deleteById(userId);
+
+      //Publish delete event to listeners
+      userInfoEventPublisher.publishUserDelete(userId);
+
       return new ResultMessageDTO("Successfully delete user info");
     } else {
       return new ResultMessageDTO(String.format("Warning: User %s is not in USER_MASTER TB", userId));

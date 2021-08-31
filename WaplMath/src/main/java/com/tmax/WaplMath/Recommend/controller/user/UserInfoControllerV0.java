@@ -59,7 +59,7 @@ public class UserInfoControllerV0 {
 
 		String userId = JWTUtil.getUserID(token);
 
-    log.info("User delete service. userId : {}", userId);
+    	log.info("User delete service. userId : {}", userId);
 
 		ResultMessageDTO resultMessage = userInfoMvc.deleteUserInfo(userId);
 

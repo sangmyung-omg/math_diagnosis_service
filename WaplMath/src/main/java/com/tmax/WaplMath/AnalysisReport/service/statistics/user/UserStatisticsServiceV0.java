@@ -38,6 +38,7 @@ import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
+import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManager;
 // import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
@@ -593,5 +594,18 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         // statisticUserRepo.deleteAllById(keySet);
         
         return false;
+    }
+
+    @Override
+    public boolean clearAllUserStatistics(String userID) {
+        try { 
+            statisticUserRepo.deleteAllOfUser(userID);
+        }
+        catch(Exception e){
+            log.error("User Stat delete error: ", StackPrinter.getStackTrace(e));
+            return false;
+        }
+
+        return true;
     }
 }
