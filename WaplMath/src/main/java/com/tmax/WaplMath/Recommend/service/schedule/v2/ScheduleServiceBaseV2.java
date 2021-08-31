@@ -4,9 +4,9 @@ import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
 
 public interface ScheduleServiceBaseV2 {
 
-	ScheduleCardOutputDTO getExamScheduleCard(String userId);
+	ScheduleCardOutputDTO getExamScheduleCard(String userId, boolean debugMode);
 
-	ScheduleCardOutputDTO getNormalScheduleCard(String userId);
+	ScheduleCardOutputDTO getNormalScheduleCard(String userId, boolean debugMode);
 	
 	ScheduleCardOutputDTO getScheduleCardDummy(String userId);
 

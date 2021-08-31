@@ -41,10 +41,10 @@ import lombok.extern.slf4j.Slf4j;
 public class CardGeneratorV2 extends CardConstants {
 
   // logging option
-  private static final boolean PRINT_PROB_INFO = false; // level 1
-  private static final boolean PRINT_MASTERY = false; // level 2
-  private static final boolean PRINT_TYPE_ID = true; // level 3
-  private static final boolean PRINT_CURR_INFO = true; // level 4
+  private boolean PRINT_PROB_INFO = false; // level 1
+  private boolean PRINT_MASTERY = false; // level 2
+  private boolean PRINT_TYPE_ID = true; // level 3
+  private boolean PRINT_CURR_INFO = true; // level 4
 
 
   @Autowired
@@ -83,6 +83,15 @@ public class CardGeneratorV2 extends CardConstants {
     this.userId = userId;
     this.solvedProbIdSet = solvedProbIdSet;
     this.examSubSectionIdSet = examSubSectionIdSet;
+  }
+
+
+  // set log level for debug mode
+  public void setLogLevel(boolean debugMode){
+    if (debugMode) {
+      this.PRINT_PROB_INFO = true; 
+      this.PRINT_MASTERY = true;
+    }
   }
 
 

@@ -450,12 +450,14 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                        .stream()
                        .filter(
         typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet)!=0)
-                       .collect(Collectors.toList())
-                       .subList(0, addtiTypeNum);
+                       .collect(Collectors.toList());
+
+      if (addtiTypeMasteryList.size() < addtiTypeNum)
+        return false;
 
       this.cardConfigList.add(CardConfigDTO.builder()
                                            .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
-                                           .typeMasteryList(addtiTypeMasteryList)
+                                           .typeMasteryList(addtiTypeMasteryList.subList(0, addtiTypeNum))
                                            .build());
 
       List<Integer> addtlSuppleCardTypeIdList = addtiTypeMasteryList.stream()
@@ -715,7 +717,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
     // 추가 보충 카드
     Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - 4) / 2.0);
-    log.info("ADDTL_SUPPLE card with {} problems. ", addtiTypeNum);
+    log.info("ADDTL_SUPPLE card with {} /. ", addtiTypeNum);
     
     List<TypeMasteryDTO> addtiTypeMasteryList = 
     userKnowledgeRepo.findTypeMasteryListBetween(userId, 

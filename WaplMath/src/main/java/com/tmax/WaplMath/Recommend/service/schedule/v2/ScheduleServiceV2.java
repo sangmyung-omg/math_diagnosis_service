@@ -68,7 +68,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
 
   // type = "normal", "dummy", "exam"
-  public ScheduleCardOutputDTO getScheduleCard(String userId, String type){
+  public ScheduleCardOutputDTO getScheduleCard(String userId, String type, boolean debugMode){
 
     List<CardDTOV2> cardList = new ArrayList<>();
 
@@ -94,6 +94,13 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
                                 scheduleConfigurator.getSolvedProbIdSet(), 
                                 scheduleConfigurator.getExamSubSectionIdSet());
     
+    // set log level for debug mode
+    cardGenerator.setLogLevel(debugMode);
+
+    // if configs empty = no probs to serve
+    if (scheduleConfig.getCardConfigList().isEmpty())
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATE_NO_CARDS_ERROR);
+
     // generate schedule cards with schedule config
     scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));
 
@@ -108,18 +115,18 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
   }
 
   @Override
-  public ScheduleCardOutputDTO getNormalScheduleCard(String userId) {
-    return getScheduleCard(userId, "normal");		
+  public ScheduleCardOutputDTO getNormalScheduleCard(String userId, boolean debugMode) {
+    return getScheduleCard(userId, "normal", debugMode);		
   }
 
   @Override
-  public ScheduleCardOutputDTO getExamScheduleCard(String userId) {
-    return getScheduleCard(userId, "exam");
+  public ScheduleCardOutputDTO getExamScheduleCard(String userId, boolean debugMode) {
+    return getScheduleCard(userId, "exam", debugMode);
   }
 
   @Override
   public ScheduleCardOutputDTO getScheduleCardDummy(String userId) {
-    return getScheduleCard(userId, "dummy");
+    return getScheduleCard(userId, "dummy", false);
   }
 
 }
