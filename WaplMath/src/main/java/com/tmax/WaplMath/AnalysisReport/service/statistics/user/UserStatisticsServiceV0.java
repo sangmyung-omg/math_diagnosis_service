@@ -542,9 +542,11 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                     if(diffRaw.equals("상")) difficulty = "l";
                                     else if(diffRaw.equals("중")) difficulty = "m";
                                     else if(diffRaw.equals("하")) difficulty = "h";
+                            
 
                                     return Stream.of(UserLRSRecordSimpleDTO.builder().pID(probID)
                                                                                     .time(statement.getTimestamp())
+                                                                                    .srcType(statement.getSourceType())
                                                                                     .diff(difficulty)
                                                                                     .dur(duration).corr(correct).build());
                                  }

@@ -115,6 +115,16 @@ public class UserDataServiceV0 implements UserDataServiceBase {
                                 }).collect(Collectors.toList());
                             }
 
+                            //filter diagnosis
+                            historyList = historyList.stream().filter(history -> {
+                                //Filter out diagnosis srcTypes
+                                if(history.getSrcType() != null && history.getSrcType().startsWith("diagnosis")){
+                                    return false;
+                                }
+
+                                return true;
+                            }).collect(Collectors.toList());
+
                             //Basic counter
                             try {
                                 int totalcnt = 0;

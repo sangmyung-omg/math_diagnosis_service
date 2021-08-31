@@ -1,6 +1,6 @@
 package com.tmax.WaplMath.AnalysisReport.dto.userdata;
 
-import java.sql.Timestamp;
+// import java.sql.Timestamp;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,4 +18,6 @@ public class UserLRSRecordSimpleDTO {
     private String corr;
     private String diff;
     private String time;
+
+    private String srcType;
 }
