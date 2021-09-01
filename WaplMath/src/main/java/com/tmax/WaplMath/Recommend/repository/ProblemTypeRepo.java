@@ -11,23 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository("RE-ProblemTypeRepo")
 public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 
-
-	@Query("select substr(pt.curriculumId, 1, 14) from ProblemType pt where pt.curriculumId in (:subSectionList)")
-	List<String> findAllSection(@Param("subSectionList") List<String> subSectionList);
-
-	@Query("select substr(pt.curriculumId, 1, 14) from ProblemType pt where pt.curriculumId in (:subSectionList) and pt.typeId not in (:completedTypeIdList) order by pt.typeId asc")
-	List<String> findAllSectionNotInTypeList(@Param("subSectionList") List<String> subSectionList,
-		@Param("completedTypeIdList") List<Integer> completedTypeIdList);
-
-	@Query("select pt.typeId from ProblemType pt where pt.curriculumId in (:subSectionList) and pt.typeId not in (:completedTypeIdList) order by pt.typeId asc")
-	List<Integer> findRemainTypeIdList(@Param("subSectionList") List<String> subSectionList,
-		@Param("completedTypeIdList") List<Integer> completedTypeIdList);
-
-
-	@Query("select pt.curriculum.subSection from ProblemType pt where pt.typeId=:typeId")
-	String findSubSectionNameById(@Param("typeId") Integer typeId);
-
-	//v1
+	// WaplScoreManagerV1
 	@Query("select pt from ProblemType pt where (coalesce(:subSectionList, null) is null or pt.curriculumId in (:subSectionList)) order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
 	List<ProblemType> findTypeListInSubSectionList(@Param("subSectionList") List<String> subSectionList);
 
@@ -40,11 +24,8 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 	@Query("select count(pt) from ProblemType pt where pt.curriculumId = :subSection")
 	Integer findTypeCntInSubSection(@Param("subSection") String subSection);
 
-	@Query("select pt.typeId from ProblemType pt where pt.curriculumId like concat(:section, '%') order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
-	List<Integer> findTypeIdListInSection(@Param("section") String section);
-
 	@Query("select pt from ProblemType pt where (coalesce(:subSectionList, null) is null or pt.curriculumId in (:subSectionList)) and (coalesce(:completedTypeIdList, null) is null or pt.typeId not in (:completedTypeIdList)) order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
-	List<ProblemType> NfindRemainTypeIdList(@Param("subSectionList") List<String> subSectionList, @Param("completedTypeIdList") List<Integer> completedTypeIdList);
+	List<ProblemType> findRemainTypeIdList(@Param("subSectionList") List<String> subSectionList, @Param("completedTypeIdList") List<Integer> completedTypeIdList);
 
 	@Query("select pt.typeName from ProblemType pt where pt.typeId=:typeId")
 	String findTypeNameById(@Param("typeId") Integer typeId);
@@ -52,6 +33,7 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 	@Query("select distinct pt.curriculumId from ProblemType pt where (coalesce(:typeIdList, null) is null or pt.typeId in (:typeIdList))")
 	List<String> findSubSectionListInTypeList(@Param("typeIdList") List<Integer> typeIdList);
 
+  
 	//21.07.01 card generator v2
 	@Query("select pt.curriculumId as currId from ProblemType pt where pt.frequent='true' and pt.curriculumId like concat(:sectionId, '%') group by pt.curriculumId order by count(pt) desc")
 	List<String> findSubSectionIdListInSectionOrderByFreq(@Param("sectionId") String sectionId);
@@ -61,6 +43,7 @@ public interface ProblemTypeRepo extends CrudRepository<ProblemType, Integer> {
 
 	@Query("select substr(pt.curriculumId, 1, 11) as currId from ProblemType pt where pt.frequent='true' and (coalesce(:subSectionIdSet, null) is null or pt.curriculumId in (:subSectionIdSet)) group by substr(pt.curriculumId, 1, 11) order by count(pt) desc")
 	List<String> findChapterListInSubSectionSetOrderByFreq(@Param("subSectionIdSet") Set<String> subSectionIdSet);
+
 
 	@Query("select pt.typeId from ProblemType pt where pt.curriculumId = :subSection and pt.frequent='true' order by pt.curriculum.curriculumSequence asc, pt.sequence asc")
 	List<Integer> findFreqTypeIdListInSubSection(@Param("subSection") String subSection);

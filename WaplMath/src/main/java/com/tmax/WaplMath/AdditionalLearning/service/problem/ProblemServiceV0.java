@@ -1,5 +1,8 @@
 package com.tmax.WaplMath.AdditionalLearning.service.problem;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -27,8 +30,13 @@ public class ProblemServiceV0 implements ProblemServiceBaseV0{
 	public List<FreqProbCurriDTO> getNotProvidedFreqProbListBySubsection(Set<Integer> probIdList,
 			List<String> curriculumIdList) {
 		
+    // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+    String todayUTC = ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    log.info("Sampling probs before " + todayUTC);
+
 		List<FreqProbCurriDTO> freqProbCurriDTOList =new ArrayList<FreqProbCurriDTO>();
-		List<Problem> probEntity = problemRepo.getFrequentNotProvidedProblemByCurri(probIdList, curriculumIdList);
+		List<Problem> probEntity = problemRepo.getFrequentNotProvidedProblemByCurri(probIdList, curriculumIdList, todayUTC);
 		
 		for(Problem p : probEntity){
 			FreqProbCurriDTO dto= new FreqProbCurriDTO();
@@ -44,8 +52,13 @@ public class ProblemServiceV0 implements ProblemServiceBaseV0{
 	public List<FreqProbCurriDTO> getProvidedFreqProbListBySubsection(Set<Integer> probIdList,
 			List<String> curriculumIdList) {
 		
+    // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+    String todayUTC = ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    
+    log.info("Sampling probs before " + todayUTC);
+
 		List<FreqProbCurriDTO> freqProbCurriDTOList =new ArrayList<FreqProbCurriDTO>();
-		List<Problem> probEntity = problemRepo.getFrequentProvidedProblemByCurri(probIdList, curriculumIdList);
+		List<Problem> probEntity = problemRepo.getFrequentProvidedProblemByCurri(probIdList, curriculumIdList, todayUTC);
 		
 		for(Problem p : probEntity){
 			FreqProbCurriDTO dto= new FreqProbCurriDTO();
@@ -60,8 +73,13 @@ public class ProblemServiceV0 implements ProblemServiceBaseV0{
 	@Override
 	public List<FreqProbCurriDTO> getAllFreqProbListBySubsection(Set<Integer> probIdList, List<String> curriculumIdList) {
 		
+    // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+    String todayUTC = ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    
+    log.info("Sampling probs before " + todayUTC);
+
 		List<FreqProbCurriDTO> freqProbCurriDTOList =new ArrayList<FreqProbCurriDTO>();
-		List<Problem> probEntity = problemRepo.getFrequentAllProblemByCurri(probIdList, curriculumIdList);
+		List<Problem> probEntity = problemRepo.getFrequentAllProblemByCurri(probIdList, curriculumIdList, todayUTC);
 		
 		for(Problem p : probEntity){
 			FreqProbCurriDTO dto= new FreqProbCurriDTO();

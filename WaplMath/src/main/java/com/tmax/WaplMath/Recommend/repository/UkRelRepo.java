@@ -11,8 +11,4 @@ import org.springframework.stereotype.Repository;
 @Repository("RE-UkRelRepo")
 public interface UkRelRepo extends CrudRepository<UkRel, UkRelKey> {
 
-	@Query("select distinct UR.preUkId from UkRel UR where UR.baseUkId in (:baseUkIdList) and UR.relationReference=:relationReference")
-	List<Integer> findPreUkIdList(@Param("baseUkIdList") List<Integer> baseUkIdList,
-			@Param("relationReference") String relationReference);
-
 }

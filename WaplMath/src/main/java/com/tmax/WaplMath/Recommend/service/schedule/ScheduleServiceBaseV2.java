@@ -1,4 +1,4 @@
-package com.tmax.WaplMath.Recommend.service.schedule.v2;
+package com.tmax.WaplMath.Recommend.service.schedule;
 
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
 

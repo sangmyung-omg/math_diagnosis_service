@@ -3,7 +3,7 @@ package com.tmax.WaplMath.Recommend.controller.schedule;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.config.RecommendConstants;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
-import com.tmax.WaplMath.Recommend.service.schedule.v2.ScheduleServiceBaseV2;
+import com.tmax.WaplMath.Recommend.service.schedule.ScheduleServiceBaseV2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;

@@ -1,5 +1,8 @@
 package com.tmax.WaplMath.Recommend.util.card;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +17,7 @@ import com.tmax.WaplMath.Common.model.problem.Problem;
 import com.tmax.WaplMath.Recommend.dto.mastery.CurrMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
-import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.DiffProbListDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetListDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
@@ -38,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class CardGeneratorV2 extends CardConstants {
+public class CardGenerator extends CardConstants {
 
   // logging option
   private boolean PRINT_PROB_INFO = false; // level 1
@@ -67,6 +70,7 @@ public class CardGeneratorV2 extends CardConstants {
   private String userId;
   private Set<Integer> solvedProbIdSet; // 이미 푼 문제 Id set
   private Set<String> examSubSectionIdSet; // 시험 범위 내 소단원 Id set
+  private String todayUTC;
 
 
   public enum CurrType {
@@ -80,9 +84,16 @@ public class CardGeneratorV2 extends CardConstants {
 
   // initialize generator variables
   public void initGenerator(String userId, Set<Integer> solvedProbIdSet, Set<String> examSubSectionIdSet){
+    // set today utc date
+    // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+    this.todayUTC = ZonedDateTime.now(ZoneId.of("UTC"))
+                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    log.info("Sampling probs before " + this.todayUTC);
+    
     this.userId = userId;
     this.solvedProbIdSet = solvedProbIdSet;
-    this.examSubSectionIdSet = examSubSectionIdSet;
+    this.examSubSectionIdSet = examSubSectionIdSet;    
   }
 
 
@@ -180,7 +191,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 카드 안에 난이도 별로 모든 문제 담기 (adaptive 문제 출제)
-  public void addAllProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROBLEM_NUM, 
+  public void addAllProblemSetList(CardDTO card, DiffProbListDTO diffProbList, Integer MIN_PROBLEM_NUM, 
                                    Integer MAX_PROBLEM_NUM) {
 
     List<ProblemSetListDTO> problemSetList = card.getProbIdSetList();
@@ -214,7 +225,7 @@ public class CardGeneratorV2 extends CardConstants {
 
   // 카드 안에 난이도 확정 & 문제 비율 맞춰 담기 (Adaptive 아닌 경우)
   // probDiffRatio = 현재까지 담은 [상 문제수, 중 문제수, 하 문제수]
-  public void addRatioProblemSetList(CardDTOV2 card, DiffProbListDTO diffProbList, Integer MIN_PROB_NUM,
+  public void addRatioProblemSetList(CardDTO card, DiffProbListDTO diffProbList, Integer MIN_PROB_NUM,
                                      Integer MAX_PROB_NUM, List<Integer> probDiffRatio) {
 
     List<ProblemSetListDTO> problemSetList = card.getProbIdSetList();
@@ -302,7 +313,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 빈출 유형 수 고려하여 문제 추출
-  public void addCurrProblemWithFrequent(CardDTOV2 card, CurrType superCurr, Integer probNum, boolean isAdaptive,
+  public void addCurrProblemWithFrequent(CardDTO card, CurrType superCurr, Integer probNum, boolean isAdaptive,
                                          List<Integer> probDiffRatio) {
 
     List<String> freqOrderedCurrIdList = new ArrayList<>();
@@ -345,7 +356,7 @@ public class CardGeneratorV2 extends CardConstants {
 
         // currId 내 제공 가능한 모든 문제 수
         Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId) 
-                                 ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet)
+                                 ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet, this.todayUTC)
                                  : totalCurrProbNumMap.get(currId);
 
         totalCurrProbNumMap.put(currId, totalCurrProbNum);
@@ -382,7 +393,7 @@ public class CardGeneratorV2 extends CardConstants {
 
           addSubSectionProblemWithFrequent(card, currId, currProbNum, isAdaptive, probDiffRatio);
 
-          currMastery = userKnowledgeRepo.findMasteryBySubSection(userId, currId);
+          currMastery = userKnowledgeRepo.findSubSectionMastery(userId, currId);
           cardDetailJson.addProperty(currMastery.getCurrName(), currMastery.getMastery() * 100.0f);
 
           break;
@@ -396,7 +407,7 @@ public class CardGeneratorV2 extends CardConstants {
 
           addCurrProblemWithFrequent(card, curr, currProbNum, isAdaptive, probDiffRatio);
 
-          currMastery = userKnowledgeRepo.findMasteryBySection(userId, currId);
+          currMastery = userKnowledgeRepo.findSectionMastery(userId, currId);
           cardDetailJson.addProperty(currMastery.getCurrName(), currMastery.getMastery() * 100.0f);
           break;
 
@@ -409,7 +420,7 @@ public class CardGeneratorV2 extends CardConstants {
 
           addCurrProblemWithFrequent(card, curr, currProbNum, isAdaptive, probDiffRatio);
 
-          currMastery = userKnowledgeRepo.findMasteryByChapter(userId, currId);
+          currMastery = userKnowledgeRepo.findChapterMastery(userId, currId);
           cardDetailJson.addProperty(currMastery.getCurrName(), currMastery.getMastery() * 100.0f);
           break;
 
@@ -423,7 +434,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 시험/대/중단원 (superCurr) 내에 대/중/소단원 (curr) 별 이해도 고려하여 문제 추출
-  public void addCurrProblemWithMastery(CardDTOV2 card, CurrType superCurr, Integer probNum) {
+  public void addCurrProblemWithMastery(CardDTO card, CurrType superCurr, Integer probNum) {
 
     List<CurrMasteryDTO> currMasteryList = new ArrayList<>();
     Map<String, Integer> currentCurrProbNumMap = new HashMap<>();
@@ -501,7 +512,7 @@ public class CardGeneratorV2 extends CardConstants {
           // 2021-08-19 Guik Jung
           // problemRepo.findProbCntInCurrId -> problemRepo.findExamProbCntInCurrId
           Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId)
-                                   ? problemRepo.findExamProbCntInCurrId(currId, solvedProbIdSet)
+                                   ? problemRepo.findExamProbCntInCurrId(currId, solvedProbIdSet, this.todayUTC)
                                    : totalCurrProbNumMap.get(currId);
                                    
           totalCurrProbNumMap.put(currId, totalCurrProbNum);
@@ -579,7 +590,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 소단원 내 문제 출제 모듈. 빈출 유형인 것들 중에서 출제
-  public void addSubSectionProblemWithFrequent(CardDTOV2 card, String subSectionId, Integer probNum, boolean isAdaptive,
+  public void addSubSectionProblemWithFrequent(CardDTO card, String subSectionId, Integer probNum, boolean isAdaptive,
                                                List<Integer> probDiffRatio) {
 
     List<Integer> freqTypeIdList = problemTypeRepo.findFreqTypeIdListInSubSection(subSectionId);
@@ -598,7 +609,7 @@ public class CardGeneratorV2 extends CardConstants {
 
         // typeId 내 제공 가능한 모든 문제 수
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
-                                 ? problemRepo.findProbCntInType(typeId, solvedProbIdSet)
+                                 ? problemRepo.findProbCntInType(typeId, solvedProbIdSet, this.todayUTC)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
@@ -626,7 +637,8 @@ public class CardGeneratorV2 extends CardConstants {
         log.info("\tType {} : {} problems. ", typeId, typeProbNum);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, solvedProbIdSet));
+      DiffProbListDTO diffProbList = 
+          generateDiffProbList(problemRepo.findProbListByType(typeId, solvedProbIdSet, this.todayUTC));
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()){
@@ -644,7 +656,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 소단원 내 문제 출제 모듈. 안본 유형 + 마스터리가 낮은 유형 순서대로 많이 출제
-  public void addSubSectionProblemWithMastery(CardDTOV2 card, String subSectionId, Integer probNum) {
+  public void addSubSectionProblemWithMastery(CardDTO card, String subSectionId, Integer probNum) {
 
     List<TypeMasteryDTO> typeMasteryList = 
       userKnowledgeRepo.findTypeMasteryList(userId, problemTypeRepo.findTypeIdListInSubSection(subSectionId));		
@@ -674,7 +686,7 @@ public class CardGeneratorV2 extends CardConstants {
         // 2021-08-19 Guik Jung
         // problemRepo.findProbCntInType -> problemRepo.findExamProbCntInType
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
-                                 ? problemRepo.findExamProbCntInType(typeId, solvedProbIdSet)
+                                 ? problemRepo.findExamProbCntInType(typeId, solvedProbIdSet, this.todayUTC)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
@@ -703,8 +715,9 @@ public class CardGeneratorV2 extends CardConstants {
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       // 2021-08-19 Guik Jung
-      // problemRepo.NfindProbListByType -> problemRepo.NfindExamProbListByType
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindExamProbListByType(typeId, solvedProbIdSet));
+      // problemRepo.findProbListByType -> problemRepo.findExamProbListByType
+      DiffProbListDTO diffProbList = 
+          generateDiffProbList(problemRepo.findExamProbListByType(typeId, solvedProbIdSet, this.todayUTC));
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()) {
@@ -719,7 +732,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 실력 향상 - 유형 카드
-  public CardDTOV2 generateTypeCard(Integer typeId) {
+  public CardDTO generateTypeCard(Integer typeId) {
 
     // 유형 카드 상세 정보
     JsonObject cardDetailJson = new JsonObject();
@@ -733,7 +746,7 @@ public class CardGeneratorV2 extends CardConstants {
     TypeMasteryDTO typeMastery = userKnowledgeRepo.findTypeMastery(userId, typeId);
     Float mastery = typeMastery != null ? typeMastery.getMastery() : 0.7429f;
     
-    CardDTOV2 typeCard = CardDTOV2.builder()
+    CardDTO typeCard = CardDTO.builder()
                                   .cardType(TYPE_CARD_TYPESTR)
                                   .cardTitle(problemTypeRepo.findTypeNameById(typeId))
                                   .probIdSetList(new ArrayList<>())
@@ -743,7 +756,7 @@ public class CardGeneratorV2 extends CardConstants {
                                   .build();
                                   
     // 유형 내 문제들
-    List<Problem> typeProbList = problemRepo.NfindProbListByType(typeId, solvedProbIdSet);
+    List<Problem> typeProbList = problemRepo.findProbListByType(typeId, solvedProbIdSet, this.todayUTC);
     // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
     DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
 
@@ -754,7 +767,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 실력 향상 - 중간 평가 카드 (type="section"/"chapter")
-  public CardDTOV2 generateTestCard(String curriculumId, String type, String cardType) {
+  public CardDTO generateTestCard(String curriculumId, String type, String cardType) {
 
     CurrMasteryDTO mastery = type.equals("section")
                             ? userKnowledgeRepo.findSectionMastery(userId, curriculumId)
@@ -763,7 +776,7 @@ public class CardGeneratorV2 extends CardConstants {
     log.info("SECTION_TEST card: {}, {}, {}", mastery.getCurrId(), mastery.getCurrName(), mastery.getMastery());
     List<Integer> probDiffRatio = new ArrayList<>(Arrays.asList(0, 0, 0));
 
-    CardDTOV2 testCard = CardDTOV2.builder()
+    CardDTO testCard = CardDTO.builder()
                                   .cardType(cardType)
                                   .cardTitle(mastery.getCurrName())
                                   .probIdSetList(new ArrayList<>())
@@ -781,9 +794,9 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 실력 향상 - 보충 카드
-  public CardDTOV2 generateSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
+  public CardDTO generateSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
 
-    CardDTOV2 supplementCard = CardDTOV2.builder()
+    CardDTO supplementCard = CardDTO.builder()
                                         .cardType(SUPPLE_CARD_TYPESTR)
                                         .cardTitle(String.format(SUPPLE_CARD_TITLE_FORMAT, typeMasteryList.size()))
                                         .probIdSetList(new ArrayList<>())
@@ -803,7 +816,7 @@ public class CardGeneratorV2 extends CardConstants {
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
+      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.findProbListByType(typeId, null, this.todayUTC));
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)
@@ -818,9 +831,9 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 실력 향상 - 추가 보충카드
-  public CardDTOV2 generateAddtlSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
+  public CardDTO generateAddtlSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
 
-    CardDTOV2 supplementCard = CardDTOV2.builder()
+    CardDTO supplementCard = CardDTO.builder()
                                         .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
                                         .cardTitle(String.format(ADDTL_SUPPLE_CARD_TITLE_FORMAT, typeMasteryList.size()))
                                         .probIdSetList(new ArrayList<>())
@@ -840,7 +853,7 @@ public class CardGeneratorV2 extends CardConstants {
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.NfindProbListByType(typeId, null));
+      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.findProbListByType(typeId, null, this.todayUTC));
 
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
@@ -856,7 +869,7 @@ public class CardGeneratorV2 extends CardConstants {
 
 
   // 시험 대비 - section_exam (한 중단원 범위 내 20개), full_scope_exam (중단원 내 4-5개) 카드
-  public CardDTOV2 generateExamCard(String curriculumId, String cardType, Integer probNum) {
+  public CardDTO generateExamCard(String curriculumId, String cardType, Integer probNum) {
 
     // 카드 상세 정보
     JsonObject cardDetailJson = new JsonObject();
@@ -866,7 +879,7 @@ public class CardGeneratorV2 extends CardConstants {
     CurrMasteryDTO mastery = userKnowledgeRepo.findSectionMastery(userId, curriculumId);
     log.info("{}, {}, {}", mastery.getCurrId(), mastery.getCurrName(), mastery.getMastery());
 
-    CardDTOV2 examCard = CardDTOV2.builder()
+    CardDTO examCard = CardDTO.builder()
                                   .cardType(cardType)
                                   .cardTitle(mastery.getCurrName())
                                   .probIdSetList(new ArrayList<>())
@@ -885,14 +898,14 @@ public class CardGeneratorV2 extends CardConstants {
   
 
   // 시험 대비 - 모의고사 카드
-  public CardDTOV2 generateTrialExamCard(String examKeyword) {
+  public CardDTO generateTrialExamCard(String examKeyword) {
 
     String[] trialExamInfo = examKeyword.split("-");
     String examType = trialExamInfo[2].equals("mid") ? "중간고사" : "기말고사";
     
     CurrMasteryDTO mastery = userKnowledgeRepo.findExamMastery(userId, this.examSubSectionIdSet);
 
-    CardDTOV2 trialExamCard = CardDTOV2.builder()
+    CardDTO trialExamCard = CardDTO.builder()
                                        .cardType(TRIAL_EXAM_CARD_TYPESTR)
                                        .cardTitle(String.format(TRIAL_EXAM_CARD_TITLE_FORMAT, trialExamInfo[0],
                                                                  trialExamInfo[1], examType))
@@ -911,9 +924,9 @@ public class CardGeneratorV2 extends CardConstants {
   }
 
   
-  public CardDTOV2 generateCard(CardConfigDTO cardConfig) {
+  public CardDTO generateCard(CardConfigDTO cardConfig) {
 
-    CardDTOV2 card = null;
+    CardDTO card = null;
     switch (cardConfig.getCardType()) {
 
       case TYPE_CARD_TYPESTR:

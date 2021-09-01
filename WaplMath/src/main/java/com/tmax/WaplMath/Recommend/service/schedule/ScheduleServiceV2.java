@@ -1,15 +1,15 @@
-package com.tmax.WaplMath.Recommend.service.schedule.v2;
+package com.tmax.WaplMath.Recommend.service.schedule;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.tmax.WaplMath.Recommend.dto.schedule.CardDTOV2;
+import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleCardOutputDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
-import com.tmax.WaplMath.Recommend.util.card.CardGeneratorV2;
-import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfiguratorV2;
+import com.tmax.WaplMath.Recommend.util.card.CardGenerator;
+import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -49,10 +49,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
   @Autowired
-  CardGeneratorV2 cardGenerator = new CardGeneratorV2();
+  CardGenerator cardGenerator = new CardGenerator();
 
   @Autowired
-  ScheduleConfiguratorV2 scheduleConfigurator = new ScheduleConfiguratorV2();
+  ScheduleConfigurator scheduleConfigurator = new ScheduleConfigurator();
 
   @Autowired
   @Qualifier("RE-UserKnowledgeRepo")
@@ -70,7 +70,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
   // type = "normal", "dummy", "exam"
   public ScheduleCardOutputDTO getScheduleCard(String userId, String type, boolean debugMode){
 
-    List<CardDTOV2> cardList = new ArrayList<>();
+    List<CardDTO> cardList = new ArrayList<>();
 
     // check user mastery exist in USER_KNOWLEDGE TB
     checkUserMasteryExist(userId);

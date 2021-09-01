@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class ScheduleHistoryManagerV1 {
+public class ScheduleHistoryManager {
 
 
   // Constant
@@ -60,11 +60,11 @@ public class ScheduleHistoryManagerV1 {
 
   
   // 이미 푼 문제 Id set 리턴
-  public Set<Integer> getSolvedProbIdSet(String userId, String today, String dateFrom, List<String> sourceTypeList){
+  public Set<Integer> getSolvedProbIdSet(String userId, String tomorrow, String dateFrom, List<String> sourceTypeList){
 
     GetStatementInfoDTO LRSinput = GetStatementInfoDTO.builder()
                                                       .userIdList(new ArrayList<>(Arrays.asList(userId)))
-                                                      .dateTo(today)
+                                                      .dateTo(tomorrow)
                                                       .dateFrom(!dateFrom.equals("") ? dateFrom : null)
                                                       .sourceTypeList(sourceTypeList)
                                                       .actionTypeList(new ArrayList<>(Arrays.asList(ACTION_SUBMIT)))
@@ -82,14 +82,14 @@ public class ScheduleHistoryManagerV1 {
 
 
   // 날마다 푼 문제 Id set 리턴
-  public Map<String, Set<Integer>> getSolvedProbIdSetByDay(String userId, String today, String dateFrom, 
+  public Map<String, Set<Integer>> getSolvedProbIdSetByDay(String userId, String tomorrow, String dateFrom, 
                                                            List<String> sourceTypeList) {
 
     Map<String, Set<Integer>> dayProbIdSet = new HashMap<>();
 
     GetStatementInfoDTO LRSinput = GetStatementInfoDTO.builder()
                                                       .userIdList(new ArrayList<>(Arrays.asList(userId)))
-                                                      .dateTo(today)
+                                                      .dateTo(tomorrow)
                                                       .dateFrom(!dateFrom.equals("") ? dateFrom : null)
                                                       .sourceTypeList(sourceTypeList)
                                                       .actionTypeList(new ArrayList<>(Arrays.asList(ACTION_SUBMIT)))
@@ -114,11 +114,11 @@ public class ScheduleHistoryManagerV1 {
 
 
   // 가장 최근에 푼 보충 카드 날짜 리턴 (yyyy-MM-dd)
-  public String getRecentSuppleCardDate(String userId, String today) {
+  public String getRecentSuppleCardDate(String userId, String tomorrow) {
 
     GetStatementInfoDTO LRSinput = GetStatementInfoDTO.builder()
                                                       .userIdList(new ArrayList<>(Arrays.asList(userId)))
-                                                      .dateTo(today)
+                                                      .dateTo(tomorrow)
                                                       .sourceTypeList(new ArrayList<>(Arrays.asList(CardConstants.SUPPLE_CARD_TYPESTR	+ CardConstants.LRS_SOURCE_TYPE_POSTFIX)))
                                                       .actionTypeList(new ArrayList<>(Arrays.asList(ACTION_SUBMIT)))
                                                       .recentStatementNum(1)
@@ -132,9 +132,9 @@ public class ScheduleHistoryManagerV1 {
 
 
   // 특정 카드로 푼 유형 리스트 리턴
-  public List<Integer> getCompletedTypeIdList(String userId, String today, String dateFrom, String sourceType) {
+  public List<Integer> getCompletedTypeIdList(String userId, String tomorrow, String dateFrom, String sourceType) {
 
-    Set<Integer> probIdSet = getSolvedProbIdSet(userId, today, dateFrom, new ArrayList<>(Arrays.asList(sourceType)));
+    Set<Integer> probIdSet = getSolvedProbIdSet(userId, tomorrow, dateFrom, new ArrayList<>(Arrays.asList(sourceType)));
 
     return probIdSet.isEmpty() ? new ArrayList<>()
                                : problemRepo.findTypeIdList(probIdSet);
@@ -142,9 +142,9 @@ public class ScheduleHistoryManagerV1 {
 
 
   // 특정 카드로 푼 중단원 Id set 리턴
-  public Set<String> getCompletedSectionIdList(String userId, String today, String sourceType){
+  public Set<String> getCompletedSectionIdList(String userId, String tomorrow, String sourceType){
 
-    Set<Integer> probIdSet = getSolvedProbIdSet(userId, today, "", new ArrayList<>(Arrays.asList(sourceType)));
+    Set<Integer> probIdSet = getSolvedProbIdSet(userId, tomorrow, "", new ArrayList<>(Arrays.asList(sourceType)));
 
     return probIdSet.isEmpty() ? new HashSet<>()
                                : problemRepo.findSectionIdSet(probIdSet);
@@ -152,21 +152,21 @@ public class ScheduleHistoryManagerV1 {
 
 
   // (21.07.01 card generator v2) 가장 최근에 푼 보충 카드 이후에 푼 유형 카드들의 유형 리스트 리턴
-  public List<Integer> getCompletedTypeIdListAfterSuppleCard(String userId, String today) {
+  public List<Integer> getCompletedTypeIdListAfterSuppleCard(String userId, String tomorrow) {
 
-    String lastSuppleDate = getRecentSuppleCardDate(userId, today);
+    String lastSuppleDate = getRecentSuppleCardDate(userId, tomorrow);
     log.info("Day solved SUPPLE card recently : {}", lastSuppleDate);
 
-    return getCompletedTypeIdList(userId, today, lastSuppleDate, CardConstants.TYPE_CARD_TYPESTR	
+    return getCompletedTypeIdList(userId, tomorrow, lastSuppleDate, CardConstants.TYPE_CARD_TYPESTR	
                                                                  + CardConstants.LRS_SOURCE_TYPE_POSTFIX);
   }
   
 
   // 중단원 별로 푼 카드 개수 리턴
-  public Map<String, Integer> getCompletedSectionNum(String userId, String today, String sourceType) {
+  public Map<String, Integer> getCompletedSectionNum(String userId, String tomorrow, String sourceType) {
 
     Map<String, Set<Integer>> daySolvedProbIdSet = 
-        getSolvedProbIdSetByDay(userId, today, "", new ArrayList<>(Arrays.asList(sourceType)));
+        getSolvedProbIdSetByDay(userId, tomorrow, "", new ArrayList<>(Arrays.asList(sourceType)));
 
     Map<String, Integer> completedSectionExamCardsNum = new HashMap<>();
 

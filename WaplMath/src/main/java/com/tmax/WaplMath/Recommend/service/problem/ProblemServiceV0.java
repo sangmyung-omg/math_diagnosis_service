@@ -1,5 +1,8 @@
 package com.tmax.WaplMath.Recommend.service.problem;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,9 +46,18 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	@Autowired
 	UserExamScopeRepo userExamScopeRepo;
 	
+  // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+  private String todayUTC;
+
 	@Override
 	public Map<String, Object> getDiagnosisProblems(String userId, String diagType){
 		
+    // set today utc date
+    this.todayUTC = ZonedDateTime.now(ZoneId.of("UTC"))
+                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    log.info("Sampling probs before " + this.todayUTC);
+
 		if (diagType.equalsIgnoreCase("in-depth")) {
 			diagType = "꼼꼼";
 			log.info("> IN-DEPTH DIAGNOSIS SERVICE START!");
@@ -135,7 +147,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			// 해당하는 단원에 대한 문제 set 가져오기
 			log.info("Getting problem set...");
 			DiagnosisProblem result;
-			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType);
+			List<DiagnosisProblem> queryResult = diagnosisProblemRepository.findAllByChapter(selected_chapter, diagType, this.todayUTC);
 			List<Integer> prob_list = new ArrayList<Integer>();
 			
 			if (queryResult.size() != 0 && queryResult != null) {
@@ -204,6 +216,13 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 	
 	@Override
 	public Map<String, Object> getExtraProblem(String userId, List<Integer> probIdList){
+
+    // set today utc date
+    this.todayUTC = ZonedDateTime.now(ZoneId.of("UTC"))
+                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    log.info("Sampling probs before " + this.todayUTC);
+
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		List<Integer> extraProblems = new ArrayList<Integer>();
 		log.info("> Diagnosis Extra Problem Service Start!");
@@ -289,7 +308,7 @@ public class ProblemServiceV0 implements ProblemServiceBase {
 			
 			// 해당 단원의 문제 조회
 			// List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapter(chapter_condition, diagType);
-			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapterIn(list, diagType);
+			List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByChapterIn(list, diagType, this.todayUTC);
 			// List<DiagnosisProblem> diagList = diagnosisProblemRepository.findAllByBasicProblemProblemTypeCurriculumChapterInAndBasicProblemCategory(list, diagType);
 			
 			if (diagList.size() == 0 || diagList == null) {

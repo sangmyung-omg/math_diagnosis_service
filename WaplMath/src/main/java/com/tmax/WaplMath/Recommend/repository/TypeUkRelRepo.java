@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository("RE-TypeUkRelRepo")
 public interface TypeUkRelRepo extends CrudRepository<TypeUkRel, TypeUkRelKey> {
+
+  // WaplScoreManagerV1
 	@Query("select tur.ukId from TypeUkRel tur where tur.typeId=:typeId")
 	public List<Integer> findAllUkByTypeId(@Param("typeId") Integer typeId);
 }

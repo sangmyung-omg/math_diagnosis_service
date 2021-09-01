@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CardDTOV2 {
+public class CardDTO {
 	private String cardType;
 	private String cardTitle;
 	private String firstProbLevel;

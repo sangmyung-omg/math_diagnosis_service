@@ -29,7 +29,7 @@ import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
-import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManagerV1;
+import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class ScheduleConfiguratorV2 extends CardConstants {
+public class ScheduleConfigurator extends CardConstants {
 
   // Repository
   @Autowired
@@ -69,11 +69,12 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   private UserKnowledgeRepo userKnowledgeRepo;
 
   @Autowired
-  ScheduleHistoryManagerV1 historyManager;
+  ScheduleHistoryManager historyManager;
 
   // user info vars
   private String userId;
-  private String today;
+  private String tomorrow;
+  private String todayUTC;
   private @Getter Set<Integer> solvedProbIdSet; // 이미 푼 문제 Id set
   private @Getter Set<String> examSubSectionIdSet; // 시험 범위 내 소단원 Id set
 
@@ -89,10 +90,17 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
   // initialize configurator variables
   public void initConfigurator(String userId){
-    // set today local date
-    this.today = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
-                              .plusDays(1)
-                              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    // set tomorrow local date
+    this.tomorrow = ZonedDateTime.now(ZoneId.of("Asia/Seoul"))
+                                 .plusDays(1)
+                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    // set today utc date
+    // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+    this.todayUTC = ZonedDateTime.now(ZoneId.of("UTC"))
+                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    
+    log.info("Sampling probs before " + this.todayUTC);
     
     // set user info vars
     this.userId = userId;
@@ -119,7 +127,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                       CHAPTER_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
                                       TRIAL_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX));
 
-    return historyManager.getSolvedProbIdSet(userId, today, "", sourceTypeList);
+    return historyManager.getSolvedProbIdSet(userId, tomorrow, "", sourceTypeList);
   }
 
 
@@ -192,7 +200,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   public void setValidSectionIdSet() {  
     this.validSectionIdSet = this.examSubSectionIdSet.stream()
                                                      .filter(
-            subSection -> problemRepo.findExamProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
+            subSection -> problemRepo.findExamProbCntInCurrId(subSection, this.solvedProbIdSet, this.todayUTC) != 0)
                                                      .map(subSection -> subSection.substring(0, 14))
                                                      .collect(Collectors.toSet());
   }
@@ -245,20 +253,20 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     // 제공할 문제가 있는 중단원들
     Set<String> sectionIdSet = subSectionIdList.stream()
                                                .filter(
-        subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet) != 0)
+        subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet, this.todayUTC) != 0)
                                                .map(subSection -> subSection.substring(0, 14))
                                                .collect(Collectors.toSet());
     log.info("1. Total section list : {}", sectionIdSet);
 
     // 유형 카드를 통해 이미 푼 유형들
-    List<Integer> completedTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "",
+    List<Integer> completedTypeIdList = historyManager.getCompletedTypeIdList(userId, tomorrow, "",
             TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("2. Types already solved : {}", completedTypeIdList);
 
     // 안푼 유형들 = 앞으로 풀 유형 Id들
     this.remainTypeList = subSectionIdList.isEmpty() 
                         ? new ArrayList<>() 
-                        : problemTypeRepo.NfindRemainTypeIdList(subSectionIdList, completedTypeIdList);
+                        : problemTypeRepo.findRemainTypeIdList(subSectionIdList, completedTypeIdList);
 
     // 유형 카드가 남은 중단원들
     Set<String> notDoneSectionIdSet = completedTypeIdList.isEmpty() 
@@ -273,7 +281,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     log.info("4. Sections completely solved through TYPE cards : {}", sectionIdSet);
 
     // 중간 평가 카드를 통해 이미 푼 중단원들
-    Set<String> completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, today, 
+    Set<String> completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, tomorrow, 
             SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("5. Sections already solved through SECTION_TEST cards : {}", completedSectionIdSet);
 
@@ -284,7 +292,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     // sectionSet 내 중단원으로 중간 평가 카드 구성
     if (!sectionIdSet.isEmpty()) {
       String sectionId = sectionIdSet.iterator().next();
-      if (problemRepo.findProbCntInCurrId(sectionId, this.solvedProbIdSet) != 0) {
+      if (problemRepo.findProbCntInCurrId(sectionId, this.solvedProbIdSet, this.todayUTC) != 0) {
         log.info("\tSECTION_TEST card. : {}", sectionId);
 
         this.cardConfigList.add(CardConfigDTO.builder()
@@ -304,12 +312,12 @@ public class ScheduleConfiguratorV2 extends CardConstants {
   // (실력 향상) 보충 카드 여부 확인 및 생성
   public boolean checkSuppleCard() {
     // 보충 카드를 통해 푼 유형들
-    List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, today, "", 
+    List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, tomorrow, "", 
             SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("7. Type list already solved through SUPPLE cards = {}", suppleTypeIdList);
 
     // 가장 최근 보충 카드 이후, 유형 카드를 통해 푼 유형들
-    List<Integer> solvedTypeIdList = historyManager.getCompletedTypeIdListAfterSuppleCard(userId, today);
+    List<Integer> solvedTypeIdList = historyManager.getCompletedTypeIdListAfterSuppleCard(userId, tomorrow);
 
     // 최근 유형들 - 이미 보충한 유형들 = 보충 카드로 구성될 후보 유형들
     solvedTypeIdList.removeAll(suppleTypeIdList);
@@ -317,9 +325,10 @@ public class ScheduleConfiguratorV2 extends CardConstants {
     if (!solvedTypeIdList.isEmpty()) {
       // 마스터리가 낮고, 제공할 문제가 있는 유형들
       List<TypeMasteryDTO> lowTypeMasteryList = 
-        userKnowledgeRepo.findNLowTypeMasteryList(userId, solvedTypeIdList, MASTERY_LOW_THRESHOLD)
+        userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, MASTERY_LOW_THRESHOLD)
             .stream()
-            .filter(typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet) != 0)
+            .filter(
+      typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC) != 0)
             .collect(Collectors.toList());
 
       log.info("8. Low type mastery list except solved through SUPPLE cards = ");
@@ -369,7 +378,8 @@ public class ScheduleConfiguratorV2 extends CardConstants {
         List<TypeMasteryDTO> typeMasteryList = 
           userKnowledgeRepo.findTypeMasteryList(userId, solvedTypeIdList)
               .stream()
-              .filter(typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet) != 0)
+              .filter(
+        typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC) != 0)
               .collect(Collectors.toList())
               .subList(0, SUPPLE_CARD_TYPE_NUM);
 
@@ -402,7 +412,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
       for (ProblemType type : this.remainTypeList) {
 
         // 제공할 문제가 없으면 pass
-        if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet) == 0) {
+        if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet, this.todayUTC) == 0) {
           noProbTypeIdList.add(type.getTypeId());
           continue;
         }
@@ -449,7 +459,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                         ExamScope.examScope.get(examKeyword).get(1))
                        .stream()
                        .filter(
-        typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet)!=0)
+        typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC)!=0)
                        .collect(Collectors.toList());
 
       if (addtiTypeMasteryList.size() < addtiTypeNum)
@@ -553,7 +563,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
     // 각 중단원 별 이미 푼 카드 개수
     Map<String, Integer> completedSectionExamCardsNum = historyManager.getCompletedSectionNum(
-        userId, today, SECTION_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
+        userId, tomorrow, SECTION_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
     log.info("3. Number of SECTION_EXAM cards already solved : {} ", completedSectionExamCardsNum);
 
     // 각 중단원 별 앞으로 풀 카드 개수 계산
@@ -664,7 +674,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
 
     // get section id, remain type list
     String sectionId = getValidUserInfo(userId).getCurrentCurriculumId().substring(0, 14);
-    List<ProblemType> typeList = problemTypeRepo.NfindRemainTypeIdList(getNormalSubSectionIdList(userId), null);
+    List<ProblemType> typeList = problemTypeRepo.findRemainTypeIdList(getNormalSubSectionIdList(userId), null);
 
 
     // 유형카드 : 첫 번째 유형
@@ -687,7 +697,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                                                                    typeList.get(3).getTypeId()));
 
     List<TypeMasteryDTO> lowMasteryTypeList =
-        userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, new ArrayList<>(), 1.0f);
+        userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, 1.0f);
 
     log.info("Low type mastery list except solved through SUPPLE cards = ");
     printTypeMasteryList(lowMasteryTypeList);
@@ -725,7 +735,7 @@ public class ScheduleConfiguratorV2 extends CardConstants {
                       ExamScope.examScope.get(examKeyword).get(1))
                      .stream()
                      .filter(
-      typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet)!=0)
+      typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC)!=0)
                      .collect(Collectors.toList())
                      .subList(0, addtiTypeNum);
 
