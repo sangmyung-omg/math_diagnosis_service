@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
@@ -29,6 +30,18 @@ public class ProblemDateTest {
     List<Problem> probs = probRepo.getDateProbs(today);
     
     System.out.println(probs.get(0).getCreateDate());
+    
+    probs.subList(0, 10).forEach(e -> {
+      System.out.println(e.getProbId());
+    });
 
+    System.out.println("\n");
+
+    // 2021-09-02 Added by Sangheon Lee. Shuffle prob list
+    Collections.shuffle(probs);
+    
+    probs.subList(0, 10).forEach(e -> {
+      System.out.println(e.getProbId());
+    });
   }
 }

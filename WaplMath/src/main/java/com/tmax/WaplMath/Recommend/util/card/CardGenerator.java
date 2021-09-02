@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -144,6 +145,10 @@ public class CardGenerator extends CardConstants {
   // DiffProbListDTO (문제 난이도 별 문제 객체 set DTO) 생성/출력 및 리턴
   public DiffProbListDTO generateDiffProbList(List<Problem> probList) {
     DiffProbListDTO diffProbList = new DiffProbListDTO();
+
+    // 2021-09-02 Added by Sangheon Lee. Shuffle prob list
+    Collections.shuffle(probList);
+
     for (Problem prob : probList) {	diffProbList.addDiffProb(prob, Difficulty.valueOf(prob.getDifficulty())); }
     printDiffProbList(diffProbList);
 
@@ -755,10 +760,9 @@ public class CardGenerator extends CardConstants {
                                   .cardScore(mastery * 100)
                                   .build();
                                   
-    // 유형 내 문제들
-    List<Problem> typeProbList = problemRepo.findProbListByType(typeId, solvedProbIdSet, this.todayUTC);
     // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-    DiffProbListDTO diffProbList = generateDiffProbList(typeProbList);
+    DiffProbListDTO diffProbList = 
+      generateDiffProbList(problemRepo.findProbListByType(typeId, solvedProbIdSet, this.todayUTC));
 
     addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
     typeCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
@@ -854,7 +858,6 @@ public class CardGenerator extends CardConstants {
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.findProbListByType(typeId, null, this.todayUTC));
-
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)

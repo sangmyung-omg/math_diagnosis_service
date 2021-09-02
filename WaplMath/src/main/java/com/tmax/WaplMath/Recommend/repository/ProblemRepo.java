@@ -81,7 +81,7 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 
 
   // 2021-09-01 Added by Sangheon Lee. for test
-  @Query("select p from Problem p where p.createDate < to_date(:today, 'yyyy-MM-dd') order by createDate desc")
+  @Query("select p from Problem p where p.createDate < to_date(:today, 'yyyy-MM-dd') order by p.createDate desc")
   public List<Problem> getDateProbs(@Param("today") String today);
 
 
