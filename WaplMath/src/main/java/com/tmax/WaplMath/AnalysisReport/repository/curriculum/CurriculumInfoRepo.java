@@ -60,6 +60,7 @@ public interface CurriculumInfoRepo extends CrudRepository<Curriculum, String> {
 
 
 
-
-    //2021-08-25 get currID all list
+    //2021-08-25 get currID all list (only the id for faster query)
+    @Query("select curr.curriculumId from Curriculum curr")
+    public List<String> getAllCurrID();
 }

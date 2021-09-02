@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+// import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +22,7 @@ import com.google.gson.reflect.TypeToken;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
+import com.tmax.WaplMath.Common.model.uk.Uk;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.util.redis.RedisUtil;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
@@ -47,8 +48,13 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @NoArgsConstructor
 class Mastery implements Serializable {
+    @Builder.Default
     private Float mastery = 0.0f;
+
+    @Builder.Default
     private int count = 0;
+
+    @Builder.Default
     private Map<Integer, Float> map = new HashMap<>();
 
     public void add(Integer ukID, Float mastery) {
@@ -85,8 +91,13 @@ class Mastery implements Serializable {
 @AllArgsConstructor
 @NoArgsConstructor
 class UserData {
+    @Builder.Default
     private Float mastery = 0.0f;
+
+    @Builder.Default
     private int count = 0;
+
+    @Builder.Default
     private Map<String, Float> map = new HashMap<>();
 
     public void add(String userID, Float mastery) {
@@ -345,17 +356,16 @@ public class IScreamEduDataReader {
      */
     public List<UserKnowledge> getByCurriculumID(String currID, Mode mode){
         log.debug(String.format("Creating Iscream-stat for [%s] in mode Curri-(%s)",currID, mode.getValue()));
-        
-        //Get uk List of requested curriculum id
-        Set<Integer> ukSet = new HashSet<>();
 
-        if(mode == Mode.EXACT)
-            ukRepository.findByCurriculumId(currID).forEach(uknow -> ukSet.add(uknow.getUkId()));
-        else if(mode == Mode.LIKELY)
-            ukRepository.findByLikelyCurriculumId(currID).forEach(uknow -> ukSet.add(uknow.getUkId()));
-        else {
+        //Mode exception handling
+        if(mode != Mode.EXACT && mode != Mode.LIKELY){
             throw new GenericInternalException(ARErrorCode.GENERIC_ERROR, "Invalid parameter. Curriculum ID mode is invalid");
         }
+
+        //Get uk List of requested curriculum id
+        Set<Integer> ukSet = mode == Mode.EXACT ? //Exact or likely. only two can exist
+                             ukRepository.findByCurriculumId(currID).stream().parallel().map(Uk::getUkId).collect(Collectors.toSet()) :
+                             ukRepository.findByLikelyCurriculumId(currID).stream().parallel().map(Uk::getUkId).collect(Collectors.toSet());
 
         //Get the whole data and make it into UserKnowlegdeList
         Map<String, Mastery> wholeData = getAllUserMasteryData();
@@ -408,26 +418,23 @@ public class IScreamEduDataReader {
         //Get the whole data and make it into UserKnowlegdeList
         Map<Integer, UserData> ukData = getAllUKData();
 
-        //Init output List
-        List<UserKnowledge> output = new ArrayList<>();
-
-        //For all users of iscream edu
-        if(ukData.containsKey(ukID)){
-            UserData data = ukData.get(ukID);
-
-            //For all uks create and push to userknowledge
-            for(Map.Entry<String, Float> userentry : data.getMap().entrySet()){
-            
-                output.add(UserKnowledge.builder()
-                                        .userUuid(userentry.getKey())
-                                        .ukId(ukID)
-                                        .ukMastery(userentry.getValue())
-                                        .build());
-            }
-        }
-        else {
+        //Exception handling if ukID is unavailable;
+        if(!ukData.containsKey(ukID)){
             log.debug("UKID [{}] not found in i-scream data", ukID);
+            return new ArrayList<>();
         }
+
+        //For all uks create and push to userknowledge
+        List<UserKnowledge> output = 
+            ukData.get(ukID).getMap().entrySet().stream().parallel()
+                                .map(userentry -> {
+                                    return UserKnowledge.builder()
+                                                    .userUuid(userentry.getKey())
+                                                    .ukId(ukID)
+                                                    .ukMastery(userentry.getValue())
+                                                    .build();
+                                })
+                                .collect(Collectors.toList());
         
 
         return output;
@@ -491,26 +498,6 @@ public class IScreamEduDataReader {
 
 
         this.wholeData = output;
-
-        // // Test save to redis
-        // if(redisUtil.isUseRedis()){
-        //     try {
-        //         ObjectMapper mapper = new ObjectMapper();
-        //         String data = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(wholeData);
-        //         String key = RedisIdGenerator.domainedID(this.getClass().getSimpleName(), "wholedata");
-        //         redisUtil.saveWithExpire(
-        //                     RedisStringData.builder()
-        //                                     .id(key)
-        //                                     .data(data)
-        //                                     .build(),
-        //                     300);
-        //         RedisStringData data2 = redisUtil.get(key);
-        //         log.info(data2.getData());
-        //     }
-        //     catch(JsonProcessingException e){
-        //         log.error(e.getMessage());
-        //     }
-        // }
 
         return output;
     }

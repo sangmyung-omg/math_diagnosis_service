@@ -345,19 +345,19 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
     
 
 
-    private StatsAnalyticsUser statsToAnalyticsUser(String userID, Statistics stats, Timestamp now){
-        return statsToAnalyticsUser(userID, "", stats, now);
-    }
+    // private StatsAnalyticsUser statsToAnalyticsUser(String userID, Statistics stats, Timestamp now){
+    //     return statsToAnalyticsUser(userID, "", stats, now);
+    // }
 
-    private StatsAnalyticsUser statsToAnalyticsUser(String userID, String prefix, Statistics stats, Timestamp ts){
-        return StatsAnalyticsUser.builder()
-                                .userId(userID)
-                                .name(prefix + stats.getName())
-                                .type(stats.getType().getValue())
-                                .data(stats.getData())
-                                .lastUpdate(ts)
-                                .build();
-    }
+    // private StatsAnalyticsUser statsToAnalyticsUser(String userID, String prefix, Statistics stats, Timestamp ts){
+    //     return StatsAnalyticsUser.builder()
+    //                             .userId(userID)
+    //                             .name(prefix + stats.getName())
+    //                             .type(stats.getType().getValue())
+    //                             .data(stats.getData())
+    //                             .lastUpdate(ts)
+    //                             .build();
+    // }
 
     private StatsAnalyticsUser userStatBuilder(String userID, String statname, Type type, String data, Timestamp ts){
         return StatsAnalyticsUser.builder()

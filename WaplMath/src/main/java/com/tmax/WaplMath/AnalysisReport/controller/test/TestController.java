@@ -2,7 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.controller.test;
 
 import java.io.FileNotFoundException;
 import java.time.Duration;
-import java.util.Arrays;
+// import java.util.Arrays;
 // import java.io.FileReader;
 // import java.nio.file.Path;
 // import java.util.Arrays;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
 import com.tmax.WaplMath.AnalysisReport.dto.StudyGuideDTO;
 import com.tmax.WaplMath.AnalysisReport.event.statistics.StatisticsEventPublisher;
-import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
+// import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsUser;
 // import com.tmax.WaplMath.AnalysisReport.model.curriculum.UserMasteryCurriculum;
 // import com.tmax.WaplMath.AnalysisReport.model.knowledge.UserKnowledgeJoined;
 // import com.tmax.WaplMath.AnalysisReport.model.problem.ProblemCurriculum;
@@ -48,12 +48,12 @@ import com.tmax.WaplMath.Common.util.kafka.KafkaPublisher;
 import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManagerInterface;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
-import com.tmax.WaplMath.Common.util.lrs.TestLRSManager;
+// import com.tmax.WaplMath.Common.util.lrs.TestLRSManager;
 import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceV1;
-import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
+// import com.tmax.WaplMath.Recommend.util.LRSAPIManager;
 import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
 import com.tmax.WaplMath.AnalysisReport.repository.knowledge.UserKnowledgeRepo;
 
@@ -173,7 +173,7 @@ public class TestController {
 
     @GetMapping("/teststatistic2")
     ResponseEntity<Object> updateStat2(@RequestParam("user") String userID) {
-        userStatSvc.updateSpecificUser(userID);
+        userStatSvc.updateSpecificUser(userID, true);
         return null;
     }
     

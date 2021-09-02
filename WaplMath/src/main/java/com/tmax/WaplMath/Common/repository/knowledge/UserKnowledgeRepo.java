@@ -2,7 +2,7 @@ package com.tmax.WaplMath.Common.repository.knowledge;
 
 import java.util.List;
 
-import javax.persistence.Entity;
+// import javax.persistence.Entity;
 
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledgeKey;

@@ -1,7 +1,7 @@
 package com.tmax.WaplMath.AnalysisReport.event.statistics;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+// import java.util.concurrent.TimeUnit;
 
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
@@ -11,15 +11,17 @@ import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
 import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryChangeEvent;
 import com.tmax.WaplMath.Recommend.event.user.UserDeleteEvent;
+import com.tmax.WaplMath.Recommend.event.user.ExamScopeChangeEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
+// import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+// import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @Slf4j
 @Component("StatisticsEventListener")
@@ -50,8 +52,8 @@ public class StatisticsEventListener {
         //Get user ID
         String userID = event.getUserID();
 
-        log.debug("Updating user_mastery_stats for user: " + userID);
-        userStatSvc.updateSpecificUser(userID);
+        log.debug("Updating user_mastery_stats for user {}. {}", userID, "MasteryChangeEvent");
+        userStatSvc.updateSpecificUser(userID, true);
 
         log.debug("Updated all stats for user: " + userID);
     }
@@ -61,12 +63,20 @@ public class StatisticsEventListener {
         String userID = event.getUserID();
 
         if(userID != null){
-            log.debug("Updating user Stat for " + userID);
-            userStatSvc.updateSpecificUser(userID);
+            log.debug("Updating user Stat for {}. {}", userID, "StatisticsUpdateRequestEvent");
+            userStatSvc.updateSpecificUser(userID, true);
         }
     }
 
-
+    @EventListener
+    // @Async
+    public void updatedExamScope(ExamScopeChangeEvent event){
+        String userID = event.getUserID();
+        if(userID != null){
+            log.debug("Updating user Stat for {}. {}",userID,"ExamScopeChangeEvent");
+            userStatSvc.updateSpecificUser(userID, true);
+        }
+    }
 
     /**
      * Startup statistics initializer

@@ -2,7 +2,7 @@ package com.tmax.WaplMath.Recommend.controller.exception;
 
 import com.tmax.WaplMath.Common.dto.GenericErrorDTO;
 import com.tmax.WaplMath.Common.exception.BaseException;
-import com.tmax.WaplMath.Common.exception.GenericInternalException;
+// import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import com.tmax.WaplMath.Common.util.exception.StackPrinter;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 
