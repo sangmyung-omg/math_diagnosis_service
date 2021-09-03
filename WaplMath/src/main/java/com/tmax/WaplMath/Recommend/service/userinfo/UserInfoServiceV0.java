@@ -172,7 +172,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
   public ResultMessageDTO updateBasicInfo(String userId, UserBasicInfoDTO input) {
     // 중간-기말 , 기말-다음학기 구분하는 임시 날짜
     final String SPRING_MID_TERM = "2021-05-00";
-    final String SPRING_END = "2021-08-15";
+    final String SPRING_END = "2021-08-00";
     final String FALL_MID_TERM = "2021-10-00";
     final String FALL_END = "2022-03-00";
 
