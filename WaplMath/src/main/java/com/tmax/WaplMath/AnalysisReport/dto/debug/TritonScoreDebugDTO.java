@@ -21,4 +21,7 @@ public class TritonScoreDebugDTO {
     //Mastery progression by date
     private Map<String, Float> perDateMasteryProgression;
     private Map<Integer, Float> perStrideMasteryProgression;
+
+    //Map raw array
+    private List<Map<String,Object>> problemCorrectPairList;    
 }
