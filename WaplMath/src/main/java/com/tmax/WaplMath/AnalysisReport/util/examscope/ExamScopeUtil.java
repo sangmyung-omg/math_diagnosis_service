@@ -44,7 +44,8 @@ public class ExamScopeUtil {
             List<String> excludeList = examScope.getExceptSubSectionIdList() != null ? 
                                     Arrays.asList(examScope.getExceptSubSectionIdList().split(", ")) : 
                                     Arrays.asList(" ");
-            currList = curriculumInfoRepo.getCurriculumInRange(examScope.getStartSubSectionId(), examScope.getEndSubSectionId(), excludeList);          
+            // currList = curriculumInfoRepo.getCurriculumInRange(examScope.getStartSubSectionId(), examScope.getEndSubSectionId(), excludeList);          
+            currList = getCurrIdList(examScope.getStartSubSectionId(), examScope.getEndSubSectionId(), excludeList);
         }
         else {
             log.warn("Exam scope doesn't exist for user [{}]. Creating pseudo-list from curriculum info.", userID);
@@ -64,5 +65,9 @@ public class ExamScopeUtil {
 
 
         return currList.stream().map(Curriculum::getCurriculumId).collect(Collectors.toList());
+    }
+
+    public List<Curriculum> getCurrIdList(String startSubSectionId, String endSubSectionId, List<String> excludeList){
+        return curriculumInfoRepo.getCurriculumInRange(startSubSectionId, endSubSectionId, excludeList);   
     }
 }
