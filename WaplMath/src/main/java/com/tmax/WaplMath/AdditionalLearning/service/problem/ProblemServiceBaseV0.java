@@ -11,6 +11,10 @@ public interface ProblemServiceBaseV0 {
 	//소단원 input --> (소단원 , 출제한 적 없는 빈출문제) output
 	public List<FreqProbCurriDTO> getNotProvidedFreqProbListBySubsection(Set<Integer> probIdList, List<String> curriculumIdList);
 	
+	// 2021-09-15 Add.
+	//소단원 input --> (소단원 , 출제한 적 없는 카테고리 문제) output
+	public List<FreqProbCurriDTO> getNotProvidedCategoryProbListBySubsection(Set<Integer> probIdList, List<String> curriculumIdList, String category);
+	
 	//소단원 input --> (소단원 , 출제한 적 있는 빈출문제) output
 	public List<FreqProbCurriDTO> getProvidedFreqProbListBySubsection(Set<Integer> probIdList, List<String> curriculumIdList);
 	

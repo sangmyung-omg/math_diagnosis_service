@@ -54,4 +54,33 @@ public interface ProblemRepo extends CrudRepository<UserKnowledge,String>{
 	List<Problem> getFrequentAllProblemByCurri(@Param("probIdList") Set<Integer> probIdList,  
                                   @Param("curriculumIdList") List<String> curriculumIdList,
                                   @Param("today") String today);
+	
+	// 2021-09-15 Add.
+	@Query(value="select p"+
+			" from Problem p"+
+			" where p.probId not in(:probIdList)"+
+			" and p.problemType.curriculumId in(:curriculumIdList)"+
+			" and p.status =('ACCEPT')"+
+			" and p.category in (:category)"+
+      " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"+
+      " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
+	List<Problem> getCategoryNotProvidedProblemByCurri(@Param("probIdList") Set<Integer> probIdList,
+											@Param("curriculumIdList") List<String> curriculumIdList, 
+											@Param("category") String category,
+											@Param("today") String today);
+	// 2021-09-15 Add.
+	@Query(value="select p"+
+			" from Problem p"+
+			" where p.probId not in(:probIdList)"+
+			" and p.problemType.curriculumId in(:curriculumIdList)"+
+			" and p.status =('ACCEPT')"+
+			" and p.category in (:category)"+
+			" and p.frequent =('false')"+
+      " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"+
+      " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
+	List<Problem> getNotFreqNotProvidedProblemByCurri(@Param("probIdList") Set<Integer> probIdList,
+											@Param("curriculumIdList") List<String> curriculumIdList, 
+											@Param("category") String category,
+											@Param("today") String today);
+
 }

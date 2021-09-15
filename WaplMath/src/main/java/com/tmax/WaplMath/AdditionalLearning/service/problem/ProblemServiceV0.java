@@ -47,6 +47,35 @@ public class ProblemServiceV0 implements ProblemServiceBaseV0{
 		
 		return freqProbCurriDTOList;
 	}
+	
+	
+	// 2021-09-15 Add.
+	@Override
+	public List<FreqProbCurriDTO> getNotProvidedCategoryProbListBySubsection(Set<Integer> probIdList,
+			List<String> curriculumIdList, String category) {
+		
+    String todayUTC = ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+    log.info("Sampling probs before " + todayUTC);
+
+		List<FreqProbCurriDTO> freqProbCurriDTOList =new ArrayList<FreqProbCurriDTO>();
+		List<Problem> probEntity = new ArrayList<Problem>();
+		if(category=="유형") {
+			probEntity = problemRepo.getNotFreqNotProvidedProblemByCurri(probIdList, curriculumIdList, category, todayUTC);
+		}else {
+			probEntity = problemRepo.getCategoryNotProvidedProblemByCurri(probIdList, curriculumIdList, category, todayUTC);
+		}
+		
+		
+		for(Problem p : probEntity){
+			FreqProbCurriDTO dto= new FreqProbCurriDTO();
+			dto.setProblemId(p.getProbId());
+			dto.setCurriculumId(p.getProblemType().getCurriculumId());
+			freqProbCurriDTOList.add(dto);
+		}
+		
+		return freqProbCurriDTOList;
+	}
 
 	@Override
 	public List<FreqProbCurriDTO> getProvidedFreqProbListBySubsection(Set<Integer> probIdList,
