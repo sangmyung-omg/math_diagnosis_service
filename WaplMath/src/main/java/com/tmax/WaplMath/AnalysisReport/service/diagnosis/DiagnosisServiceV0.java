@@ -80,28 +80,25 @@ class MasteryData {
 @Service("DiagnosisServiceV0")
 @Slf4j
 public class DiagnosisServiceV0 implements DiagnosisServiceBase{
-    @Autowired
-    private MasteryAPIManager masteryAPIManager;
+    @Autowired private MasteryAPIManager masteryAPIManager;
+    @Autowired private LRSManager lrsManager;
 
-    @Autowired
-    private LRSManager lrsManager;
-
-    @Autowired
-    @Qualifier("UserStatisticsServiceV0")
+    @Autowired @Qualifier("UserStatisticsServiceV0")
     private UserStatisticsServiceBase userStatSvc;
 
-    @Autowired
-    @Qualifier("RE-ProblemUkRelRepo")
-    ProblemUkRelRepo probUkRelRepo;
+    @Autowired @Qualifier("RE-ProblemUkRelRepo")
+    private ProblemUkRelRepo probUkRelRepo;
 
-    @Autowired
-    ProblemRepo problemRepo;
-
+    @Autowired private ProblemRepo problemRepo;
     @Autowired private ExamScopeUtil examScopeUtil;
-
     @Autowired private UkRepo ukRepo;
-
     @Autowired private UKStatisticsServiceBase ukStatSvc;
+
+    @Override
+    public int clearDiagnosisStats(String userID) {
+        boolean succeed = userStatSvc.clearUserStatistics(userID, Arrays.asList(STAT_DIAGNOSIS_SCORE));
+        return succeed ? 1 : 0;
+    }
 
     @Override
     public PersonalScoreDTO getScore(String userID) {

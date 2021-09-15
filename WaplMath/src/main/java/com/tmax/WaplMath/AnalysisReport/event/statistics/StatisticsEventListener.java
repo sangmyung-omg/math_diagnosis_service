@@ -3,6 +3,7 @@ package com.tmax.WaplMath.AnalysisReport.event.statistics;
 import java.time.Duration;
 // import java.util.concurrent.TimeUnit;
 
+import com.tmax.WaplMath.AnalysisReport.service.diagnosis.DiagnosisServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
@@ -27,20 +28,14 @@ import lombok.extern.slf4j.Slf4j;
 @Component("StatisticsEventListener")
 public class StatisticsEventListener {
     
-    @Autowired
-    CurrStatisticsServiceBase currStatSvc;
+    @Autowired private CurrStatisticsServiceBase currStatSvc;
+    @Autowired private UserStatisticsServiceBase userStatSvc;
+    @Autowired private UKStatisticsServiceBase ukStatSvc;
+    @Autowired private IScreamEduDataReader iScreamEduDataReader;
+    @Autowired private ShedLockUtil shedLockUtil;
 
-    @Autowired
-    UserStatisticsServiceBase userStatSvc;
-
-    @Autowired
-    UKStatisticsServiceBase ukStatSvc;
-
-    @Autowired
-    IScreamEduDataReader iScreamEduDataReader;
-
-    @Autowired
-    ShedLockUtil shedLockUtil;
+    @Autowired private DiagnosisServiceBase diagSvc;
+    @Autowired private WaplScoreServiceV0 waplScoreSvc;
 
     /**
      * Handler to call services that run on mastery change
@@ -72,6 +67,10 @@ public class StatisticsEventListener {
     // @Async
     public void updatedExamScope(ExamScopeChangeEvent event){
         String userID = event.getUserID();
+
+        //Clear waplscore and diagscore stats
+        diagSvc.clearDiagnosisStats(userID);
+        waplScoreSvc.clearWaplScoreStatistics(userID);
 
         if(userID != null){
             log.debug("Updating user Stat for {}. {}",userID,"ExamScopeChangeEvent");
@@ -169,9 +168,6 @@ public class StatisticsEventListener {
         //Release lock
         shedLockUtil.releaseLock(lockname);
     }
-
-    @Autowired
-    WaplScoreServiceV0 waplScoreSvc;
 
     @EventListener
     public void generateWaplScoreListener(WaplScoreGenEvent event){

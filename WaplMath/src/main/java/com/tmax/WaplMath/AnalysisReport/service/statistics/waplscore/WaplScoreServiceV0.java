@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -35,38 +36,35 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service("AR-WaplScoreServiceV0")
 public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
-    @Autowired
-    private WaplScoreManagerV1 waplScoreManager;
+    @Autowired private WaplScoreManagerV1 waplScoreManager;
 
-    @Autowired
-    @Qualifier("AR-UserInfoRepo")
+    @Autowired @Qualifier("AR-UserInfoRepo")
     private UserInfoRepo userInfoRepo;
 
-    @Autowired
-    @Qualifier("RE-UserEmbeddingRepo")
-	  private UserEmbeddingRepo userEmbeddingRepo;
+    @Autowired @Qualifier("RE-UserEmbeddingRepo")
+    private UserEmbeddingRepo userEmbeddingRepo;
 
-    @Autowired
-    private WAPLScoreTriton waplScoreTriton;
+    @Autowired private WAPLScoreTriton waplScoreTriton;
 
-    @Autowired
-    @Qualifier("UserStatisticsServiceV0")
+    @Autowired @Qualifier("UserStatisticsServiceV0")
     private UserStatisticsServiceBase userStatSvc;
 
-    @Autowired
-    @Qualifier("UKStatisticsServiceV0")
+    @Autowired @Qualifier("UKStatisticsServiceV0")
     private UKStatisticsServiceBase ukStatSvc;
 
-    @Autowired
-    @Qualifier("RE-UkRepo")
+    @Autowired @Qualifier("RE-UkRepo")
     private UkRepo ukRepo;
 
-    @Autowired
-    @Qualifier("CurrStatisticsServiceV0")
+    @Autowired @Qualifier("CurrStatisticsServiceV0")
     private CurrStatisticsServiceBase currStatSvc;
 
-    @Autowired
-    private ExamScopeUtil examScopeUtil;
+    @Autowired private ExamScopeUtil examScopeUtil;
+
+    @Override
+    public int clearWaplScoreStatistics(String userID) {
+        boolean succeed = userStatSvc.clearUserStatistics(userID, Arrays.asList(UserStatisticsServiceBase.STAT_WAPL_SCORE, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY));
+        return succeed ? 1 : 0;
+    }
 
     @Override
     public WAPLScoreDTO getWaplScore(String userID) {
