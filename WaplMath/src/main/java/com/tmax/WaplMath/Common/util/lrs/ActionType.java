@@ -7,7 +7,12 @@ import lombok.Getter;
 
 public enum ActionType {
     SUBMIT("submit"),
-    START("start");
+    START("start"),
+    RESPOND("respond"),
+    ENTER("enter"),
+    END("end"),
+    QUIT("quit");
+  
 
     @Getter
     private String value;
@@ -16,7 +21,7 @@ public enum ActionType {
       this.value = value;
     }
 
-    public static List<String> getAllActionTypes(){
-      return Stream.of(ActionType.values()).map(s -> s.getValue()).collect(Collectors.toList());
+    public static List<ActionType> getAllActionTypes(){
+      return Stream.of(ActionType.values()).collect(Collectors.toList());
     }
 }

@@ -15,4 +15,8 @@ public class LRSStatementRequestDTO {
     private List<String> actionTypeList;
     private List<String> sourceTypeList;
     private List<String> userIdList;
+    private List<String> containExtension;
+    private String dateFrom;
+    private String dateTo;
+    private Integer recentStatementNum;
 }

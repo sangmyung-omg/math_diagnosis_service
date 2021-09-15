@@ -36,14 +36,15 @@ public class TestLRSManager implements LRSManagerInterface {
     }
 
     @Override
-    public List<LRSStatementResultDTO> getStatementList(String userID, List<String> actionTypeList, List<String> sourceTypeList) {
-        return getStatementList(LRSStatementRequestDTO.builder()        
+    public List<LRSStatementResultDTO> getStatementList(String userID, List<ActionType> actionTypeList,
+                                                        List<SourceType> sourceTypeList) {
+        return getStatementList(LRSStatementRequestDTO.builder()
                                                       .userIdList(Arrays.asList(userID))
-                                                      .actionTypeList(actionTypeList)
-                                                      .sourceTypeList(sourceTypeList)
-                                                      .build());
+                                                      .actionTypeList(actionTypeList.stream().map(ActionType::getValue).collect(Collectors.toList()))
+                                                      .sourceTypeList(sourceTypeList.stream().map(SourceType::getValue).collect(Collectors.toList()))
+                                                      .build()
+                                                      );
     }
-
 
     private List<LRSStatementResultDTO> statementGenerator(int noOfStatements, double correctPossibility, List<String> userIDList, List<String> possibleActionTypes, List<String> possibleSourceTypes){
         if(noOfStatements <= 0){

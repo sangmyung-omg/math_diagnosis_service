@@ -72,6 +72,7 @@ public class StatisticsEventListener {
     // @Async
     public void updatedExamScope(ExamScopeChangeEvent event){
         String userID = event.getUserID();
+
         if(userID != null){
             log.debug("Updating user Stat for {}. {}",userID,"ExamScopeChangeEvent");
             userStatSvc.updateSpecificUser(userID, true);

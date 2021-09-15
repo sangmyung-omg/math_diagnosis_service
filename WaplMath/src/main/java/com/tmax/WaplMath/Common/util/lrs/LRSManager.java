@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.time.Duration;
 
 import com.tmax.WaplMath.Common.dto.lrs.LRSStatementRequestDTO;
@@ -90,12 +91,12 @@ public class LRSManager implements LRSManagerInterface {
     }
 
     @Override
-    public List<LRSStatementResultDTO> getStatementList(String userID, List<String> actionTypeList,
-            List<String> sourceTypeList) {
+    public List<LRSStatementResultDTO> getStatementList(String userID, List<ActionType> actionTypeList,
+                                                        List<SourceType> sourceTypeList) {
         return getStatementList(LRSStatementRequestDTO.builder()
                                                       .userIdList(Arrays.asList(userID))
-                                                      .actionTypeList(actionTypeList)
-                                                      .sourceTypeList(sourceTypeList)
+                                                      .actionTypeList(actionTypeList.stream().map(ActionType::getValue).collect(Collectors.toList()))
+                                                      .sourceTypeList(sourceTypeList.stream().map(SourceType::getValue).collect(Collectors.toList()))
                                                       .build()
                                                       );
     }

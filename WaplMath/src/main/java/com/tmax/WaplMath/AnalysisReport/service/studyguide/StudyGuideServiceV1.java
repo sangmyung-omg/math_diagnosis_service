@@ -21,7 +21,9 @@ import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
 import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
 import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
+import com.tmax.WaplMath.Common.util.lrs.ActionType;
 import com.tmax.WaplMath.Common.util.lrs.LRSManager;
+import com.tmax.WaplMath.Common.util.lrs.SourceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,8 +68,8 @@ public class StudyGuideServiceV1 implements StudyGuideServiceBase{
     @Override
     public StudyGuideDTO getStudyGuideOfUser(String userID) {
         //Get LRS statement list for user
-        List<String> actionTypeList = Arrays.asList("submit", "start");
-        List<String> sourceTypeList = Arrays.asList("diagnosis", "diagnosis_simple");
+        List<ActionType> actionTypeList = Arrays.asList(ActionType.SUBMIT);
+        List<SourceType> sourceTypeList = SourceType.getDiagnosisOnly();
 
         List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
 

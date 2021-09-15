@@ -4,10 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.tmax.WaplMath.AnalysisReport.config.ARConstants;
+import com.tmax.WaplMath.AnalysisReport.service.diagnosis.DiagnosisServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.mastery.DebugMasteryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,5 +38,14 @@ public class DebugController {
         List<String> excludeCurrIdList = Arrays.asList(excludeList.split(","));
         Object result = debugMasteryService.simulateScoreFromLrsCSV(csvbody, stride, startCurrId, endCurrId, excludeCurrIdList);
         return ResponseEntity.ok().body(result);
+    }
+
+
+    @Autowired private DiagnosisServiceV0 diagnosisSvc;
+
+    @GetMapping("/debug/lrsscore")
+    public ResponseEntity<?> getScoreFromLRS(@RequestParam("userID") String userID){
+        Object score = diagnosisSvc.getScore(userID);
+        return ResponseEntity.ok(score);
     }
 }

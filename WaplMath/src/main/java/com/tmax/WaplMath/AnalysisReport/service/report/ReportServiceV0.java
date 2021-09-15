@@ -12,6 +12,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataLiteDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.curriculum.CurriculumServiceV0;
+import com.tmax.WaplMath.AnalysisReport.service.diagnosis.DiagnosisServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
@@ -19,6 +20,7 @@ import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
 import com.tmax.WaplMath.Common.repository.curriculum.CurriculumRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 // import lombok.extern.slf4j.Slf4j;
@@ -41,10 +43,13 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
     @Autowired
     ExamScopeUtil examScopeUtil;
 
+    @Autowired @Qualifier("DiagnosisServiceV0") private DiagnosisServiceBase diagSvc;
+
     @Override
     public ReportDataDTO getReport(String userID, Set<String> excludeSet) {
         //Get basic score data
-        PersonalScoreDTO score = excludeSet.contains("score") ? null :  scoreSvc.getUserScore(userID, excludeSet);
+        // PersonalScoreDTO score = excludeSet.contains("score") ? null :  scoreSvc.getUserScore(userID, excludeSet);
+        PersonalScoreDTO score = excludeSet.contains("score") ? null :  diagSvc.getScore(userID);
         PersonalScoreDTO waplscore = excludeSet.contains("waplscore") ? null :  scoreSvc.getWaplScore(userID, excludeSet);
         PersonalScoreDTO targetscore = excludeSet.contains("targetscore") ? null :  scoreSvc.getTargetScore(userID, excludeSet);
         GlobalStatisticDTO stats = excludeSet.contains("stats") ? null :  scoreSvc.getScoreStats(userID, excludeSet, 100);
@@ -77,7 +82,8 @@ public class ReportServiceV0 implements ReportServiceBaseV0{
     @Override
     public ReportDataLiteDTO getReportLite(String userID, Set<String> excludeSet) {
         //Get basic score data
-        PersonalScoreDTO score = excludeSet.contains("score") ? null :  scoreSvc.getUserScore(userID, excludeSet);
+        // PersonalScoreDTO score = excludeSet.contains("score") ? null :  scoreSvc.getUserScore(userID, excludeSet);
+        PersonalScoreDTO score = excludeSet.contains("score") ? null :  diagSvc.getScore(userID);
         PersonalScoreDTO waplscore = excludeSet.contains("waplscore") ? null :  scoreSvc.getWaplScore(userID, excludeSet);
         PersonalScoreDTO targetscore = excludeSet.contains("targetscore") ? null :  scoreSvc.getTargetScore(userID, excludeSet);
         GlobalStatisticDTO stats = excludeSet.contains("stats") ? null :  scoreSvc.getScoreStats(userID, excludeSet, 100);

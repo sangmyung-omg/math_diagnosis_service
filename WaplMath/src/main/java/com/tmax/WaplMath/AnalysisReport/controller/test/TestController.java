@@ -199,8 +199,8 @@ public class TestController {
 
     @GetMapping("/getLRS")
     ResponseEntity<Object> getLRS(@RequestParam("userID") String userID) {
-        List<String> actionTypeList = ActionType.getAllActionTypes();
-        List<String> sourceTypeList = SourceType.getAllSourceTypes();
+        List<ActionType> actionTypeList = ActionType.getAllActionTypes();
+        List<SourceType> sourceTypeList = SourceType.getAllSourceTypes();
         List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
         return new ResponseEntity<>(statementList, HttpStatus.OK);
     }

@@ -3,6 +3,7 @@ package com.tmax.WaplMath.Recommend.service.mastery.v1;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -334,10 +335,10 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         // ProblemSolveListDTO result =  lrsapiManager.getLRSUpdateProblemSequence(token);    
         
         //FIXME: duplicate filter temp.
-        List<String> actionTypeList = ActionType.getAllActionTypes();
-        List<String> sourceTypeList = SourceType.getAllSourceTypes();
+        // List<ActionType> actionTypeList = ActionType.getAllActionTypes();
+        List<SourceType> sourceTypeList = SourceType.getAllSourceTypes();
 
-        List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, actionTypeList, sourceTypeList);
+        List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, Arrays.asList(ActionType.SUBMIT), sourceTypeList);
         ProblemSolveListDTO result = getLrsWithoutDuplicate(userID, resultList);
 
         return this.updateMastery(userID, result.getProbIdList(), result.getCorrectList());

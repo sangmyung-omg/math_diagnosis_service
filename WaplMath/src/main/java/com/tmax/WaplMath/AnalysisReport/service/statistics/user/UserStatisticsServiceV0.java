@@ -4,6 +4,7 @@ package com.tmax.WaplMath.AnalysisReport.service.statistics.user;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 // import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -413,7 +414,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
 
 
         //Get LRS statement list for user
-        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, ActionType.getAllActionTypes(), SourceType.getAllSourceTypes());
+        List<LRSStatementResultDTO> statementList = lrsManager.getStatementList(userID, Arrays.asList(ActionType.SUBMIT), SourceType.getAllSourceTypes());
 
         //If size == 0  retry with hyphened version TEMP. FIXME. only try if uuid is a 32 sized one;
         if(userID.length() == 32 && statementList.size() == 0){
@@ -422,7 +423,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
                                                                     userID.substring(12,16),
                                                                     userID.substring(16,20),
                                                                     userID.substring(20, 32));
-            statementList = lrsManager.getStatementList(formatedUserID, ActionType.getAllActionTypes(), SourceType.getAllSourceTypes());                                                  
+            statementList = lrsManager.getStatementList(formatedUserID, Arrays.asList(ActionType.SUBMIT), SourceType.getAllSourceTypes());                                                  
         }
         
 
