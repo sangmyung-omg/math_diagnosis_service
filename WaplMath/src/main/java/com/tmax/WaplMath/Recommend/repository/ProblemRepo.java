@@ -23,61 +23,47 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 
   // 2021-07-01 Added by Sangheon Lee. CardGenerator
   // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
-  @Query("select count(p) from Problem p" 
-      + " where p.problemType.curriculumId like concat(:currId, '%')"
-      + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
-      + " and p.category not in ('간단', '꼼꼼')" + " and p.status = ('ACCEPT')"
-      + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
-      + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
-  public Integer findProbCntInCurrId(@Param("currId") String currId,
-      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, @Param("today") String today);
-
-  @Query("select count(p) from Problem p" + " where p.typeId=:typeId"
-      + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
-      + " and p.category not in ('간단', '꼼꼼')" + " and p.status = ('ACCEPT')"
-      + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
-      + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
-  public Integer findProbCntInType(@Param("typeId") Integer typeId,
-      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, @Param("today") String today);
-
-  @Query("select p from Problem p" + " where p.typeId=:typeId"
-      + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
-      + " and p.category not in ('간단', '꼼꼼')" + " and p.status = ('ACCEPT')"
-      + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
-      + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
-  public List<Problem> findProbListByType(@Param("typeId") Integer typeId,
-      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, @Param("today") String today);
-
-
-  // 2021-08-19 Added by Guik Jung. gets Frequent Problem List in Exam --> will be change until 21.09.12
-  // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
+  // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
   @Query("select count(p) from Problem p"
       + " where p.problemType.curriculumId like concat(:currId, '%')"
       + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
-      + " and p.category not in ('간단', '꼼꼼')" + " and p.status = ('ACCEPT')"
-      + " and (p.frequent is null or p.frequent = 'true')"
+      + " and p.category in ('유형', '꼼꼼', '교과서', '기출', '모의고사')" + " and p.status = 'ACCEPT'"
       + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
       + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
-  public Integer findExamProbCntInCurrId(@Param("currId") String currId,
-      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, @Param("today") String today);
+  public Integer findProbCntInCurrId(@Param("currId") String currId, 
+                                     @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, 
+                                     @Param("today") String today);
 
   @Query("select count(p) from Problem p" + " where p.typeId=:typeId"
       + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
-      + " and p.category not in ('간단', '꼼꼼')" + " and p.status = ('ACCEPT')"
-      + " and (p.frequent is null or p.frequent = 'true')"
+      + " and p.category in ('유형', '꼼꼼', '교과서', '기출', '모의고사')" + " and p.status = 'ACCEPT'"
       + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
       + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
-  public Integer findExamProbCntInType(@Param("typeId") Integer typeId,
-      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, @Param("today") String today);
+  public Integer findProbCntInType(@Param("typeId") Integer typeId, 
+                                   @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, 
+                                   @Param("today") String today);
 
   @Query("select p from Problem p" + " where p.typeId=:typeId"
       + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
-      + " and p.category not in ('간단', '꼼꼼')" + " and p.status = ('ACCEPT')"
-      + " and (p.frequent is null or p.frequent = 'true')"
+      + " and p.category in ('유형', '꼼꼼', '교과서', '기출', '모의고사')" + " and p.status = 'ACCEPT'"
       + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
-      + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))")
-  public List<Problem> findExamProbListByType(@Param("typeId") Integer typeId,
-      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, @Param("today") String today);
+      + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))"
+      + " order by case"
+        + " when p.category = '유형' and (p.frequent is null or p.frequent = 'true') then :typeFrequentPriority"
+        + " when p.category = '유형' and p.frequent = 'false' then :typePriority"
+        + " when p.category = '기출' then :pastPriority"
+        + " when p.category = '교과서' then :pastPriority"
+        + " when p.category = '모의고사' then :examPriority"
+        + " when p.category = '꼼꼼' then :diagnosisPriority"
+        + " else 9 end")
+  public List<Problem> findProbListInTypeWithPriority(@Param("typeId") Integer typeId, 
+                                                      @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, 
+                                                      @Param("today") String today,
+                                                      @Param("typeFrequentPriority") Integer typeFrequentPriority, 
+                                                      @Param("typePriority") Integer typePriority, 
+                                                      @Param("pastPriority") Integer pastPriority, 
+                                                      @Param("examPriority") Integer examPriority, 
+                                                      @Param("diagnosisPriority") Integer diagnosisPriority);
 
 
   // 2021-09-01 Added by Sangheon Lee. for test

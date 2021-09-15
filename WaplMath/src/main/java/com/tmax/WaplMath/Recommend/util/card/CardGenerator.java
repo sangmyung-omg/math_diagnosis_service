@@ -146,9 +146,6 @@ public class CardGenerator extends CardConstants {
   public DiffProbListDTO generateDiffProbList(List<Problem> probList) {
     DiffProbListDTO diffProbList = new DiffProbListDTO();
 
-    // 2021-09-02 Added by Sangheon Lee. Shuffle prob list
-    Collections.shuffle(probList);
-
     for (Problem prob : probList) {	diffProbList.addDiffProb(prob, Difficulty.valueOf(prob.getDifficulty())); }
     printDiffProbList(diffProbList);
 
@@ -161,7 +158,9 @@ public class CardGenerator extends CardConstants {
     if (PRINT_PROB_INFO) {
       for (Difficulty diff : Difficulty.values()) {
         List<Problem> probList = diffProbList.getDiffProbList(diff);
-        log.debug("\t{} level probs = {}", diff.getDiffEng(), getIdListFromProbList(probList));
+        log.debug("\t{} level probs = ", diff.getDiffEng());
+        log.debug("\t\t probs = {} ", getIdListFromProbList(probList));
+        log.debug("\t\t categories = {} ", getCategoryListFromProbList(probList));
       }
       log.debug("");
     }
@@ -177,6 +176,13 @@ public class CardGenerator extends CardConstants {
   // Problem 객체 리스트에서 probId integer 리스트 추출
   public List<Integer> getIdListFromProbList(List<Problem> probList) {
     return probList.stream().map(prob -> prob.getProbId()).collect(Collectors.toList());
+  }
+  
+
+  // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
+  // Problem 객체 리스트에서 category integer 리스트 추출
+  public List<String> getCategoryListFromProbList(List<Problem> probList) {
+    return probList.stream().map(prob -> prob.getCategory()).collect(Collectors.toList());
   }
 
 
@@ -514,10 +520,8 @@ public class CardGenerator extends CardConstants {
     
         if (currProbNum <= typeNum * probPerType) {
           // currId 내 제공 가능한 모든 문제 수
-          // 2021-08-19 Guik Jung
-          // problemRepo.findProbCntInCurrId -> problemRepo.findExamProbCntInCurrId
           Integer totalCurrProbNum = !totalCurrProbNumMap.containsKey(currId)
-                                   ? problemRepo.findExamProbCntInCurrId(currId, solvedProbIdSet, this.todayUTC)
+                                   ? problemRepo.findProbCntInCurrId(currId, solvedProbIdSet, this.todayUTC)
                                    : totalCurrProbNumMap.get(currId);
                                    
           totalCurrProbNumMap.put(currId, totalCurrProbNum);
@@ -642,8 +646,10 @@ public class CardGenerator extends CardConstants {
         log.info("\tType {} : {} problems. ", typeId, typeProbNum);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
+      // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
       DiffProbListDTO diffProbList = 
-          generateDiffProbList(problemRepo.findProbListByType(typeId, solvedProbIdSet, this.todayUTC));
+          generateDiffProbList(
+              problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 1, 2, 4, 5, 3));
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()){
@@ -688,10 +694,8 @@ public class CardGenerator extends CardConstants {
                             ? currentTypeProbNumMap.get(typeId) : 0;
 
         // typeId 내 제공 가능한 모든 문제 수
-        // 2021-08-19 Guik Jung
-        // problemRepo.findProbCntInType -> problemRepo.findExamProbCntInType
         Integer totalTypeProbNum = !totalTypeProbNumMap.containsKey(typeId)
-                                 ? problemRepo.findExamProbCntInType(typeId, solvedProbIdSet, this.todayUTC)
+                                 ? problemRepo.findProbCntInType(typeId, solvedProbIdSet, this.todayUTC)
                                  : totalTypeProbNumMap.get(typeId);
 
         totalTypeProbNumMap.put(typeId, totalTypeProbNum);
@@ -719,10 +723,14 @@ public class CardGenerator extends CardConstants {
         log.info("\tType {} : {} problems. ", typeId, typeProbNum);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      // 2021-08-19 Guik Jung
-      // problemRepo.findProbListByType -> problemRepo.findExamProbListByType
-      DiffProbListDTO diffProbList = 
-          generateDiffProbList(problemRepo.findExamProbListByType(typeId, solvedProbIdSet, this.todayUTC));
+      // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
+      DiffProbListDTO diffProbList;
+      if (card.getCardType().equals(TRIAL_EXAM_CARD_TYPESTR))
+        diffProbList = generateDiffProbList(
+                problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 3, 4, 2, 1, 5));
+      else
+        diffProbList = generateDiffProbList(
+                problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 3, 4, 1, 2, 5));
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()) {
@@ -760,9 +768,11 @@ public class CardGenerator extends CardConstants {
                                   .cardScore(mastery * 100)
                                   .build();
                                   
-    // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
+    // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성    
+    // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
     DiffProbListDTO diffProbList = 
-      generateDiffProbList(problemRepo.findProbListByType(typeId, solvedProbIdSet, this.todayUTC));
+      generateDiffProbList(
+        problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 1, 2, 4, 5, 3));
 
     addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
     typeCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
@@ -820,7 +830,9 @@ public class CardGenerator extends CardConstants {
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.findProbListByType(typeId, null, this.todayUTC));
+      // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
+      DiffProbListDTO diffProbList = generateDiffProbList(
+                problemRepo.findProbListInTypeWithPriority(typeId, null, this.todayUTC, 1, 2, 4, 5, 3));
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)
@@ -838,11 +850,11 @@ public class CardGenerator extends CardConstants {
   public CardDTO generateAddtlSupplementCard(List<TypeMasteryDTO> typeMasteryList) {
 
     CardDTO supplementCard = CardDTO.builder()
-                                        .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
-                                        .cardTitle(String.format(ADDTL_SUPPLE_CARD_TITLE_FORMAT, typeMasteryList.size()))
-                                        .probIdSetList(new ArrayList<>())
-                                        .estimatedTime(0)
-                                        .build();
+                                    .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
+                                    .cardTitle(String.format(ADDTL_SUPPLE_CARD_TITLE_FORMAT, typeMasteryList.size()))
+                                    .probIdSetList(new ArrayList<>())
+                                    .estimatedTime(0)
+                                    .build();
     
     int cnt = 1;																		
     JsonObject cardDetailJson = new JsonObject();
@@ -857,7 +869,13 @@ public class CardGenerator extends CardConstants {
       log.info("{}th type = {} (mastery={}) with {} problems. ", cnt, typeId, mastery, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
-      DiffProbListDTO diffProbList = generateDiffProbList(problemRepo.findProbListByType(typeId, null, this.todayUTC));
+      // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
+      List<Problem> probList = problemRepo.findProbListInTypeWithPriority(typeId, null, this.todayUTC, 1, 2, 4, 5, 3);
+      
+      // 2021-09-02 Added by Sangheon Lee. Shuffle prob list
+      Collections.shuffle(probList);
+
+      DiffProbListDTO diffProbList = generateDiffProbList(probList);
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)
@@ -883,13 +901,13 @@ public class CardGenerator extends CardConstants {
     log.info("{}, {}, {}", mastery.getCurrId(), mastery.getCurrName(), mastery.getMastery());
 
     CardDTO examCard = CardDTO.builder()
-                                  .cardType(cardType)
-                                  .cardTitle(mastery.getCurrName())
-                                  .probIdSetList(new ArrayList<>())
-                                  .estimatedTime(0)
-                                  .cardScore(mastery.getMastery() * 100)
-                                  .cardDetail(cardDetailJson.toString())
-                                  .build();
+                              .cardType(cardType)
+                              .cardTitle(mastery.getCurrName())
+                              .probIdSetList(new ArrayList<>())
+                              .estimatedTime(0)
+                              .cardScore(mastery.getMastery() * 100)
+                              .cardDetail(cardDetailJson.toString())
+                              .build();
 
     CurrType currType = CurrType.valueOf("section");
     currType.setCurrId(curriculumId);
@@ -909,14 +927,14 @@ public class CardGenerator extends CardConstants {
     CurrMasteryDTO mastery = userKnowledgeRepo.findExamMastery(userId, this.examSubSectionIdSet);
 
     CardDTO trialExamCard = CardDTO.builder()
-                                       .cardType(TRIAL_EXAM_CARD_TYPESTR)
-                                       .cardTitle(String.format(TRIAL_EXAM_CARD_TITLE_FORMAT, trialExamInfo[0],
-                                                                 trialExamInfo[1], examType))
-                                       .probIdSetList(new ArrayList<>())
-                                       .estimatedTime(0)
-                                       .cardScore(mastery.getMastery() * 100)
-                                       .firstProbLevel("middle")
-                                       .build();
+                                   .cardType(TRIAL_EXAM_CARD_TYPESTR)
+                                   .cardTitle(String.format(TRIAL_EXAM_CARD_TITLE_FORMAT, trialExamInfo[0],
+                                                            trialExamInfo[1], examType))
+                                   .probIdSetList(new ArrayList<>())
+                                   .estimatedTime(0)
+                                   .cardScore(mastery.getMastery() * 100)
+                                   .firstProbLevel("middle")
+                                   .build();
 
     CurrType currType = CurrType.valueOf("exam");
     currType.setCurrId("모의고사");

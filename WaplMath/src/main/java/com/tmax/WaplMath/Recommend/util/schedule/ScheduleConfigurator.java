@@ -195,12 +195,10 @@ public class ScheduleConfigurator extends CardConstants {
 
 
   // (시험 대비) 시험 범위 내에서, 제공할 문제가 있는 중단원 Id set 설정
-  // 2021-08-19 Guik Jung
-  // problemRepo.findProbCntInCurrId -> problemRepo.findExamProbCntInCurrId
   public void setValidSectionIdSet() {  
     this.validSectionIdSet = this.examSubSectionIdSet.stream()
                                                      .filter(
-            subSection -> problemRepo.findExamProbCntInCurrId(subSection, this.solvedProbIdSet, this.todayUTC) != 0)
+              subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet, this.todayUTC) >= MAX_CARD_PROB_NUM)
                                                      .map(subSection -> subSection.substring(0, 14))
                                                      .collect(Collectors.toSet());
   }
@@ -253,7 +251,7 @@ public class ScheduleConfigurator extends CardConstants {
     // 제공할 문제가 있는 중단원들
     Set<String> sectionIdSet = subSectionIdList.stream()
                                                .filter(
-        subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet, this.todayUTC) != 0)
+              subSection -> problemRepo.findProbCntInCurrId(subSection, this.solvedProbIdSet, this.todayUTC) >= MAX_CARD_PROB_NUM)
                                                .map(subSection -> subSection.substring(0, 14))
                                                .collect(Collectors.toSet());
     log.info("1. Total section list : {}", sectionIdSet);
@@ -292,7 +290,7 @@ public class ScheduleConfigurator extends CardConstants {
     // sectionSet 내 중단원으로 중간 평가 카드 구성
     if (!sectionIdSet.isEmpty()) {
       String sectionId = sectionIdSet.iterator().next();
-      if (problemRepo.findProbCntInCurrId(sectionId, this.solvedProbIdSet, this.todayUTC) != 0) {
+      if (problemRepo.findProbCntInCurrId(sectionId, this.solvedProbIdSet, this.todayUTC) >= MAX_CARD_PROB_NUM) {
         log.info("\tSECTION_TEST card. : {}", sectionId);
 
         this.cardConfigList.add(CardConfigDTO.builder()
@@ -328,7 +326,9 @@ public class ScheduleConfigurator extends CardConstants {
         userKnowledgeRepo.findLowTypeMasteryList(userId, solvedTypeIdList, MASTERY_LOW_THRESHOLD)
             .stream()
             .filter(
-      typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC) != 0)
+              typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), 
+                                                           this.solvedProbIdSet, 
+                                                           this.todayUTC) >= SUPPLE_CARD_PROB_NUM_PER_TYPE)
             .collect(Collectors.toList());
 
       log.info("8. Low type mastery list except solved through SUPPLE cards = ");
@@ -379,7 +379,9 @@ public class ScheduleConfigurator extends CardConstants {
           userKnowledgeRepo.findTypeMasteryList(userId, solvedTypeIdList)
               .stream()
               .filter(
-        typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC) != 0)
+                typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), 
+                                                             this.solvedProbIdSet, 
+                                                             this.todayUTC) >= SUPPLE_CARD_PROB_NUM_PER_TYPE)
               .collect(Collectors.toList())
               .subList(0, SUPPLE_CARD_TYPE_NUM);
 
@@ -412,7 +414,7 @@ public class ScheduleConfigurator extends CardConstants {
       for (ProblemType type : this.remainTypeList) {
 
         // 제공할 문제가 없으면 pass
-        if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet, this.todayUTC) == 0) {
+        if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet, this.todayUTC) <= MIN_TYPE_CARD_PROB_NUM) {
           noProbTypeIdList.add(type.getTypeId());
           continue;
         }
@@ -442,7 +444,7 @@ public class ScheduleConfigurator extends CardConstants {
   }
 
 
-  // (실력 향상) 유형 카드 여부 확인 및 생성
+  // (실력 향상) 추가 보충 카드 여부 확인 및 생성
   public boolean checkAddtlSuppleCard() {
     // 현재 학기 내 모든 유형을 풀었으나 문제가 채워지지 않으면, 추가 보충카드 제공
     if (this.totalProbNum < MAX_CARD_PROB_NUM) {
@@ -459,7 +461,9 @@ public class ScheduleConfigurator extends CardConstants {
                         ExamScope.examScope.get(examKeyword).get(1))
                        .stream()
                        .filter(
-        typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC)!=0)
+                    typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), 
+                                                                 this.solvedProbIdSet, 
+                                                                 this.todayUTC)>= SUPPLE_CARD_PROB_NUM_PER_TYPE)
                        .collect(Collectors.toList());
 
       if (addtiTypeMasteryList.size() < addtiTypeNum)
@@ -735,7 +739,9 @@ public class ScheduleConfigurator extends CardConstants {
                       ExamScope.examScope.get(examKeyword).get(1))
                      .stream()
                      .filter(
-      typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), this.solvedProbIdSet, this.todayUTC)!=0)
+                  typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), 
+                                                               this.solvedProbIdSet, 
+                                                               this.todayUTC)>= SUPPLE_CARD_PROB_NUM_PER_TYPE)
                      .collect(Collectors.toList())
                      .subList(0, addtiTypeNum);
 
