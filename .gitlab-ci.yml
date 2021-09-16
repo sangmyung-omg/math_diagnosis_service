@@ -78,7 +78,7 @@ tags-push:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
     - mkdir -p ~/.ssh && chmod 700 ~/.ssh
-    - ssh-keyscan -p 12244 $CI_SERVER_HOST >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
+    - ssh-keyscan -p $CI_SERVER_PORT $CI_SERVER_HOST >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
   script:    
     # version generation script
     - pip3 install semver
