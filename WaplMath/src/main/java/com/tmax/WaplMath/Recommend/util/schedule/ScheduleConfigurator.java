@@ -571,21 +571,22 @@ public class ScheduleConfigurator extends CardConstants {
     log.info("3. Number of SECTION_EXAM cards already solved : {} ", completedSectionExamCardsNum);
 
     // 각 중단원 별 앞으로 풀 카드 개수 계산
-    for (Map.Entry<String, Integer> entry : sectionExamCardsNum.entrySet()) {
-      if (completedSectionExamCardsNum.containsKey(entry.getKey())) {
-        Integer remainCardCnt = entry.getValue() - completedSectionExamCardsNum.get(entry.getKey());
+    // 2021-09-16 modified by Sangheon Lee. Fix java.util.ConcurrentModificationException
+    Map<String, Integer> sectionExamCardsNumRemain = new HashMap<>();
 
-        if (remainCardCnt <= 0)
-          sectionExamCardsNum.remove(entry.getKey());
-        else
-          sectionExamCardsNum.put(entry.getKey(), remainCardCnt);
-      }
+    for(Map.Entry<String, Integer> entry: sectionExamCardsNum.entrySet()) {
+      Integer remainCardCnt = entry.getValue();
+      if (completedSectionExamCardsNum.containsKey(entry.getKey()))
+        remainCardCnt -= completedSectionExamCardsNum.get(entry.getKey());
+
+      if (remainCardCnt > 0)
+        sectionExamCardsNumRemain.put(entry.getKey(), remainCardCnt);
     }
-    log.info("4. Number of SECTION_EXAM cards to be offered in future : {} ", sectionExamCardsNum);
+    log.info("4. Number of SECTION_EXAM cards to be offered in future : {} ", sectionExamCardsNumRemain);
 
     // 카드 제공할 중단원이 있으면, 중단원 시험 대비 카드 제공
-    if (!sectionExamCardsNum.keySet().isEmpty()) {
-      String sectionId = curriculumRepo.sortByCurrSeq(sectionExamCardsNum.keySet()).get(0);
+    if (!sectionExamCardsNumRemain.keySet().isEmpty()) {
+      String sectionId = curriculumRepo.sortByCurrSeq(sectionExamCardsNumRemain.keySet()).get(0);
       log.info("SECTION_EXAM card (Section : {})", sectionId);
 
       this.cardConfigList.add(CardConfigDTO.builder()
