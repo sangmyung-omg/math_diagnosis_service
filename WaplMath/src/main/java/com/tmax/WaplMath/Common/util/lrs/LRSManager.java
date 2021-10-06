@@ -16,6 +16,7 @@ import com.tmax.WaplMath.Common.exception.GenericInternalException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import org.springframework.http.HttpHeaders;
@@ -42,7 +43,10 @@ public class LRSManager implements LRSManagerInterface {
     private HttpClient httpClient;
     private WebClient webClient;
 
+    // 2021-10-06 Added by Sangheon Lee. Set in-memory buffer size for fix DataBufferLimitException
+    private final static int MAX_BUFFER_SIZE = 1024 * 1024 * 50;
 
+    
     @Value("${waplmath.lrs.duplcatefilter}")
     private boolean useDuplicateFilter;
 
@@ -56,6 +60,12 @@ public class LRSManager implements LRSManagerInterface {
     }
 
     private void buildWebclient() {
+        // 2021-10-06 Added by Sangheon Lee. Set in-memory buffer size for fix DataBufferLimitException
+        ExchangeStrategies strategies = 
+              ExchangeStrategies.builder()
+                                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(MAX_BUFFER_SIZE))
+                                .build();
+
         //Create a http timeout handler
         this.httpClient = HttpClient.create()
                                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
@@ -68,6 +78,7 @@ public class LRSManager implements LRSManagerInterface {
                                     .baseUrl(API_TARGET)
                                     .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                                     .clientConnector(new ReactorClientHttpConnector(httpClient))
+                                    .exchangeStrategies(strategies)
                                     .build();
     }
 
@@ -101,6 +112,19 @@ public class LRSManager implements LRSManagerInterface {
                                                       );
     }
 
+    // 2021-10-06 Added by Sangheon Lee. 
+    @Override
+    public List<LRSStatementResultDTO> getStatementList(String userID, List<ActionType> actionTypeList,
+                                                        List<SourceType> sourceTypeList, String dateFrom, String dateTo) {
+        return getStatementList(LRSStatementRequestDTO.builder()
+                                                      .userIdList(Arrays.asList(userID))
+                                                      .actionTypeList(actionTypeList.stream().map(ActionType::getValue).collect(Collectors.toList()))
+                                                      .sourceTypeList(sourceTypeList.stream().map(SourceType::getValue).collect(Collectors.toList()))
+                                                      .dateFrom(dateFrom.equals("") ? null : dateFrom)
+                                                      .dateTo(dateTo.equals("") ? null : dateTo)
+                                                      .build()
+                                                      );
+    }
 
     /**
      * Added to get lrs and filter duplicates

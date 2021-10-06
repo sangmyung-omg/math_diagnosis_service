@@ -18,6 +18,7 @@ import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.model.user.UserExamScope;
 import com.tmax.WaplMath.Common.repository.user.UserExamScopeRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
+import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ScheduleConfigDTO;
@@ -29,7 +30,7 @@ import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
-import com.tmax.WaplMath.Recommend.util.history.ScheduleHistoryManager;
+import com.tmax.WaplMath.Recommend.util.history.HistoryManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -43,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class ScheduleConfigurator extends CardConstants {
+public class ScheduleConfigurator implements CardConstants {
 
   // Repository
   @Autowired
@@ -69,7 +70,7 @@ public class ScheduleConfigurator extends CardConstants {
   private UserKnowledgeRepo userKnowledgeRepo;
 
   @Autowired
-  ScheduleHistoryManager historyManager;
+  HistoryManager historyManager;
 
   // user info vars
   private String userId;
@@ -120,14 +121,14 @@ public class ScheduleConfigurator extends CardConstants {
 
   // 사용자가 이미 푼 문제 Id 리턴
   public Set<Integer> getSolvedProbIdSet(String userId){
-    List<String> sourceTypeList =
-        new ArrayList<>(Arrays.asList(TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      CHAPTER_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX,
-                                      TRIAL_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX));
 
-    return historyManager.getSolvedProbIdSet(userId, tomorrow, "", sourceTypeList);
+    List<SourceType> sourceTypeList = Arrays.asList(SourceType.TYPE_QUESTION, 
+                                                    SourceType.SUPPLE_QUESTION,
+                                                    SourceType.SECTION_TEST_QUESTION, 
+                                                    SourceType.CHAPTER_TEST_QUESTION, 
+                                                    SourceType.TRIAL_EXAM_QUESTION);
+
+    return historyManager.getSolvedProbIdSet(userId, "", tomorrow, sourceTypeList);
   }
 
 
@@ -257,8 +258,8 @@ public class ScheduleConfigurator extends CardConstants {
     log.info("1. Total section list : {}", sectionIdSet);
 
     // 유형 카드를 통해 이미 푼 유형들
-    List<Integer> completedTypeIdList = historyManager.getCompletedTypeIdList(userId, tomorrow, "",
-            TYPE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
+    List<Integer> completedTypeIdList = historyManager.getCompletedTypeIdList(userId, "", tomorrow, 
+                                                                              SourceType.TYPE_QUESTION);
     log.info("2. Types already solved : {}", completedTypeIdList);
 
     // 안푼 유형들 = 앞으로 풀 유형 Id들
@@ -279,8 +280,8 @@ public class ScheduleConfigurator extends CardConstants {
     log.info("4. Sections completely solved through TYPE cards : {}", sectionIdSet);
 
     // 중간 평가 카드를 통해 이미 푼 중단원들
-    Set<String> completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, tomorrow, 
-            SECTION_TEST_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
+    Set<String> completedSectionIdSet = historyManager.getCompletedSectionIdList(userId, "", tomorrow,
+                                                                                 SourceType.SECTION_TEST_QUESTION);
     log.info("5. Sections already solved through SECTION_TEST cards : {}", completedSectionIdSet);
 
     // sectionSet = 완벽히 푼 중단원들 - 이미 중간평가 진행한 중단원들
@@ -310,8 +311,8 @@ public class ScheduleConfigurator extends CardConstants {
   // (실력 향상) 보충 카드 여부 확인 및 생성
   public boolean checkSuppleCard() {
     // 보충 카드를 통해 푼 유형들
-    List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, tomorrow, "", 
-            SUPPLE_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
+    List<Integer> suppleTypeIdList = historyManager.getCompletedTypeIdList(userId, "", tomorrow, 
+                                                                           SourceType.SUPPLE_QUESTION);
     log.info("7. Type list already solved through SUPPLE cards = {}", suppleTypeIdList);
 
     // 가장 최근 보충 카드 이후, 유형 카드를 통해 푼 유형들
@@ -567,7 +568,7 @@ public class ScheduleConfigurator extends CardConstants {
 
     // 각 중단원 별 이미 푼 카드 개수
     Map<String, Integer> completedSectionExamCardsNum = historyManager.getCompletedSectionNum(
-        userId, tomorrow, SECTION_EXAM_CARD_TYPESTR + LRS_SOURCE_TYPE_POSTFIX);
+        userId, tomorrow, SourceType.SECTION_EXAM_QUESTION);
     log.info("3. Number of SECTION_EXAM cards already solved : {} ", completedSectionExamCardsNum);
 
     // 각 중단원 별 앞으로 풀 카드 개수 계산
@@ -647,6 +648,12 @@ public class ScheduleConfigurator extends CardConstants {
         .until(userExamScopeInfo.getUser().getExamDueDate().toLocalDateTime(), ChronoUnit.DAYS);
         
     log.info("Total exam preparation days = {}, remain days = {}", totalDays, remainDays);
+
+    // Add exception if the exam passed
+    if (remainDays < 0)
+      throw new RecommendException(RecommendErrorCode.EXAM_PASSED_ERROR, 
+                                   userExamScopeInfo.getUser().getExamDueDate().toString());
+
     log.info("1. Sections in exam : {} ", this.validSectionIdSet);
 
 

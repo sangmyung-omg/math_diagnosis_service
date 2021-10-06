@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class CardGenerator extends CardConstants {
+public class CardGenerator implements CardConstants {
 
   // logging option
   private boolean PRINT_PROB_INFO = false; // level 1

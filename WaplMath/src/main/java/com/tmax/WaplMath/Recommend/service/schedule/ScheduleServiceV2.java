@@ -49,10 +49,10 @@ import lombok.extern.slf4j.Slf4j;
 public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
   @Autowired
-  CardGenerator cardGenerator = new CardGenerator();
+  CardGenerator cardGenerator;
 
   @Autowired
-  ScheduleConfigurator scheduleConfigurator = new ScheduleConfigurator();
+  ScheduleConfigurator scheduleConfigurator;
 
   @Autowired
   @Qualifier("RE-UserKnowledgeRepo")

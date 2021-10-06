@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 
-public class CardConstants {
+public interface CardConstants {
 
   // Hyperparameter
   public static final Integer MAX_CARD_PROB_NUM = 20;
@@ -39,8 +39,7 @@ public class CardConstants {
   public static final String SUPPLE_CARD_TITLE_FORMAT = "보충 유형 %d개 복습";
   public static final String ADDTL_SUPPLE_CARD_TITLE_FORMAT = "유형 %d개 복습";
   public static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s 대비";
-
-  public static final String LRS_SOURCE_TYPE_POSTFIX = "_question";
+  
 
   public enum Difficulty {
     

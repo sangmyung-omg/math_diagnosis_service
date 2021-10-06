@@ -24,6 +24,7 @@ public enum RecommendErrorCode implements ErrorCodeBase {
     SCHEDULE_CONFIGURATOR_ERROR("1000","Schedule configurator returned error. "),
     CARD_GENERATOR_ERROR("1002","Card generator returned error. "),    
     NO_PROBS_ERROR("1003","No problems to generate card. Probably in 2nd semester range. Error card type = "),
+    EXAM_PASSED_ERROR("1004","Exam date has passed. Call /userexaminfo PUT service to reset the exam start/due date. Exam due date = "),
 
     CARD_GENERATE_NO_CARDS_ERROR("7777","No cards were created. User seems to have solved all the problems. ");
 

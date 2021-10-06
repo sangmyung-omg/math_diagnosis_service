@@ -46,6 +46,20 @@ public class TestLRSManager implements LRSManagerInterface {
                                                       );
     }
 
+    // 2021-10-06 Added by Sangheon Lee. 
+    @Override
+    public List<LRSStatementResultDTO> getStatementList(String userID, List<ActionType> actionTypeList,
+                                                        List<SourceType> sourceTypeList, String dateFrom, String dateTo) {
+        return getStatementList(LRSStatementRequestDTO.builder()
+                                                      .userIdList(Arrays.asList(userID))
+                                                      .actionTypeList(actionTypeList.stream().map(ActionType::getValue).collect(Collectors.toList()))
+                                                      .sourceTypeList(sourceTypeList.stream().map(SourceType::getValue).collect(Collectors.toList()))
+                                                      .dateFrom(dateFrom.equals("") ? null : dateFrom)
+                                                      .dateTo(dateTo.equals("") ? null : dateTo)
+                                                      .build()
+                                                      );
+    }
+
     private List<LRSStatementResultDTO> statementGenerator(int noOfStatements, double correctPossibility, List<String> userIDList, List<String> possibleActionTypes, List<String> possibleSourceTypes){
         if(noOfStatements <= 0){
             log.error("Invalid statement length");
