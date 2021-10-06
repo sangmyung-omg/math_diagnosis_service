@@ -729,7 +729,7 @@ components:
         type: "string"
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiJta2thbmcifQ.ZjD-h4zkD2t8GsqA9or7F8NAbKVGTGEnBEeNvpI8Z5o"
     DiagnosisType:
-      in: path
+      in: query
       name: diagType
       required: true
       description: 진단 종류 (간단="simple" or 꼼꼼="in-depth")
