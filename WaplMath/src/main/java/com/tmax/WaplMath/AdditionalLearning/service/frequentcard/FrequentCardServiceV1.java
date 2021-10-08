@@ -417,7 +417,14 @@ public class FrequentCardServiceV1 implements FrequentCardServiceBaseV1{
 				}
 				
 				recentSubsectionList.sort(null);
-				List<String> AnotherSubsectionList = sectionService.getSubsectionListByCurriScope(userId, ExamScope.get(0), recentSubsectionList.get(0));
+
+        // 2021-10-08. Added by Sangheon Lee.
+        List<String> AnotherSubsectionList;
+        if (recentSubsectionList.isEmpty())
+          AnotherSubsectionList = sectionService.getSubsectionListByCurriScope(userId, ExamScope.get(0), ExamScope.get(1));
+        else
+          AnotherSubsectionList = sectionService.getSubsectionListByCurriScope(userId, ExamScope.get(0), recentSubsectionList.get(0));
+          
 				List<FreqProbCurriDTO> AnotherFreqProbCurriList = problemService.getAllFreqProbListBySubsection(recommendList,AnotherSubsectionList);
 				List<FrequentProblemDTO> AnotherRecommendFreqProbList = problemService.SortingAndRecommend(AnotherFreqProbCurriList, AnotherSubsectionList, 5-firstRecommendNum);
 				frequentProblemList.addAll(AnotherRecommendFreqProbList);

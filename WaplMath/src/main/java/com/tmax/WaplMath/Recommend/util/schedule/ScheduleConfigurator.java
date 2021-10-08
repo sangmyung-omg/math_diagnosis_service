@@ -415,7 +415,7 @@ public class ScheduleConfigurator implements CardConstants {
       for (ProblemType type : this.remainTypeList) {
 
         // 제공할 문제가 없으면 pass
-        if (problemRepo.findProbCntInType(type.getTypeId(), solvedProbIdSet, this.todayUTC) <= MIN_TYPE_CARD_PROB_NUM) {
+        if (problemRepo.findProbCntInType(type.getTypeId(), this.solvedProbIdSet, this.todayUTC) <= MIN_TYPE_CARD_PROB_NUM) {
           noProbTypeIdList.add(type.getTypeId());
           continue;
         }
@@ -453,23 +453,29 @@ public class ScheduleConfigurator implements CardConstants {
 
       // 시험 범위 내 각 유형 마다 2문제씩 (보충 카드가 2문제)
       Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - totalProbNum) / 2.0);
-      log.info("ADDTL_SUPPLE card with {} problems. ", addtiTypeNum);
 
       // 마스터리 낮은 순서 대로, 문제가 존재하는 유형만 선택
       List<TypeMasteryDTO> addtiTypeMasteryList = 
-      userKnowledgeRepo.findTypeMasteryListBetween(userId, 
-                        ExamScope.examScope.get(examKeyword).get(0),
-                        ExamScope.examScope.get(examKeyword).get(1))
-                       .stream()
-                       .filter(
-                    typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), 
-                                                                 this.solvedProbIdSet, 
-                                                                 this.todayUTC)>= SUPPLE_CARD_PROB_NUM_PER_TYPE)
-                       .collect(Collectors.toList());
-
-      if (addtiTypeMasteryList.size() < addtiTypeNum)
+        userKnowledgeRepo.findTypeMasteryListBetween(userId, 
+                                                     ExamScope.examScope.get(examKeyword).get(0),
+                                                     ExamScope.examScope.get(examKeyword).get(1))
+                         .stream()
+                         .filter(
+              typeMastery -> problemRepo.findProbCntInType(typeMastery.getTypeId(), 
+                                                           null, 
+                                                           this.todayUTC)>= SUPPLE_CARD_PROB_NUM_PER_TYPE)
+                         .collect(Collectors.toList());
+                       
+      // 2021-10-07. Added by Sangheon Lee. 
+      if (addtiTypeMasteryList.isEmpty())
         return false;
 
+      else if (addtiTypeMasteryList.size() < addtiTypeNum){
+        log.info("Less than 10 types with more than 2 questions. # types = {}", addtiTypeMasteryList.size());
+        addtiTypeNum = addtiTypeMasteryList.size();
+      }
+
+      log.info("ADDTL_SUPPLE card with {} types. ", addtiTypeNum);
       this.cardConfigList.add(CardConfigDTO.builder()
                                            .cardType(ADDTL_SUPPLE_CARD_TYPESTR)
                                            .typeMasteryList(addtiTypeMasteryList.subList(0, addtiTypeNum))
