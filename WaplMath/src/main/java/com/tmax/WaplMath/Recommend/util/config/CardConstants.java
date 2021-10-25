@@ -1,9 +1,5 @@
 package com.tmax.WaplMath.Recommend.util.config;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-
 public interface CardConstants {
 
   // Hyperparameter
@@ -39,38 +35,5 @@ public interface CardConstants {
   public static final String SUPPLE_CARD_TITLE_FORMAT = "보충 유형 %d개 복습";
   public static final String ADDTL_SUPPLE_CARD_TITLE_FORMAT = "유형 %d개 복습";
   public static final String TRIAL_EXAM_CARD_TITLE_FORMAT = "중학교 %s학년 %s학기 %s 대비";
-  
-
-  public enum Difficulty {
-    
-    상("high", SECTION_TEST_CARD_HIGH_PROB),
-    중("middle", SECTION_TEST_MIDDLE_PROB),
-    하("low", SECTION_TEST_LOW_PROB);
-
-    
-    private @Getter String diffEng;
-    private @Getter Integer probNums;
-
-
-    private Difficulty(String diffEng, Integer probNums){
-      this.diffEng = diffEng;
-      this.probNums = probNums;
-    }
-
-    // orderList (high=0, middle=1, low=2) 순서 대로 Difficulty 리스트 리턴
-    public static List<Difficulty> getDiffListByOrder(Integer[] orderList){
-      List<Difficulty> diffList = new ArrayList<>();
-      
-      for (Integer order: orderList){
-        for (Difficulty diff: Difficulty.values()){
-          if (diff.ordinal() == order)
-            diffList.add(diff);
-        }
-      }
-
-      return diffList;
-    }
-
-  }
   
 }

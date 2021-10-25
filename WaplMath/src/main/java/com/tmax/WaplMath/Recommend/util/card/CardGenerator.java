@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import com.google.gson.JsonObject;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
@@ -20,6 +21,7 @@ import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.DiffProbListDTO;
+import com.tmax.WaplMath.Recommend.dto.schedule.ProbPatternOrderDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.ProblemSetListDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
@@ -28,6 +30,8 @@ import com.tmax.WaplMath.Recommend.repository.ProblemTypeRepo;
 import com.tmax.WaplMath.Recommend.repository.UserKnowledgeRepo;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
+import com.tmax.WaplMath.Recommend.util.config.Category;
+import com.tmax.WaplMath.Recommend.util.config.Difficulty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -100,10 +104,8 @@ public class CardGenerator implements CardConstants {
 
   // set log level for debug mode
   public void setLogLevel(boolean debugMode){
-    if (debugMode) {
-      this.PRINT_PROB_INFO = true; 
-      this.PRINT_MASTERY = true;
-    }
+    this.PRINT_PROB_INFO = debugMode; 
+    this.PRINT_MASTERY = debugMode;
   }
 
 
@@ -143,24 +145,108 @@ public class CardGenerator implements CardConstants {
 
 
   // DiffProbListDTO (문제 난이도 별 문제 객체 set DTO) 생성/출력 및 리턴
-  public DiffProbListDTO generateDiffProbList(List<Problem> probList) {
+  // 2021-10-21 Modified by Sangheon Lee. For pattern problem priority
+  public DiffProbListDTO generateDiffProbList(Integer typeId, Set<Integer> solvedProbIdSet, boolean shuffle,
+                                              List<Category> categoryPriority) {
+    
     DiffProbListDTO diffProbList = new DiffProbListDTO();
 
+    // get pattern order of problem, remove duplicate, save to map (probId:patternOrder)
+    Map<Integer, Integer> probPatternOrderMap = new HashMap<>();
+    Set<Integer> probIdSet = new HashSet<>();
+
+    for (ProbPatternOrderDTO probPattern: problemRepo.findProbIdListInType(typeId, solvedProbIdSet, this.todayUTC)){
+      Integer probId = probPattern.getProbId();
+      Integer patternOrder = probPattern.getPatternOrder();
+      
+      if (!probIdSet.contains(probId)){        
+        probPatternOrderMap.put(probId, patternOrder);
+
+        probIdSet.add(probId);
+      }
+    }
+
+    // probList = probList + patternProbList (pattern problem이 후순위)
+    List<Problem> probList = new ArrayList<>();
+    List<Problem> patternProbList = new ArrayList<>();
+
+    // (category:problem) map
+    Map<String, List<Problem>> categoryProbListMap = new HashMap<>();
+
+    for (Problem prob: problemRepo.getProblemsByProbIdList(new ArrayList<>(probIdSet))){
+      String category = prob.getCategory();
+      
+      List<Problem> categoryProbs = categoryProbListMap.containsKey(category)
+                                  ? categoryProbListMap.get(category)
+                                  : new ArrayList<>();
+      
+      categoryProbs.add(prob);
+
+      categoryProbListMap.put(category, categoryProbs);
+    }
+
+    // sort by category priority
+    for (Category category: categoryPriority){
+
+      if (categoryProbListMap.containsKey(category.getCategory())){
+        // (patterOrder:problemSet)
+        Map<Integer, Set<Problem>> patternOrderProbMap = new HashMap<>();
+
+        Integer maxProbNum = 0;
+        Integer longestPatternOrder = 0;
+        
+        // save to patternOrderProbMap + get longest probList patternOrder
+        for (Problem prob: categoryProbListMap.get(category.getCategory())){
+          Integer patternOrder = probPatternOrderMap.get(prob.getProbId());
+
+          Set<Problem> patternOrderProbs = patternOrderProbMap.containsKey(patternOrder)
+                                         ? patternOrderProbMap.get(patternOrder)
+                                         : new HashSet<Problem>();
+          
+          patternOrderProbs.add(prob);
+
+          if (patternOrderProbs.size() > maxProbNum) {
+            maxProbNum = patternOrderProbs.size();
+            longestPatternOrder = patternOrder;
+          }
+
+          patternOrderProbMap.put(patternOrder, patternOrderProbs);
+        }
+
+        // 문제가 가장 많은 patternOrder 및 patternOrder 0 (pattern problem이 없음) 인 문제들 먼저 넣음
+        for (Integer patternOrder: patternOrderProbMap.keySet()){          
+          if (patternOrder.equals(longestPatternOrder) || patternOrder.equals(0))
+            probList.addAll(patternOrderProbMap.get(patternOrder));
+
+          else
+            patternProbList.addAll(patternOrderProbMap.get(patternOrder));
+        }
+
+      }
+    }
+
+    // put remain patter problems
+    probList.addAll(patternProbList);
+
+    // 2021-09-02 Added by Sangheon Lee. Shuffle prob list
+    if (shuffle) Collections.shuffle(probList);
+
     for (Problem prob : probList) {	diffProbList.addDiffProb(prob, Difficulty.valueOf(prob.getDifficulty())); }
-    printDiffProbList(diffProbList);
+    printDiffProbList(diffProbList, probPatternOrderMap);
 
     return diffProbList;
   }
 
 
   // DiffProbListDTO 출력
-  public void printDiffProbList(DiffProbListDTO diffProbList) {
+  public void printDiffProbList(DiffProbListDTO diffProbList, Map<Integer, Integer> probPatternOrderMap) {
     if (PRINT_PROB_INFO) {
       for (Difficulty diff : Difficulty.values()) {
         List<Problem> probList = diffProbList.getDiffProbList(diff);
         log.debug("\t{} level probs = ", diff.getDiffEng());
         log.debug("\t\t probs = {} ", getIdListFromProbList(probList));
         log.debug("\t\t categories = {} ", getCategoryListFromProbList(probList));
+        log.debug("\t\t pattern orders = {} ", getPatternOrderListFromProbList(probList, probPatternOrderMap));
       }
       log.debug("");
     }
@@ -173,16 +259,23 @@ public class CardGenerator implements CardConstants {
   }
 
 
-  // Problem 객체 리스트에서 probId integer 리스트 추출
+  // Problem 객체 리스트에서 probId 리스트 추출
   public List<Integer> getIdListFromProbList(List<Problem> probList) {
     return probList.stream().map(prob -> prob.getProbId()).collect(Collectors.toList());
   }
   
 
   // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
-  // Problem 객체 리스트에서 category integer 리스트 추출
+  // Problem 객체 리스트에서 category 리스트 추출
   public List<String> getCategoryListFromProbList(List<Problem> probList) {
     return probList.stream().map(prob -> prob.getCategory()).collect(Collectors.toList());
+  }
+
+
+  // 2021-10-22 Added by Sangheon Lee. For pattern problem priority
+  // Problem 객체 리스트에서 pattern problem 리스트 추출
+  public List<Integer> getPatternOrderListFromProbList(List<Problem> probList, Map<Integer, Integer> probPatternOrderMap) {
+    return probList.stream().map(prob -> probPatternOrderMap.get(prob.getProbId())).collect(Collectors.toList());
   }
 
 
@@ -647,9 +740,7 @@ public class CardGenerator implements CardConstants {
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
-      DiffProbListDTO diffProbList = 
-          generateDiffProbList(
-              problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 1, 2, 4, 5, 3));
+      DiffProbListDTO diffProbList = generateDiffProbList(typeId, solvedProbIdSet, false, Category.getTestCardPrioirty());
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()){
@@ -726,11 +817,9 @@ public class CardGenerator implements CardConstants {
       // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
       DiffProbListDTO diffProbList;
       if (card.getCardType().equals(TRIAL_EXAM_CARD_TYPESTR))
-        diffProbList = generateDiffProbList(
-                problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 3, 4, 2, 1, 5));
+        diffProbList = generateDiffProbList(typeId, solvedProbIdSet, false, Category.getTrialExamCardPrioirty());
       else
-        diffProbList = generateDiffProbList(
-                problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 3, 4, 1, 2, 5));
+        diffProbList = generateDiffProbList(typeId, solvedProbIdSet, false, Category.getExamCardPrioirty());
 
       // 첫 번째 문제인 경우, 난이도 결정
       if (card.getProbIdSetList().isEmpty()) {
@@ -770,9 +859,7 @@ public class CardGenerator implements CardConstants {
                                   
     // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성    
     // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
-    DiffProbListDTO diffProbList = 
-      generateDiffProbList(
-        problemRepo.findProbListInTypeWithPriority(typeId, solvedProbIdSet, this.todayUTC, 1, 2, 4, 5, 3));
+    DiffProbListDTO diffProbList = generateDiffProbList(typeId, solvedProbIdSet, false, Category.getTypeCardPrioirty());
 
     addAllProblemSetList(typeCard, diffProbList, MIN_TYPE_CARD_PROB_NUM, MAX_TYPE_CARD_PROB_NUM);
     typeCard.setFirstProbLevel(getFirstProbLevel(mastery, diffProbList.getExistDiffStrList()));
@@ -831,8 +918,7 @@ public class CardGenerator implements CardConstants {
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
-      DiffProbListDTO diffProbList = generateDiffProbList(
-                problemRepo.findProbListInTypeWithPriority(typeId, null, this.todayUTC, 1, 2, 4, 5, 3));
+      DiffProbListDTO diffProbList = generateDiffProbList(typeId, null, false, Category.getSuppleCardPrioirty());
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)
@@ -870,12 +956,8 @@ public class CardGenerator implements CardConstants {
 
       // 해당 유형 내 모든 문제들을 난이도에 따라 달리 하여 dto 구성
       // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
-      List<Problem> probList = problemRepo.findProbListInTypeWithPriority(typeId, null, this.todayUTC, 1, 2, 4, 5, 3);
-      
-      // 2021-09-02 Added by Sangheon Lee. Shuffle prob list
-      Collections.shuffle(probList);
 
-      DiffProbListDTO diffProbList = generateDiffProbList(probList);
+      DiffProbListDTO diffProbList = generateDiffProbList(typeId, null, true, Category.getSuppleCardPrioirty());
       addAllProblemSetList(supplementCard, diffProbList, SUPPLE_CARD_PROB_NUM_PER_TYPE, SUPPLE_CARD_PROB_NUM_PER_TYPE);
 
       if (cnt == 1)
@@ -945,6 +1027,7 @@ public class CardGenerator implements CardConstants {
   }
 
   
+
   public CardDTO generateCard(CardConfigDTO cardConfig) {
 
     CardDTO card = null;

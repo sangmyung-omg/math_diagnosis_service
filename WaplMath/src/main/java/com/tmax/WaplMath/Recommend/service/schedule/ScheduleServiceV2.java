@@ -13,7 +13,6 @@ import com.tmax.WaplMath.Recommend.util.schedule.ScheduleConfigurator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Generate today normal/exam schedule card v2
@@ -99,14 +98,14 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
 
     // if configs empty = no probs to serve
     if (scheduleConfig.getCardConfigList().isEmpty())
-      throw new RecommendException(RecommendErrorCode.CARD_GENERATE_NO_CARDS_ERROR);
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATE_NO_CARDS_ERROR, userId);
 
     // generate schedule cards with schedule config
     scheduleConfig.getCardConfigList().forEach(config -> cardList.add(cardGenerator.generateCard(config)));
 
     // if cards empty = no probs to serve
     if (cardList.isEmpty())
-      throw new RecommendException(RecommendErrorCode.CARD_GENERATE_NO_CARDS_ERROR);
+      throw new RecommendException(RecommendErrorCode.CARD_GENERATE_NO_CARDS_ERROR, userId);
 
     return ScheduleCardOutputDTO.builder()
                                 .cardList(cardList)

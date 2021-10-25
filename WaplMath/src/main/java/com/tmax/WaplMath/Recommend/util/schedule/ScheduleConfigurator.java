@@ -644,7 +644,7 @@ public class ScheduleConfigurator implements CardConstants {
     setValidSectionIdSet();
 
     if (this.validSectionIdSet.isEmpty())
-      throw new RecommendException(RecommendErrorCode.NO_PROBS_ERROR, "EXAM_SCHEDULE_CONFIGS");
+      throw new RecommendException(RecommendErrorCode.NO_PROBS_ERROR, "EXAM_SCHEDULE_CONFIGS " + userId);
 
     // check days to prepare exam
     Integer totalDays = (int) userExamScopeInfo.getUser().getExamStartDate().toLocalDateTime()
@@ -658,7 +658,7 @@ public class ScheduleConfigurator implements CardConstants {
     // Add exception if the exam passed
     if (remainDays < 0)
       throw new RecommendException(RecommendErrorCode.EXAM_PASSED_ERROR, 
-                                   userExamScopeInfo.getUser().getExamDueDate().toString());
+                                   userExamScopeInfo.getUser().getExamDueDate().toString() + ", " + userId);
 
     log.info("1. Sections in exam : {} ", this.validSectionIdSet);
 

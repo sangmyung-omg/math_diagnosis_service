@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import com.tmax.WaplMath.Common.model.problem.Problem;
+import com.tmax.WaplMath.Recommend.dto.schedule.ProbPatternOrderDTO;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -23,7 +24,6 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
 
   // 2021-07-01 Added by Sangheon Lee. CardGenerator
   // 2021-09-01 Modified by Sangheon Lee. Get probs modified before today
-  // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
   @Query("select count(p) from Problem p"
       + " where p.problemType.curriculumId like concat(:currId, '%')"
       + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
@@ -43,27 +43,23 @@ public interface ProblemRepo extends CrudRepository<Problem, Integer> {
                                    @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, 
                                    @Param("today") String today);
 
-  @Query("select p from Problem p" + " where p.typeId=:typeId"
+  // 2021-09-15 Modified by Sangheon Lee. For any probs category (priority)
+  // 2021-10-21 Modified by Sangheon Lee. For pattern problem priority
+  @Query("select distinct p.probId as probId, (case"
+        + " when p.probId = ptp.basicProbId then 1"
+        + " when p.probId = ptp.secondProbId then 2"
+        + " when p.probId = ptp.thirdProbId then 3"
+        + " else 0 end) as patternOrder"
+      + " from Problem p, PatternProblem ptp" 
+      + " where p.typeId=:typeId"
       + " and (coalesce(:solvedProbIdSet, null) is null or p.probId not in (:solvedProbIdSet))"
       + " and p.category in ('유형', '꼼꼼', '교과서', '기출', '모의고사')" + " and p.status = 'ACCEPT'"
       + " and (p.editDate is null or p.editDate < to_date(:today, 'yyyy-MM-dd'))"
       + " and (p.validateDate is null or p.validateDate < to_date(:today, 'yyyy-MM-dd'))"
-      + " order by case"
-        + " when p.category = '유형' and (p.frequent is null or p.frequent = 'true') then :typeFrequentPriority"
-        + " when p.category = '유형' and p.frequent = 'false' then :typePriority"
-        + " when p.category = '기출' then :pastPriority"
-        + " when p.category = '교과서' then :pastPriority"
-        + " when p.category = '모의고사' then :examPriority"
-        + " when p.category = '꼼꼼' then :diagnosisPriority"
-        + " else 9 end")
-  public List<Problem> findProbListInTypeWithPriority(@Param("typeId") Integer typeId, 
+      + " order by p.probId, patternOrder desc")
+public List<ProbPatternOrderDTO> findProbIdListInType(@Param("typeId") Integer typeId, 
                                                       @Param("solvedProbIdSet") Set<Integer> solvedProbIdSet, 
-                                                      @Param("today") String today,
-                                                      @Param("typeFrequentPriority") Integer typeFrequentPriority, 
-                                                      @Param("typePriority") Integer typePriority, 
-                                                      @Param("pastPriority") Integer pastPriority, 
-                                                      @Param("examPriority") Integer examPriority, 
-                                                      @Param("diagnosisPriority") Integer diagnosisPriority);
+                                                      @Param("today") String today);
 
 
   // 2021-09-01 Added by Sangheon Lee. for test

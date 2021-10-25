@@ -3,7 +3,7 @@ package com.tmax.WaplMath.Recommend.dto.schedule;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import com.tmax.WaplMath.Recommend.util.config.CardConstants.Difficulty;
+import com.tmax.WaplMath.Recommend.util.config.Difficulty;
 import lombok.Builder;
 import lombok.Data;
 
