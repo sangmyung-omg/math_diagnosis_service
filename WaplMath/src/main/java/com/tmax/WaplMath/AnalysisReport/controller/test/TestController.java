@@ -26,6 +26,7 @@ import com.tmax.WaplMath.AnalysisReport.repository.problem.ProblemRepo;
 import com.tmax.WaplMath.AnalysisReport.repository.statistics.StatisticUserRepo;
 import com.tmax.WaplMath.AnalysisReport.service.chapter.ChapterServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.type.TypeStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
@@ -159,12 +160,11 @@ public class TestController {
 
 
     @Autowired
-    @Qualifier("UKStatisticsServiceV0")
-    private UKStatisticsServiceBase ukStatSvc;
+    private TypeStatisticsServiceBase typeStatSvc;
 
     @GetMapping("/teststatistic")
     ResponseEntity<Object> updateStat() {
-        ukStatSvc.updateAllStatistics();
+        typeStatSvc.updateAllStatistics();
         return null;
     }
 
@@ -179,6 +179,7 @@ public class TestController {
     
 
     @Autowired
+    @Qualifier("CurrStatisticsServiceV1")
     private CurrStatisticsServiceBase currStatSvc;
 
     @GetMapping("/teststatistic3")

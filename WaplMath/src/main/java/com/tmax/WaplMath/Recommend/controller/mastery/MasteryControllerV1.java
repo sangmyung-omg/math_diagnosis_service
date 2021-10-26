@@ -2,7 +2,8 @@ package com.tmax.WaplMath.Recommend.controller.mastery;
 
 import com.tmax.WaplMath.Recommend.config.RecommendConstants;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
-import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
+// import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
+import com.tmax.WaplMath.Recommend.service.mastery.v2.MasteryServiceV2;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path=RecommendConstants.apiPrefix + "/v1")
 public class MasteryControllerV1 {
     @Autowired
-	@Qualifier("MasteryServiceV1")
-	private MasteryServiceBaseV1 masterySvc;
+	@Qualifier("MasteryServiceV2")
+	private MasteryServiceV2 masterySvc;
 
 	@PutMapping(value = "/mastery")
 	ResponseEntity<Object> updateMastery(@RequestHeader("token") String token) {

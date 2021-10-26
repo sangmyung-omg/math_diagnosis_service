@@ -10,6 +10,7 @@ import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataLiteDTO;
 import com.tmax.WaplMath.AnalysisReport.service.report.ReportServiceBaseV0;
 import com.tmax.WaplMath.Common.util.auth.JWTUtil;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
+import com.tmax.WaplMath.Recommend.service.mastery.v2.MasteryServiceV2;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path=ARConstants.apiPrefix + "/v2")
 public class ReportControllerV2 {
     @Autowired
-    MasteryServiceBaseV1 masterySvc;
+    MasteryServiceV2 masterySvc;
 
     @Autowired
     ReportServiceBaseV0 reportSvc;

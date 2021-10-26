@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,6 +22,7 @@ import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepo;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
+import com.tmax.WaplMath.Recommend.util.MasteryAPIManager.TritonModelMode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,6 +79,45 @@ class MasteryData {
     private String diff;
 }
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+class MasteryDataV2List {
+    private List<String> typeIdList = new ArrayList<>();
+    private List<String> corrList = new ArrayList<>();
+    private List<String> diffList = new ArrayList<>();
+
+    public MasteryDataV2List(List<MasteryDataV2> dataList){
+        dataList.forEach(data -> {
+            this.typeIdList.add(data.getTypeId());
+            this.corrList.add(data.getCorr());
+            this.diffList.add(data.getDiff());
+        });
+    }
+
+    public void pushData(MasteryDataV2 data){
+        this.typeIdList.add(data.getTypeId());
+        this.corrList.add(data.getCorr());
+        this.diffList.add(data.getDiff());
+    }
+
+    public void pushData(String typeId, String corr, String diff){
+        this.typeIdList.add(typeId);
+        this.corrList.add(corr);
+        this.diffList.add(diff);
+    }
+}
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+class MasteryDataV2 {
+    private String typeId;
+    private String corr;
+    private String diff;
+}
+
 @Service("DiagnosisServiceV0")
 @Slf4j
 public class DiagnosisServiceV0 implements DiagnosisServiceBase{
@@ -126,24 +167,26 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
                                                                       .collect(Collectors.toMap(Problem::getProbId, Problem::getDifficulty));
 
         //Build ukIDList and correctList
-        MasteryDataList apiDatalist = new MasteryDataList(
+        MasteryDataV2List apiDatalist = new MasteryDataV2List(
             statementList.stream().flatMap(statement -> {
                 Integer probId = null;
                 try{probId = Integer.valueOf(statement.getSourceId());} catch(Exception e){return Stream.empty();}
-                //Get ukId list for probId
-                List<String> ukIdList = probUkRelRepo.findAllUkIdByProbId(probId).stream().map(id -> id.toString()).collect(Collectors.toList());
+                
+                //Get typeIdList for probId
+                Optional<Problem> probInfoOpt = problemRepo.findById(probId);
+                if(!probInfoOpt.isPresent()) return Stream.empty();
+
                 String correct = statement.getIsCorrect() > 0 ? "true" : "false";
                 String diff = probDiffMap.get(probId);
 
                 //Create stream
-                List<MasteryData> subdataList = ukIdList.stream().map(id -> MasteryData.builder().ukId(id).corr(correct).diff(diff).build())
-                                                    .collect(Collectors.toList());
+                List<MasteryDataV2> subdataList = Arrays.asList(MasteryDataV2.builder().typeId(probInfoOpt.get().getTypeId().toString()).corr(correct).diff(diff).build());
                 
                 return subdataList.stream();
             }).collect(Collectors.toList())
         );
         
-        TritonMasteryDTO result = masteryAPIManager.measureMasteryDTO(userID, apiDatalist.getUkIdList(), apiDatalist.getCorrList(), apiDatalist.getDiffList(), "");
+        TritonMasteryDTO result = masteryAPIManager.measureMasteryDTO(userID, apiDatalist.getTypeIdList(), apiDatalist.getCorrList(), apiDatalist.getDiffList(), "", TritonModelMode.TYPE_BASED);
         if(result == null){return null;}
 
         //Get user's curriculum map

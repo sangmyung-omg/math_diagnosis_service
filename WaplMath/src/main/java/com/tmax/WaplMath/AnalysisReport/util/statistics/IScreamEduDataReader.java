@@ -36,112 +36,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-class Mastery implements Serializable {
-    @Builder.Default
-    private Float mastery = 0.0f;
-
-    @Builder.Default
-    private int count = 0;
-
-    @Builder.Default
-    private Map<Integer, Float> map = new HashMap<>();
-
-    public void add(Integer ukID, Float mastery) {
-        this.count++;
-        this.mastery += mastery;
-        this.map.put(ukID, mastery);
-    }
-
-    //Method to update passively
-    public void updateMastery() {
-        this.count = map.size();
-        this.mastery = 0.0f; //clear
-
-        for(Map.Entry<Integer, Float> entry : this.map.entrySet()){
-            this.mastery += entry.getValue();
-        }
-    }
-
-    public Float getAverage() {
-        return this.mastery / this.count;
-    }
-
-    public Float getMastery(Integer ukID){
-        return this.map.get(ukID);
-    }
-
-    public Map<Integer, Float> getMap() {
-        return this.map;
-    }
-}
-
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-class UserData {
-    @Builder.Default
-    private Float mastery = 0.0f;
-
-    @Builder.Default
-    private int count = 0;
-
-    @Builder.Default
-    private Map<String, Float> map = new HashMap<>();
-
-    public void add(String userID, Float mastery) {
-        this.count++;
-        this.mastery += mastery;
-        this.map.put(userID, mastery);
-    }
-
-    public Float getAverage() {
-        return this.mastery / this.count;
-    }
-
-    public Float getMastery(String userID){
-        return this.map.get(userID);
-    }
-
-    public Map<String, Float> getMap() {
-        return this.map;
-    }
-
-    //Method to update passively
-    public void updateMastery() {
-        this.count = map.size();
-        this.mastery = 0.0f; //clear
-
-        for(Map.Entry<String, Float> entry : this.map.entrySet()){
-            this.mastery += entry.getValue();
-        }
-    }
-}
 
 @Data
 @AllArgsConstructor
 class UkLUT {
     private Integer id;
     private Integer map;
-}
-
-
-@Data
-@AllArgsConstructor
-class DataTable {
-    private String username;
-    private List<Float> ukMasteryList;
 }
 
 /**
@@ -295,7 +198,7 @@ public class IScreamEduDataReader {
                                                 ukMasteryList
                                             );
                                 })
-                                .collect(Collectors.toMap(DataTable::getUsername, DataTable::getUkMasteryList));
+                                .collect(Collectors.toMap(DataTable::getUsername, DataTable::getMasteryList));
         
         return;
     }

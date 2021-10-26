@@ -8,6 +8,7 @@ import com.tmax.WaplMath.Recommend.service.mastery.MasteryServiceBase;
  * @author Jonghyun Seong
  */
 public interface MasteryServiceBaseV1 extends MasteryServiceBase {
+    @Deprecated
     public ResultMessageDTO updateMasteryFromLRS(String token);
 
     public ResultMessageDTO updateMasteryWithLRS(String userID);

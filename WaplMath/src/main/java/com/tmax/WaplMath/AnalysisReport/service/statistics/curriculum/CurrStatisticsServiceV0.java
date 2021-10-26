@@ -28,47 +28,15 @@ import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 
-class MasteryStat {
-    private Float score = 0.0f;
-    private int count = 0;
-
-    public MasteryStat(){}
-
-    public void addScore(Float score) {
-        count++;
-
-        //If nan. add zero
-        if(score.isNaN()){
-            return;
-        }
-
-        this.score += score; 
-    }
-    public float getAverage(){
-        if(count == 0)
-            return 0.0f;
-
-        return this.score/count;        
-    }
-    public float getScore(){return this.score;}
-}
-
-@Data
-@AllArgsConstructor
-class CurrData {
-    private String currID;
-    private Float average;
-}
-
 @Slf4j
 @Service("CurrStatisticsServiceV0")
+// @Primary
 public class CurrStatisticsServiceV0 implements CurrStatisticsServiceBase {
     @Autowired
     private StatisticCurrRepo statisticCurrRepo;

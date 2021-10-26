@@ -8,7 +8,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatis
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
-import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReader;
+import com.tmax.WaplMath.AnalysisReport.util.statistics.IScreamEduDataReaderV2;
 import com.tmax.WaplMath.Common.util.shedlock.ShedLockUtil;
 import com.tmax.WaplMath.Recommend.event.mastery.MasteryChangeEvent;
 import com.tmax.WaplMath.Recommend.event.user.UserDeleteEvent;
@@ -31,7 +31,7 @@ public class StatisticsEventListener {
     @Autowired private CurrStatisticsServiceBase currStatSvc;
     @Autowired private UserStatisticsServiceBase userStatSvc;
     @Autowired private UKStatisticsServiceBase ukStatSvc;
-    @Autowired private IScreamEduDataReader iScreamEduDataReader;
+    @Autowired private IScreamEduDataReaderV2 iScreamEduDataReaderV2;
     @Autowired private ShedLockUtil shedLockUtil;
 
     @Autowired private DiagnosisServiceBase diagSvc;
@@ -85,7 +85,7 @@ public class StatisticsEventListener {
     @EventListener
     public void startupStatisticsProcessor(ApplicationStartedEvent event){
         //load iscream edu data
-        iScreamEduDataReader.loadData();
+        iScreamEduDataReaderV2.loadData();
 
 
         log.info("Checking statistics status");

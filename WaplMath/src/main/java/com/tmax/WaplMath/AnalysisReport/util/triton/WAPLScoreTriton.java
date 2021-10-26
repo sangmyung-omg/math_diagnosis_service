@@ -49,7 +49,7 @@ public class WAPLScoreTriton {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
-    @Value("${triton.waplscore.host}")
+    @Value("${triton.waplscore.ukbased.host}")
     private String tritonURL;
 
     private TritonResponseDTO callTritonInference(String bodyPayload){
