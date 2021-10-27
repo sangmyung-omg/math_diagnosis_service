@@ -585,14 +585,17 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         //Create key set to delete from stat table
         // Set<StatsAnalyticsUserKey> keySet = new HashSet<>();
 
-        for(String stat: statNames){
-            // keySet.add(new StatsAnalyticsUserKey(userID, stat));
+        // for(String stat: statNames){
+        //     // keySet.add(new StatsAnalyticsUserKey(userID, stat));
 
-            log.debug("Deleting user ({})'s stat {}", userID, stat);
-            statisticUserRepo.deleteById(new StatsAnalyticsUserKey(userID, stat));
-        }
+        //     log.debug("Deleting user ({})'s stat {}", userID, stat);
+        //     statisticUserRepo.deleteById(new StatsAnalyticsUserKey(userID, stat));
+        // }
 
         // statisticUserRepo.deleteAllById(keySet);
+
+        log.debug("Deleting user ({})'s stat", userID);
+        statisticUserRepo.deleteAllOfUser(userID);
         
         return false;
     }
