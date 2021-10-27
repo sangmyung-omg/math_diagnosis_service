@@ -14,6 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import com.tmax.WaplMath.Common.model.curriculum.Curriculum;
+import com.tmax.WaplMath.Common.model.knowledge.TypeKnowledge;
 import com.tmax.WaplMath.Common.model.knowledge.UserEmbedding;
 import com.tmax.WaplMath.Common.model.knowledge.UserKnowledge;
 import lombok.AllArgsConstructor;
@@ -57,6 +58,9 @@ public class User {
 	@OneToOne(fetch = FetchType.LAZY, mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
 	private UserExamScope userExamScope;
 	
+	@OneToMany(fetch = FetchType.LAZY, mappedBy="user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<TypeKnowledge> typeKnowledList;
+
 	@ManyToOne
 	@JoinColumn(name = "currentCurriculumId", referencedColumnName = "CURRICULUM_ID", insertable = false, updatable = false)
 	private Curriculum currentCurriculum;
