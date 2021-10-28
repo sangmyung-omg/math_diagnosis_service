@@ -33,9 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 public class WaplScoreManagerV2 {
   
   //Logging option
-  private static final boolean PRINT_CARD_INFO = true; //level 1
-  private static final boolean PRINT_TYPE_INFO = false; //level 2
-  private static final boolean PRINT_PROB_INFO = false; //level 3
+  private boolean PRINT_CARD_INFO = true; //level 1
+  private boolean PRINT_TYPE_INFO = false; //level 2
+  private boolean PRINT_PROB_INFO = false; //level 3
 
   @Autowired
   @Qualifier("RE-ProblemTypeRepo")
@@ -49,7 +49,14 @@ public class WaplScoreManagerV2 {
   private Integer totalTypeLength = 0;
 
   private Integer totalProbCnt = 0;
-  
+
+
+  public void setTestMode(){
+    this.PRINT_CARD_INFO = false;
+    this.PRINT_TYPE_INFO = false;
+    this.PRINT_PROB_INFO = false;
+  }
+
 
   public List<WaplScoreProbDTOV2> generateSectionCardProbList(Set<String> sectionIdSet, String cardType, Integer probNum) {
 
@@ -106,6 +113,9 @@ public class WaplScoreManagerV2 {
 
     WaplScoreProbListDTOV2 output = new WaplScoreProbListDTOV2();
     List<WaplScoreProbDTOV2> probList = new ArrayList<>();
+    
+    this.totalTypeLength = 0;
+    this.totalProbCnt = 0;
 
     if (remainDay <= 0)
       throw new GenericInternalException(CommonErrorCode.INVALID_ARGUMENT, 
@@ -181,8 +191,8 @@ public class WaplScoreManagerV2 {
         if (PRINT_CARD_INFO) log.info("");
       }
     }
-    log.info("Normal schedule probNum = {}", totalProbCnt);
-    log.info("=========================");
+    if (PRINT_CARD_INFO)	log.info("Normal schedule probNum = {}", totalProbCnt);
+    if (PRINT_CARD_INFO)	log.info("=========================");
 
 
     //시험 대비
@@ -232,14 +242,17 @@ public class WaplScoreManagerV2 {
 
     // if remain day less than 14 days
     Collections.reverse(dayExamProbList);
+
     Integer listSize = Math.min(remainDay, 14);
-    log.info("Cut exam card within {} days", listSize);
+    if (PRINT_CARD_INFO)	log.info("Cut exam card within {} days", listSize);
+
     dayExamProbList.subList(0, listSize).stream()
                    .forEach(examProbList -> probList.addAll(examProbList));
 
-    log.info("Total waplScore probNum = {}", probList.size());
+    if (PRINT_CARD_INFO)	log.info("Total waplScore probNum = {}", probList.size());
+    
     probList.forEach(e -> totalTypeLength += 1);
-    log.info("Total waplScore type sequence length = {}", totalTypeLength);
+    if (PRINT_CARD_INFO)	log.info("Total waplScore type sequence length = {}", totalTypeLength);
 
     output.setProbList(probList);
     return output;
