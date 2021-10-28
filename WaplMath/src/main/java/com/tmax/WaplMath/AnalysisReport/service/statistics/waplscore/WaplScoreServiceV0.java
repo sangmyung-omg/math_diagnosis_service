@@ -26,6 +26,7 @@ import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Recommend.dto.waplscore.WaplScoreProbListDTO;
 import com.tmax.WaplMath.Recommend.repository.UkRepo;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepo;
+import com.tmax.WaplMath.Recommend.util.UkMasterySimulator;
 import com.tmax.WaplMath.Recommend.util.waplscore.WaplScoreManagerV1;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,6 +60,8 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     private CurrStatisticsServiceBase currStatSvc;
 
     @Autowired private ExamScopeUtil examScopeUtil;
+
+    @Autowired private UkMasterySimulator ukMasterySimulator;
 
     @Override
     public int clearWaplScoreStatistics(String userID) {
@@ -220,16 +223,16 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         //Get last map
         Map<Integer, Float> lastMap = ukMasteryMapSeq.get(ukMasteryMapSeq.size() - 1);
         
-        float score = (float)0.0f;
-        int count = 0;
-        for(Map.Entry<Integer, Float> entry : lastMap.entrySet()){
-            score += entry.getValue();
-            count++;
-        }
+        // float score = (float)0.0f;
+        // int count = 0;
+        // for(Map.Entry<Integer, Float> entry : lastMap.entrySet()){
+        //     score += entry.getValue();
+        //     count++;
+        // }
 
 
         //Save the wapl score to stats
-        Double waplScore = (double)score/count;
+        Double waplScore = calcWaplScoreFromMasteryMap(lastMap); //(double)score/count;
 
         //Exam score exception test
         Double examScore = null;
@@ -254,17 +257,35 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
         String masteryJson = new Gson().toJson(ukMasteryMapSeq);
 
         if(saveToDB){
-            userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
-            userStatSvc.updateCustomUserStat(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY, Statistics.Type.JSON, masteryJson);
+            userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE, Statistics.Type.FLOAT, waplScore.toString());
+            userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE_MASTERY, Statistics.Type.JSON, masteryJson);
+
+            //2021-10-28 Add temp uk waplscore sim to type
+            log.debug("Building simulated type mastery wapl score.");
+            Map<Integer, Float> typeMastery = ukMasterySimulator.simulatedTypeMastery(lastMap);
+            userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE_MASTERY_TYPE_BASED, Statistics.Type.JSON, new Gson().toJson(typeMastery));
+            log.debug("Saved type mastery for waplscore {}", userID);
         }
 
         //Log
-        log.info("Save to wapl score to table for user: " + userID);
+        log.info("Save to wapl score to table for user: " + userID);        
+
 
         return new WaplScoreData(waplScore.floatValue(),masteryJson);
     }
 
     public WaplScoreData generateWaplScore(String userID){
         return generateWaplScore(userID, true);
+    }
+
+    private Double calcWaplScoreFromMasteryMap(Map<Integer, Float> masteryMap){
+        double score = 0.0;
+        int count = 0;
+        for(Map.Entry<Integer, Float> entry : masteryMap.entrySet()){
+            score += entry.getValue();
+            count++;
+        }
+
+        return score/count;
     }
 }

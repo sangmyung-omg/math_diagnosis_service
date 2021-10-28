@@ -24,6 +24,7 @@ import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceBaseV0;
 import com.tmax.WaplMath.AnalysisReport.service.userknowledge.UserKnowledgeServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.error.ARErrorCode;
 import com.tmax.WaplMath.AnalysisReport.util.statistics.StatisticsUtil;
@@ -514,7 +515,7 @@ public class CurriculumServiceV0 implements CurriculumServiceBase {
     private PersonalScoreDTO getWaplScore(String userID, String grade, String currID, List<Float> scoreLUT, Set<Integer> ukIDList){
         //Get score from stat table
         //TODO: is there any way to cache this map? REDIS maybe?
-        Statistics waplMasteryStat = userStatSvc.getUserStatistics(userID, UserStatisticsServiceBase.STAT_WAPL_SCORE_MASTERY);
+        Statistics waplMasteryStat = userStatSvc.getUserStatistics(userID, WaplScoreServiceBaseV0.STAT_WAPL_SCORE_MASTERY);
 
         if(waplMasteryStat == null){
             log.warn("Curriculum Mastery map does not exist for user " + userID);

@@ -141,4 +141,9 @@ public class TypeStatisticsServiceV0 implements TypeStatisticsServiceBase {
         Collections.sort(sortedList);
         return sortedList;
     }
+
+    @Override
+    public List<StatsAnalyticsType> getAllOfTypeIds(List<Integer> typeIds) {
+        return statisticTypeRepo.findByTypeIds(typeIds);
+    }
 }

@@ -110,6 +110,39 @@ public class UkMasterySimulator {
         return outputUkMasteryMap;
     }
 
+        /** 
+     * Method to create type mastery from given uk mastery map
+     * @param ukMasteryMap
+     * @return
+     */
+    public Map<Integer, Float> simulatedTypeMastery(Map<Integer, Float> ukMasteryMap){
+        //Create output map object. saves all related list of mastery
+        //Init map
+        Map<Integer, List<Float>> typeMasteryListMap = typeUkMap.keySet().stream().collect(Collectors.toMap(typeid -> typeid, typeid -> new ArrayList<Float>()));
+
+        //Fill the masteryMap
+        ukMasteryMap.entrySet().stream()
+                      .forEach(entry -> {
+                          //Get corresponding uk id
+                          Set<Integer> typeIdSet = this.ukTypeMap.get(entry.getKey());
+                          if(typeIdSet == null || typeIdSet.size() == 0) return;
+
+                          //Add to list
+                          typeIdSet.forEach(typeId -> typeMasteryListMap.get(typeId).add(entry.getValue()) );
+                      });
+
+        
+        //Reduce map to 
+        Map<Integer, Float> outputTypeMasteryMap = typeMasteryListMap.entrySet().stream().parallel()
+                                                                 .filter(entry -> entry.getValue().size() != 0)
+                                                                 .collect(Collectors.toMap(
+                                                                    Entry::getKey, //Key
+                                                                    entry -> entry.getValue().stream().reduce(0.0f, Float::sum) / entry.getValue().size() //Reduce to average
+                                                                 ));
+                                                                 
+        return outputTypeMasteryMap;
+    }
+
     /**
      * Method to convert UserKnowledge to corresponding TypeKnowledge data
      * @param userKnowledgeList

@@ -5,6 +5,7 @@ import java.time.Duration;
 
 import com.tmax.WaplMath.AnalysisReport.service.diagnosis.DiagnosisServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.type.TypeStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.waplscore.WaplScoreServiceV0;
@@ -33,6 +34,8 @@ public class StatisticsEventListener {
     @Autowired private UKStatisticsServiceBase ukStatSvc;
     @Autowired private IScreamEduDataReaderV2 iScreamEduDataReaderV2;
     @Autowired private ShedLockUtil shedLockUtil;
+
+    @Autowired private TypeStatisticsServiceBase typeStatSvc;
 
     @Autowired private DiagnosisServiceBase diagSvc;
     @Autowired private WaplScoreServiceV0 waplScoreSvc;
@@ -164,6 +167,24 @@ public class StatisticsEventListener {
         // log.info("UK");
         ukStatSvc.updateAllStatistics();    
         log.info("======= Nightly UK statistics update DONE ========");   
+
+        //Release lock
+        shedLockUtil.releaseLock(lockname);
+    }
+
+    @Scheduled(cron="0 0 0 * * *")
+    // @SchedulerLock(name="Stat_Update_UK", lockAtLeastFor = "PT5M")
+    public void updateTypeStats(){
+        String lockname = "Stat_Update_Type";
+        if(!shedLockUtil.tryLock(lockname, Duration.ofMinutes(30)) ){
+            log.info("Schedule run for {} is already taken by another cluster", lockname);
+            return;
+        }
+        
+        log.info("======= Nightly Type statistics update START ========");
+        // log.info("UK");
+        typeStatSvc.updateAllStatistics();    
+        log.info("======= Nightly Type statistics update DONE ========");   
 
         //Release lock
         shedLockUtil.releaseLock(lockname);

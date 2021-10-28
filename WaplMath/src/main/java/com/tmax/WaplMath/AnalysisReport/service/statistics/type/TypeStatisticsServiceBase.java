@@ -2,6 +2,7 @@ package com.tmax.WaplMath.AnalysisReport.service.statistics.type;
 
 import java.util.List;
 
+import com.tmax.WaplMath.AnalysisReport.model.statistics.StatsAnalyticsType;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 
 public interface TypeStatisticsServiceBase {
@@ -17,6 +18,8 @@ public interface TypeStatisticsServiceBase {
     public List<Float> getSorted(List<Float> masteryList);
     public Float getSTD(List<Float> masteryList);
     public Float getPercentile(Float score, List<Float> sortedMastery);
+
+    public List<StatsAnalyticsType> getAllOfTypeIds(List<Integer> typeIds);
 
     //Public key values
     public static final String STAT_MASTERY_SORTED = "mastery_sorted";
