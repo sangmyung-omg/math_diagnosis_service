@@ -21,14 +21,40 @@ tags:
 - name : 'deprecated'
   description: "더 이상 개발되지 않는 api"
 paths:
-  /diagnosis:
+  /diagnosis/scope:
     get:
       tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
-      summary: 진단고사 문제 전체 요청
+      summary: 진단고사 범위 중단원 리스트 및 추천 중단원 제공
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        200:
+          description: 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosisScopeResult'
+        500:
+          description: 실패
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resultMessage:
+                    type: string
+                    example: "Error: status code 500" 
+  /diagnosis/problems:
+    get:
+      tags: [Diagnosis]
+      operationId: DiagnosisProblemsGet
+      summary: 중단원 5개에 해당하는 진단고사 문제 set 제공
       parameters:
         - $ref: "#/components/parameters/UserToken"
         - $ref:  "#/components/parameters/DiagnosisType"
+      requestBody:
+        $ref: "#/components/requestBodies/SectionIdList"
       responses:
         200:
           description: 성공
@@ -45,7 +71,7 @@ paths:
                 properties:
                   resultMessage:
                     type: string
-                    example: "Error: status code 500"                
+                    example: "Error: status code 500"                  
   /diagnosis/extra:
     get:
       tags: [Diagnosis]
@@ -272,6 +298,46 @@ components:
             - [1121,3141,5161]
             - [7181,9202,1222]
             - [3242,5262,7282]
+    SectionIdList:
+      type: array
+      description: "선택한 중단원 리스트"
+      example:
+        - "중등-중3-1학-03-03"
+        - "중등-중3-1학-04-01"
+        - "중등-중3-1학-04-01"
+        - "중등-중3-1학-04-01"
+        - "중등-중3-1학-04-01"
+    DiagnosisScopeResult:
+      properties:
+        resultMessage:
+          type: string
+          example: Successfully returned.
+        sectionIdList:
+          type: array
+          description: 진단 범위 내의 모든 중단원 리스트
+          example:
+            - "중등-중3-1학-03-03"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+        recommendSectionIdList:
+          type: array
+          description: 각 내용 영역 별 추천 중단원 5개
+          example:
+            - "중등-중3-1학-03-03"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
     ExtraProblemsResult:
       properties:
         resultMessage:
@@ -762,8 +828,16 @@ components:
       schema:
         type: boolean
         default: 0
-        
   requestBodies:
+    SectionIdList:
+     description: "선택한 중단원 5개 리스트"
+     required: true
+     content:
+      application/json:
+        schema:
+          properties:
+            sectionIdList:
+             $ref: "#/components/schemas/SectionIdList"
     ProblemSolveRecord:
       description: "학생 문제 풀이 기록"
       required: true
