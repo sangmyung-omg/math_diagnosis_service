@@ -24,7 +24,7 @@ paths:
   /diagnosis/scope:
     get:
       tags: [Diagnosis]
-      operationId: DiagnosisProblemsGet
+      operationId: DiagnosisScopeGet
       summary: 진단고사 범위 중단원 리스트 및 추천 중단원 제공
       parameters:
         - $ref: "#/components/parameters/UserToken"
