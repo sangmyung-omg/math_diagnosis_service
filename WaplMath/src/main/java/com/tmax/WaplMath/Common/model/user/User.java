@@ -57,6 +57,9 @@ public class User {
 	
 	@OneToOne(fetch = FetchType.LAZY, mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
 	private UserExamScope userExamScope;
+
+	@OneToOne(fetch = FetchType.LAZY, mappedBy="user", cascade=CascadeType.REMOVE, orphanRemoval=true)
+	private UserRecommendScope userRecommendScope;
 	
 	@OneToMany(fetch = FetchType.LAZY, mappedBy="user", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<TypeKnowledge> typeKnowledList;
