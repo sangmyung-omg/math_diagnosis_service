@@ -14,10 +14,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import com.tmax.WaplMath.Common.model.problem.ProblemType;
-import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.model.user.UserExamScope;
 import com.tmax.WaplMath.Common.repository.user.UserExamScopeRepo;
-import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Recommend.dto.mastery.TypeMasteryDTO;
 import com.tmax.WaplMath.Recommend.dto.schedule.CardConfigDTO;
@@ -31,6 +29,7 @@ import com.tmax.WaplMath.Recommend.util.ExamScope;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.config.CardConstants;
 import com.tmax.WaplMath.Recommend.util.history.HistoryManager;
+import com.tmax.WaplMath.Recommend.util.user.UserInfoManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -52,9 +51,6 @@ public class ScheduleConfigurator implements CardConstants {
   private ProblemRepo problemRepo;
 
   @Autowired
-  private UserRepo userRepo;
-
-  @Autowired
   @Qualifier("RE-ProblemTypeRepo")
   private ProblemTypeRepo problemTypeRepo;
 
@@ -72,6 +68,10 @@ public class ScheduleConfigurator implements CardConstants {
   @Autowired
   HistoryManager historyManager;
 
+  @Autowired
+  private UserInfoManager userInfoManager;
+  
+
   // user info vars
   private String userId;
   private String tomorrow;
@@ -82,6 +82,7 @@ public class ScheduleConfigurator implements CardConstants {
   // return vars
   private List<CardConfigDTO> cardConfigList;
   private Set<String> addtlSubSectionIdSet; // 완벽 학습을 위한 소단원 Id set (현재 사용 안함)
+  private Boolean isScopeCompleted; // 추천 범위 내 모든 진도를 다 나갔는지 여부 (실력 향상)
 
   // intermediate vars
   private Integer totalProbNum;  // config 내 문제 개수 합 (실력 향상)
@@ -111,6 +112,7 @@ public class ScheduleConfigurator implements CardConstants {
     // init return vars
     this.cardConfigList = new ArrayList<>();
     this.addtlSubSectionIdSet = new HashSet<>();
+    this.isScopeCompleted = false;
 
     // init intermediate vars
     this.totalProbNum = 0;
@@ -129,28 +131,6 @@ public class ScheduleConfigurator implements CardConstants {
                                                     SourceType.TRIAL_EXAM_QUESTION);
 
     return historyManager.getSolvedProbIdSet(userId, "", tomorrow, sourceTypeList);
-  }
-
-
-  // USER_MASTER TB 의 사용자 정보 리턴
-  public User getValidUserInfo(String userId) {
-    // Check whether userId is in USER_MASTER TB
-    User userInfo = userRepo.findById(userId)
-        .orElseThrow(() -> new RecommendException(RecommendErrorCode.USER_NOT_EXIST_ERROR, userId));
-
-    // Check whether user exam information is null
-    if (userInfo.getGrade() == null 		|| userInfo.getSemester() == null || 
-        userInfo.getExamType() == null 	|| userInfo.getCurrentCurriculumId() == null) {
-
-      log.error("User info null error: {}, {}, {}, {}", userInfo.getGrade(), 
-                                                        userInfo.getSemester(),
-                                                        userInfo.getExamType(), 
-                                                        userInfo.getCurrentCurriculumId());
-
-      throw new RecommendException(RecommendErrorCode.USER_INFO_NULL_ERROR, 
-                                   "Call /userbasicinfo PUT service first. " + userId);
-    }
-    return userInfo;
   }
 
 
@@ -205,28 +185,6 @@ public class ScheduleConfigurator implements CardConstants {
   }
 
 
-  // (시험 대비) 학생 시험 키워드 리턴 (학년-학기-시험종류)
-  public String getUserExamKeyword(String userId) {
-    // get user info
-    User userInfo = getValidUserInfo(userId);
-
-    return String.format("%s-%s-%s", userInfo.getGrade(), userInfo.getSemester(), userInfo.getExamType());
-  }
-
-
-  // (실력 평가) 현재 학기 내 소단원 Id 목록 리턴
-  public List<String> getNormalSubSectionIdList(String userId) {
-    // get user info
-    User userInfo = getValidUserInfo(userId);
-
-    // 이번 학기 마지막까지
-    String endCurriculumId = 
-      ExamScope.examScope.get(userInfo.getGrade() + "-" + userInfo.getSemester() + "-" + "final").get(1);
-
-    return curriculumRepo.findSubSectionListBetween(userInfo.getCurrentCurriculumId(), endCurriculumId);
-  }
-
-
   // 유형-마스터리 정보 출력
   public void printTypeMasteryList(List<TypeMasteryDTO> typeMasteryList) {	
     for (TypeMasteryDTO typeMastery : typeMasteryList)		
@@ -239,6 +197,7 @@ public class ScheduleConfigurator implements CardConstants {
     return ScheduleConfigDTO.builder()
                             .cardConfigList(this.cardConfigList)
                             .addtlSubSectionIdSet(this.addtlSubSectionIdSet)
+                            .isScopeCompleted(this.isScopeCompleted)
                             .build();
   }
 
@@ -246,7 +205,7 @@ public class ScheduleConfigurator implements CardConstants {
   // (실력 향상) 중단원 중간 평가 카드 여부 확인 및 생성
   public boolean checkSectionTestCard() {
     // 학년, 학기 내 소단원 목록들
-    List<String> subSectionIdList = getNormalSubSectionIdList(userId);
+    List<String> subSectionIdList = userInfoManager.getScheduleScopeSubSectionIdList(userId);
     log.info("Total sub section list = {}", subSectionIdList);
 
     // 제공할 문제가 있는 중단원들
@@ -447,9 +406,15 @@ public class ScheduleConfigurator implements CardConstants {
 
   // (실력 향상) 추가 보충 카드 여부 확인 및 생성
   public boolean checkAddtlSuppleCard() {
+
+    // 2021-11-04 Added by Sangheon Lee.
+    // 추가 보충학습 카드 판단 로직까지 왔는데 아무 카드도 생성되지 않았으면, 진도를 다 나간 것으로 간주
+    if (this.totalProbNum.equals(0))
+      this.isScopeCompleted = true;
+
     // 현재 학기 내 모든 유형을 풀었으나 문제가 채워지지 않으면, 추가 보충카드 제공
     if (this.totalProbNum < MAX_CARD_PROB_NUM) {
-      String examKeyword = getUserExamKeyword(userId);
+      String examKeyword = userInfoManager.getUserExamKeyword(userId);
 
       // 시험 범위 내 각 유형 마다 2문제씩 (보충 카드가 2문제)
       Integer addtiTypeNum = (int) Math.ceil((MAX_CARD_PROB_NUM - totalProbNum) / 2.0);
@@ -501,7 +466,7 @@ public class ScheduleConfigurator implements CardConstants {
 
     // 남은 일수가 적을 때, 모의고사 카드 제공
     if (remainDays <= numTrialExamCards) {
-      String userExamKeyword = getUserExamKeyword(userId);
+      String userExamKeyword = userInfoManager.getUserExamKeyword(userId);
       log.info("\tTRIAL_EXAM card : {} ", userExamKeyword);
 
       this.cardConfigList.add(CardConfigDTO.builder()
@@ -629,7 +594,7 @@ public class ScheduleConfigurator implements CardConstants {
                         
 
     // check addtl supple card available
-    checkAddtlSuppleCard();    
+    checkAddtlSuppleCard();
     return getScheduleConfig();
   }
 
@@ -688,11 +653,12 @@ public class ScheduleConfigurator implements CardConstants {
   // (실력향상) 중간평가, 보충, 유형, 추가보충, (시험대비) 모의고사 카드 1장씩 dummy로 제공, 실제 서비스 X
   public ScheduleConfigDTO getDummyScheduleConfig() {
 
-    String examKeyword = getUserExamKeyword(userId);
+    String examKeyword = userInfoManager.getUserExamKeyword(userId);
 
     // get section id, remain type list
-    String sectionId = getValidUserInfo(userId).getCurrentCurriculumId().substring(0, 14);
-    List<ProblemType> typeList = problemTypeRepo.findRemainTypeIdList(getNormalSubSectionIdList(userId), null);
+    String sectionId = userInfoManager.getValidUserInfo(userId).getCurrentCurriculumId().substring(0, 14);
+    List<ProblemType> typeList = 
+      problemTypeRepo.findRemainTypeIdList(userInfoManager.getScheduleScopeSubSectionIdList(userId), null);
 
 
     // 유형카드 : 첫 번째 유형

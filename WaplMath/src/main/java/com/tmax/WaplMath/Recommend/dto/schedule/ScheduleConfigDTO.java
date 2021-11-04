@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 public class ScheduleConfigDTO {
 	public List<CardConfigDTO> cardConfigList;
 	public Set<String> addtlSubSectionIdSet;
+  public Boolean isScopeCompleted;
 }

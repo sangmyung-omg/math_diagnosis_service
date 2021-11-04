@@ -110,6 +110,7 @@ public class ScheduleServiceV2 implements ScheduleServiceBaseV2 {
     return ScheduleCardOutputDTO.builder()
                                 .cardList(cardList)
                                 .message(String.format("Successfully return %s cards list.", type))
+                                .isScopeCompleted(scheduleConfig.getIsScopeCompleted())
                                 .build();
   }
 

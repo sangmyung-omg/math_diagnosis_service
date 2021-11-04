@@ -7,30 +7,34 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import lombok.extern.slf4j.Slf4j;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
-import com.tmax.WaplMath.Common.model.curriculum.AcademicCalendar;
 import com.tmax.WaplMath.Common.model.user.User;
 import com.tmax.WaplMath.Common.model.user.UserExamScope;
+import com.tmax.WaplMath.Common.model.user.UserRecommendScope;
 import com.tmax.WaplMath.Common.repository.user.UserExamScopeRepo;
+import com.tmax.WaplMath.Common.repository.user.UserRecommendScopeRepo;
 import com.tmax.WaplMath.Common.repository.user.UserRepo;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.UserBasicInfoDTO;
 import com.tmax.WaplMath.Recommend.dto.UserExamInfoDTO;
 import com.tmax.WaplMath.Recommend.event.user.UserInfoEventPublisher;
 import com.tmax.WaplMath.Recommend.repository.AcademicCalendarRepo;
+import com.tmax.WaplMath.Recommend.repository.CurriculumRepo;
 import com.tmax.WaplMath.Recommend.util.ExamScope;
+import com.tmax.WaplMath.Recommend.util.user.UserInfoManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Qualifier("UserInfoServiceV0")
 @Slf4j
 public class UserInfoServiceV0 implements UserInfoServiceBase {
+
   @Autowired
   private UserRepo userRepo;
 
@@ -40,44 +44,62 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
   @Autowired
   @Qualifier("RE-AcademicCalendarRepo")
   private AcademicCalendarRepo calendarRepo;
+
+  @Autowired
+  private UserRecommendScopeRepo userScopeRepo;
   
+  @Autowired
+  @Qualifier("RE-CurriculumRepo")
+  private CurriculumRepo curriculumRepo;
+
   @Autowired
   UserInfoEventPublisher userInfoEventPublisher;
   
+  @Autowired
+  private UserInfoManager userInfoManager;
 
-  Timestamp getTimestamp(String timeStr){
+  @Autowired
+  @Qualifier("UserScheduleScopeServiceV0")
+  private UserScheduleScopeServiceV0 userScheduleService;
+
+
+  public Timestamp getTimestamp(String timeStr){
     if (timeStr == null)	return null;
+
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime dateTime;
+
     try {
       dateTime = LocalDate.parse(timeStr, dtf).atStartOfDay();
     } catch (DateTimeParseException e) {
       throw e;
     }
+
     return Timestamp.valueOf(dateTime);
   }
 
 
   @Override
   public User getUserInfo(String userId) {
+
     User result = new User();
-    List<String> input = new ArrayList<String>();
-    input.add(userId);
     log.info("Getting user basic info...");
-    List<User> queryList = (List<User>) userRepo.findAllById(input);
-    log.info("user : " + input + ", Query Result Size: " + Integer.toString(queryList.size()));
-    if (queryList.size() != 0 && queryList != null) {
+
+    List<User> queryList = (List<User>) userRepo.findAllById(Arrays.asList(userId));
+    log.info("user : " + userId + ", Query Result Size: " + Integer.toString(queryList.size()));
+
+    if (queryList.size() != 0 && queryList != null)
       result = queryList.get(0);
-    }
+
     return result;
   }
 
+
   @Override
   public ResultMessageDTO updateExamInfo(String userId, UserExamInfoDTO input) {
-    ResultMessageDTO output = new ResultMessageDTO();
 
     // load user_master tb
-    User user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException());
+    User user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException(userId, "not in USER_MASTER TB."));
     user.setUserUuid(userId);
     
     log.info("user exam info input: {}", input);
@@ -92,8 +114,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
         user.setExamStartDate(getTimestamp(examStartDate));
         user.setExamDueDate(getTimestamp(examDueDate));
       } catch (Exception e) {
-        output.setMessage("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
-        return output;
+        return new ResultMessageDTO("'examStartDate' or 'examDueDate' should be in shape of 'yyyy-MM-dd'.");
       }
     }
 
@@ -102,7 +123,9 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
     // load user_exam_scope tb
     UserExamScope userExamScope =
-        userExamScopeRepo.findById(userId).orElseThrow(() -> new UserNotFoundException());
+        userExamScopeRepo.findById(userId)
+                         .orElseThrow(() -> new UserNotFoundException(userId, "not in USER_EXAM_SCOPE TB."));
+
     userExamScope.setUserUuid(userId);
     boolean isExamScopeChanged = false;
     
@@ -112,23 +135,30 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     List<String> exceptSubSectionIdList = input.getExceptSubSectionIdList();
     
     if (startSubSectionId != null && endSubSectionId != null) {
-      log.info("startSubSectionId:" + startSubSectionId + ", endSubSectionId:" + endSubSectionId);
-      if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId)
-          && userExamScope.getEndSubSectionId().equals(endSubSectionId)))
+      log.info("startSubSectionId: {}, endSubSectionId: {}", startSubSectionId, endSubSectionId);
+
+      if (!(userExamScope.getStartSubSectionId().equals(startSubSectionId) && 
+            userExamScope.getEndSubSectionId().equals(endSubSectionId)))
         isExamScopeChanged = true;
+
       userExamScope.setStartSubSectionId(startSubSectionId);
       userExamScope.setEndSubSectionId(endSubSectionId);
     }
+
     // excepted sub section is not null
     if (exceptSubSectionIdList != null) {
-      log.info("exceptSubSectionIdList:" + exceptSubSectionIdList);
-      String exceptSubSectionIdStr =
-          exceptSubSectionIdList.toString().replace("[", "").replace("]", "");
+      log.info("exceptSubSectionIdList: {}", exceptSubSectionIdList);
+
+      String exceptSubSectionIdStr = exceptSubSectionIdList.toString()
+                                                           .replace("[", "").replace("]", "");
+
       if (userExamScope.getExceptSubSectionIdList() == null && !exceptSubSectionIdStr.equals(""))
         isExamScopeChanged = true;
+
       else if (userExamScope.getExceptSubSectionIdList() != null
-          && !userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
+               && !userExamScope.getExceptSubSectionIdList().equals(exceptSubSectionIdStr))
         isExamScopeChanged = true;
+
       userExamScope.setExceptSubSectionIdList(exceptSubSectionIdStr);
     }
     // update user_exam_scope tb
@@ -136,37 +166,10 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     
     // Publish exam scope change event only if exam scope changed
     if (isExamScopeChanged)	userInfoEventPublisher.publishExamScopeChangeEvent(userId);
-    
-    // if able to set exam type
-//		String examType = input.getExamType();
-//		if (!examType.equals("mid") && !examType.equals("final")) {
-//			output.setMessage("'examType' should be either 'mid' or 'final'.");
-//			return output;
-//		}
-//		userObject.setExamType(examType);
-//
-//		String grade = userObject.getGrade();
-//		String semester = userObject.getSemester();
-//
-//		if (grade != null && semester != null) {
-//			String examRangeKey = grade + "-" + semester + "-" + examType;
-//			List<String> examRangeSubSection = examScope.get(examRangeKey);
-//
-//			String startSubSection = examRangeSubSection.get(0);
-//			String endSubSection = examRangeSubSection.get(1);
-//
-//			UserExamScope userExamScope = userExamScopeRepo.findById(userId).orElse(new UserExamScope());
-//
-//			userExamScope.setUserUuid(userId);
-//			userExamScope.setStartSubSectionId(startSubSection);
-//			userExamScope.setEndSubSectionId(endSubSection);
-//
-//			userExamScopeRepo.save(userExamScope);
-//		}
 
-    output.setMessage("Successfully update user exam info.");
-    return output;
+    return new ResultMessageDTO("Successfully update user exam info.");
   }
+
 
   @Override
   public ResultMessageDTO updateBasicInfo(String userId, UserBasicInfoDTO input) {
@@ -213,55 +216,8 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     }
     
     // 내부 테스트 시에만 currentCurriculumId 값 받기로 함. 외부 콜 시 값 없음.
-    if (currentCurriculumId == null) {
-      // 진입 시점을 고려해 currentCurriculumId 생성.
-      String[] dates = format.format(time).toString().split("-");
-      int month = Integer.parseInt(dates[1]);
-      int week = 0;
-      
-      /*
-      // 현재 시점이 이번 달의 몇주차인지 파악.
-      Calendar c = Calendar.getInstance();
-      //		c.set(Integer.parseInt(dates[0]), Integer.parseInt(dates[1])-1, Integer.parseInt(dates[2]));
-      c.setTime(time);
-      //		c.add(Calendar.DATE, 13);		// 테스트
-      //		c.add(Calendar.MONTH, -11);
-      c.setFirstDayOfWeek(Calendar.MONDAY); // 월요일 기준.
-
-      // 이번 달 마지막 주의 평일이 이틀까지면 (월, 화 로 이번 달 끝), 그 주는 다음 달의 1주차. 그보다 많으면 (수요일까지 있다) 이번 달의 마지막 주차 로 인정.
-      c.setMinimalDaysInFirstWeek(5);
-
-      week = c.get(Calendar.WEEK_OF_MONTH);
-
-      if (week == 0) {
-        c.add(Calendar.MONTH, -1);
-        int y = c.get(Calendar.YEAR);
-        int m = c.get(Calendar.MONTH);
-        int d = c.getActualMaximum(Calendar.DAY_OF_MONTH);
-        Calendar cal = Calendar.getInstance();
-        cal.set(y, m, d);
-        month = month - 1;
-        week = cal.get(Calendar.WEEK_OF_MONTH);
-      }
-      */
-      
-      // 간단하게 1~7일 : 1주차, 8~14일 : 2주차, ......, 29~31일 : 5주차
-      week = (Integer.parseInt(dates[2])-1) / 7 + 1;
-    
-      // 월, 주차 정보로 해당하는 커리큘럼 정보 중 가장 나중 거 curriculum_id 가져옴.
-      // 1,2월은 2학기로 쳐야해서 서치에 걸리도록 month 조정
-      if (month < 3) {
-        month = 12 + month;
-      }
-      List<AcademicCalendar> curr_schedule = calendarRepo.findByMonthAndWeek(grade, semester, month, week);
-      if (curr_schedule != null && curr_schedule.size() != 0) {
-        currentCurriculumId = curr_schedule.get(0).getCurriculumId();			
-      } else {
-        currentCurriculumId = "중등-" + "중" + grade + "-" + semester + "학" + "-03-01-01";
-        log.info("No curriculum info for the given month and week :" + Integer.toString(month) + "월, " + Integer.toString(week) + "주차, So setting default value to: " + currentCurriculumId);
-        log.info(grade + ", " + semester + ", " + Integer.toString(month) + ", " + Integer.toString(week));
-      }
-    }
+    if (currentCurriculumId == null)
+      currentCurriculumId = userInfoManager.getCurriculumIdwithCalendar(grade, semester, time);
     
     // USER_MASTER 테이블에 유저 기본 정보 저장
     User userObject = userRepo.findById(userId).orElse(new User());
@@ -281,20 +237,31 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
     if (targetScore != null)	userObject.setExamTargetScore(targetScore);
     
     userRepo.save(userObject);
+    log.info("Successfully save to USER_MASTER table.");
 
     // (시험 범위, 단원) 맵핑 정보를 통해 start_sub_section과 end_sub_section 정보 얻기
     List<String> scope = ExamScope.examScope.get(grade+"-"+semester+"-"+term);
-    String start_sub_section = scope.get(0);
-    String end_sub_section = scope.get(1);
-    UserExamScope userExamScope = new UserExamScope();
+    String startSubSectionId = scope.get(0);
+    String endSubSectionId = scope.get(1);
     
     // USER_EXAM_SCOPE 테이블에 시험 범위 시작 단원, 끝 단원 정보 입력
+    UserExamScope userExamScope = new UserExamScope();
     userExamScope.setUserUuid(userId);
-    userExamScope.setStartSubSectionId(start_sub_section);
-    userExamScope.setEndSubSectionId(end_sub_section);
-    
+    userExamScope.setStartSubSectionId(startSubSectionId);
+    userExamScope.setEndSubSectionId(endSubSectionId);
+
     userExamScopeRepo.save(userExamScope);
+    log.info("Successfully save to USER_EXAM_SCOPE table.");
     
+    // USER_RECOMMEND_SCOPE 테이블에 추천 범위 정보 입력
+    UserRecommendScope userScope = userScopeRepo.findById(userId).orElse(new UserRecommendScope());
+    userScope.setUserUuid(userId);
+    userScope.setScheduleScope(curriculumRepo.findSubSectionListBetween(currentCurriculumId, endSubSectionId)
+                                             .toString().replace("[", "").replace("]", ""));
+    
+    userScopeRepo.save(userScope);
+    log.info("Successfully save to USER_RECOMMEND_SCOPE table.");
+
     // Publish school info change event only if user info changed
     if (isUserInfoChanged) userInfoEventPublisher.publishSchoolInfoChangeEvent(userId);
     
@@ -302,6 +269,7 @@ public class UserInfoServiceV0 implements UserInfoServiceBase {
 
     return output;
   }
+
 
   @Override
   public ResultMessageDTO deleteUserInfo(String userId) {
