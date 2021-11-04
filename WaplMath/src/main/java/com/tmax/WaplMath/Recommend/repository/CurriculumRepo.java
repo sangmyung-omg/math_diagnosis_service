@@ -30,11 +30,14 @@ public interface CurriculumRepo extends CrudRepository<Curriculum, String> {
 	List<String> findSubSectionListBySeq(@Param("startSeq") Integer startSeq, @Param("endSeq") Integer endSeq);
 
 	//v1
-	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null")
-	List<String> findSubSectionListBetween(@Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId);
+	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null order by cm.curriculumSequence asc")
+	List<String> findSubSectionListBetween(@Param("startSubSectionId") String startSubSectionId, 
+                                         @Param("endSubSectionId") String endSubSectionId);
 
 	@Query("select cm.curriculumId from Curriculum cm, Curriculum scm, Curriculum ecm where scm.curriculumId = :startSubSectionId and ecm.curriculumId = :endSubSectionId and cm.curriculumSequence >= scm.curriculumSequence and cm.curriculumSequence <= ecm.curriculumSequence and cm.subSection is not null and (coalesce(:exceptSubSectionIdList, null) is null or cm.curriculumId not in (:exceptSubSectionIdList))")
-	List<String> findSubSectionListBetweenExcept(@Param("startSubSectionId") String startSubSectionId, @Param("endSubSectionId") String endSubSectionId, @Param("exceptSubSectionIdList") List<String> exceptSubSectionIdList);
+	List<String> findSubSectionListBetweenExcept(@Param("startSubSectionId") String startSubSectionId, 
+                                               @Param("endSubSectionId") String endSubSectionId, 
+                                               @Param("exceptSubSectionIdList") List<String> exceptSubSectionIdList);
 
 	@Query("select distinct cm.curriculumId from Curriculum cm where cm.curriculumId like concat(:sectionId, '%') and cm.subSection is not null")
 	List<String> findSubSectionListInSection(@Param("sectionId") String sectionId);
@@ -62,7 +65,7 @@ public interface CurriculumRepo extends CrudRepository<Curriculum, String> {
 	List<String> sortByCurrSeq(@Param("currIdSet") Set<String> currIdSet);
 
 	//21.07.05 exam card configurator v2
-	@Query("select distinct cm.curriculumId from Curriculum cm where (coalesce(:sectionIdSet, null) is null or substr(cm.curriculumId, 1, 14) in(:sectionIdSet)) and cm.subSection is not null")
+	@Query("select cm.curriculumId from Curriculum cm where (coalesce(:sectionIdSet, null) is null or substr(cm.curriculumId, 1, 14) in (:sectionIdSet)) and cm.subSection is not null order by cm.curriculumSequence asc")
 	List<String> findSubSectionListInSectionSet(@Param("sectionIdSet") Set<String> sectionIdSet);
 	
 	// 21.06.22. extra problems

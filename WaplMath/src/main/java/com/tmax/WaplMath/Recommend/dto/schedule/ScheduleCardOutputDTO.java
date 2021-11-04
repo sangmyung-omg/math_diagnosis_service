@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ScheduleCardOutputDTO {
 	public String message;
+  public Boolean isScopeCompleted;
 	public List<CardDTO> cardList;
 }

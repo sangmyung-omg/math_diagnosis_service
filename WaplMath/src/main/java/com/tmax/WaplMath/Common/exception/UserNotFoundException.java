@@ -10,4 +10,8 @@ public class UserNotFoundException extends UserOrientedException {
     public UserNotFoundException(String userID){
         super(CommonErrorCode.USER_NOT_EXIST, userID, "", "UserNotFoundException");
     }
+
+    public UserNotFoundException(String userID, String appendMessage){
+        super(CommonErrorCode.USER_NOT_EXIST, userID, appendMessage, "UserNotFoundException");
+    }
 }

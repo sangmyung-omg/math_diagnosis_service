@@ -199,6 +199,43 @@ paths:
                 $ref: "#/components/schemas/UserBasicInfoResult"
         "500":
           description: "실패"
+          $ref: "#/components/responses/500-Generic" 
+  /userschedulescope:
+    get:
+      tags:
+        - User
+      summary: 학생의 현재 추천 단원 리스트 리턴
+      description: 학생의 현재 추천 단원 리스트 리턴
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      responses:
+        "200":
+          description: "성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserScheduleScopeGetResult"
+        "500":
+          description: "실패"
+          $ref: "#/components/responses/500-Generic"
+    put:
+      tags:
+        - User
+      summary: 학생 추천 단원 범위 입력
+      description: 학생 추천 단원 범위 입력
+      parameters:
+        - $ref: "#/components/parameters/UserToken"
+      requestBody:
+        $ref:  "#/components/requestBodies/UserScheduleScope"
+      responses:
+        "200":
+          description: "성공"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserScheduleScopePutResult"
+        "500":
+          description: "실패"
           $ref: "#/components/responses/500-Generic"
   /user:
     delete:
@@ -394,6 +431,7 @@ components:
       required:
         - "message"
         - "cardList"
+        - "isScopeCompleted"
       properties:
         message:
           type: "string"
@@ -404,6 +442,10 @@ components:
           description: "오늘 카드 목록"
           items:
             $ref: "#/components/schemas/CardObjectV2"
+        isScopeCompleted:
+          type: boolean
+          description: 학생의 추천 단원 내 유형 카드를 모두 학습했는가 여부. 추가 보충학습 카드인 경우 true, 나머지 카드인 경우 false.
+          example: True
     CardObjectV1:
       type: "object"
       description: "카드 정보. 유형/보충은 4-6문제, 중간평가/모의고사는 20문제"
@@ -639,8 +681,7 @@ components:
           example: 
             - "중등-중3-1학-04-01-01"
             - "중등-중3-1학-04-01-02"
-          description: "시험 범위에 포함되지 않는 소단원 id 리스트"
-    
+          description: "시험 범위에 포함되지 않는 소단원 id 리스트"    
     UserBasicInfo:
       type: object
       description: 학생 기본 정보
@@ -665,6 +706,29 @@ components:
           type: number
           example: 85
           description: "목표 시험 점수"
+    UserScheduleScope:
+      type: object
+      description: 학생 추천 단원 범위. toDefault=true인 경우, sectionIdList null. toDefault=false인 경우, sectionIdList 필수.
+      required:
+        - toDefault
+        - sectionIdList
+      properties:
+        toDefault:
+          type: boolean
+          description: 디폴트 범위로 설정 여부. 폴트 범위 = 현재 주차에 해당하는 단원 ~ 이번 학기 끝 단원.
+          example: False
+        sectionIdList:
+          type: array
+          nullable: true
+          description: 실력학습 범위 중단원 id 리스트
+          items:
+            type: string
+          example: 
+            - "중등-중3-1학-03-03"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
 
     MasteryUpdateResult:
       type: "object"
@@ -693,6 +757,28 @@ components:
           type: string
           example: Successfully update user basic info.
           description: "성공 여부 메시지"
+    UserScheduleScopePutResult:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Successfully update user schedule scope.
+          description: "성공 여부 메시지"
+    UserScheduleScopeGetResult:
+      type: object
+      required:
+        - subSectionIdList 
+      properties:
+        sectionIdList:
+          type: array
+          description: 추천 단원 중단원 id 리스트. (커리큘럼 순서 sorting)
+          items:
+            type: string
+          example: 
+            - "중등-중3-1학-04-01"
+            - "중등-중3-1학-04-01"
     DeleteUserResult:
       type: object
       required:
@@ -767,7 +853,6 @@ components:
           example: 0.6
           description: "소단원 이해도"
  
-
  
   responses:
     500-Generic:
@@ -863,4 +948,11 @@ components:
         application/json:
           schema:
             $ref:  "#/components/schemas/UserBasicInfo"
+    UserScheduleScope:
+      description: "학생 추천 단원 범위"
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref:  "#/components/schemas/UserScheduleScope"
             
