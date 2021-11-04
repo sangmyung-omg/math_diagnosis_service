@@ -46,7 +46,7 @@ paths:
                     type: string
                     example: "Error: status code 500" 
   /diagnosis/problems:
-    get:
+    post:
       tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
       summary: 중단원 5개에 해당하는 진단고사 문제 set 제공
@@ -330,20 +330,20 @@ components:
           type: array
           description: 순서 = '하', '중', '상'
           example:
-            - [2552,1371,1633]
-            - [1234,5678,9101]
-            - [1121,3141,5161]
-            - [7181,9202,1222]
-            - [3242,5262,7282]
+            - [7912,7910,7911]
+            - [7948,7946,7947]
+            - [8134,8132,8133]
+            - [8143,8141,8142]
+            - [8149,8147,8148]
     SectionIdList:
       type: array
       description: "선택한 중단원 리스트"
       example:
-        - "중등-중3-1학-03-03"
+        - "중등-중3-1학-03-02"
         - "중등-중3-1학-04-01"
-        - "중등-중3-1학-04-01"
-        - "중등-중3-1학-04-01"
-        - "중등-중3-1학-04-01"
+        - "중등-중3-1학-01-01"
+        - "중등-중3-1학-05-05"
+        - "elementary"
     DiagnosisScopeResult:
       properties:
         resultMessage:
@@ -353,27 +353,33 @@ components:
           type: array
           description: 진단 범위 내의 모든 중단원 리스트
           example:
-            - "중등-중3-1학-03-03"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
+            - "중등-중2-2학-01-01"
+            - "중등-중2-2학-01-02"
+            - "중등-중2-2학-02-01"
+            - "중등-중2-2학-02-02"
+            - "중등-중2-2학-03-01"
+            - "중등-중2-2학-03-02"
+            - "중등-중2-2학-04-01"
+            - "중등-중3-2학-01-01"
+            - "중등-중3-2학-01-02"
+            - "중등-중3-2학-02-01"
+            - "중등-중3-1학-02-01"
+            - "중등-중3-1학-02-02"
+            - "중등-중3-1학-03-01"
+            - "중등-중3-1학-03-02"
+            - "중등-중3-1학-01-01"
+            - "중등-중3-1학-01-02"
+            - "중등-중2-2학-05-01"
+            - "중등-중2-2학-05-02"
             - "중등-중3-1학-04-01"
         recommendSectionIdList:
           type: array
           description: 각 내용 영역 별 추천 중단원 5개
           example:
-            - "중등-중3-1학-03-03"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
-            - "중등-중3-1학-04-01"
+            - "중등-중3-2학-02-01"
+            - "중등-중3-1학-03-02"
+            - "중등-중3-1학-01-02"
+            - "중등-중2-2학-05-02"
             - "중등-중3-1학-04-01"
     ExtraProblemsResult:
       properties:
@@ -878,7 +884,7 @@ components:
       description: "유저의 Access token"
       schema:
         type: "string"
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiJta2thbmcifQ.ZjD-h4zkD2t8GsqA9or7F8NAbKVGTGEnBEeNvpI8Z5o"
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI3MzI5ZWY4NGRlNTU0ZDdkYjhmNzlkNzUzYTNlMTgzNSJ9.oKuE5phR-5OIYSVu28A4UlKfzV3ZtrpyFSwbRWuRjlE"
     DiagnosisType:
       in: query
       name: diagType

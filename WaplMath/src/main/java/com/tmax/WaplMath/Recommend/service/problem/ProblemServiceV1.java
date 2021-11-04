@@ -390,4 +390,15 @@ public class ProblemServiceV1 implements ProblemServiceBase {
 		Collections.shuffle(num_list);
 		return num_list;
 	}
+
+	/*
+	*  Not using
+	*/
+
+	public Map<String, Object> getDiagnosisScope(String userId) {
+		return null;
+	}
+	public Map<String, Object> getDiagnosisProblemsBySeciontIdList(List<String> sectionIdList, String diagType) {
+		return null;
+	}
 }
