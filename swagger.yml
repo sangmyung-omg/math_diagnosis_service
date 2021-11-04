@@ -46,7 +46,7 @@ paths:
                     type: string
                     example: "Error: status code 500" 
   /diagnosis/problems:
-    get:
+    post:
       tags: [Diagnosis]
       operationId: DiagnosisProblemsGet
       summary: 중단원 5개에 해당하는 진단고사 문제 set 제공

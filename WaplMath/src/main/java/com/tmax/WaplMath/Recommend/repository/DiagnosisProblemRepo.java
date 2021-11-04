@@ -56,7 +56,39 @@ public interface DiagnosisProblemRepo extends CrudRepository<DiagnosisProblem, I
 //			+ " AND (dp.lowerProblem.category IS NULL OR dp.lowerProblem.category = ?2)"
 			+ " ORDER BY dp.basicProblem.problemType.curriculumId")
 	List<DiagnosisProblem> findAllByChapterInIncludingElementary(List<String> chapters, String diagType, String today);
+
+
+	// 2021-11-02 Modified by SangMyung Lee. Select probs by sections
+	  @Query("SELECT dp FROM DiagnosisProblem dp WHERE ((SUBSTR(dp.basicProblem.problemType.curriculumId, 0, 14) IN ?1)"
+			+ " OR (dp.basicProblem.problemType.curriculumId IN ?1))"
+			+ " AND dp.basicProblem.status = 'ACCEPT'"
+			+ " AND dp.upperProblem.status = 'ACCEPT'"
+		//			+ " AND (dp.lowerProblem.status IS NULL OR dp.lowerProblem.status = 'ACCEPT')"
+			+ " AND dp.basicProblem.category = ?2"
+			+ " AND dp.upperProblem.category = ?2"
+		+ " and (dp.basicProblem.editDate is null or dp.basicProblem.editDate < to_date(?3, 'yyyy-MM-dd'))"
+		+ " and (dp.basicProblem.validateDate is null or dp.basicProblem.validateDate < to_date(?3, 'yyyy-MM-dd'))"
+		+ " and (dp.upperProblem.editDate is null or dp.upperProblem.editDate < to_date(?3, 'yyyy-MM-dd'))"
+		+ " and (dp.upperProblem.validateDate is null or dp.upperProblem.validateDate < to_date(?3, 'yyyy-MM-dd'))"
+		//			+ " AND (dp.lowerProblem.category IS NULL OR dp.lowerProblem.category = ?2)"
+		+ " ORDER BY dp.basicProblem.problemType.curriculumId")
+	List<DiagnosisProblem> findAllBySectionInIncludingElementary(List<String> chapters, String diagType, String today);
 	
 
 	List<DiagnosisProblem> findAllByBasicProblemProblemTypeCurriculumChapterInAndBasicProblemCategory(List<String> chapters, String diagType);
+
+	// 2021-11-04 Added by SangMyung Lee. Select all probs for school_type.
+	@Query("SELECT dp FROM DiagnosisProblem dp WHERE dp.basicProblem.problemType.curriculum.schoolType = ?1"
+			+ " AND dp.basicProblem.status = 'ACCEPT'"
+			+ " AND dp.upperProblem.status = 'ACCEPT'"
+		//			+ " AND (dp.lowerProblem.status IS NULL OR dp.lowerProblem.status = 'ACCEPT')"
+			+ " AND dp.basicProblem.category = ?2"
+			+ " AND dp.upperProblem.category = ?2"
+			+ " and (dp.basicProblem.editDate is null or dp.basicProblem.editDate < to_date(?3, 'yyyy-MM-dd'))"
+			+ " and (dp.basicProblem.validateDate is null or dp.basicProblem.validateDate < to_date(?3, 'yyyy-MM-dd'))"
+			+ " and (dp.upperProblem.editDate is null or dp.upperProblem.editDate < to_date(?3, 'yyyy-MM-dd'))"
+			+ " and (dp.upperProblem.validateDate is null or dp.upperProblem.validateDate < to_date(?3, 'yyyy-MM-dd'))"
+			//			+ " AND (dp.lowerProblem.category IS NULL OR dp.lowerProblem.category = ?2)"
+			+ " ORDER BY dp.basicProblem.problemType.curriculumId")
+	List<DiagnosisProblem> findAllBySchoolType(String school_type, String diagType, String today);
 }

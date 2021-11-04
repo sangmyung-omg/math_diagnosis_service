@@ -20,6 +20,9 @@ public interface CurriculumRepo extends CrudRepository<Curriculum, String> {
 	@Query("SELECT C FROM Curriculum C WHERE C.part = ?1 AND ((CHAR_LENGTH(C.curriculumId)=11 AND C.schoolType='중등') OR (C.schoolType='초등')) ORDER BY C.curriculumSequence ASC")
 	List<Curriculum> findChaptersByPartIncludingElementary(String part);
 
+	@Query("SELECT C FROM Curriculum C WHERE C.part = ?1 AND ((CHAR_LENGTH(C.curriculumId)=14 AND C.schoolType='중등') OR (C.schoolType='초등')) ORDER BY C.curriculumSequence ASC")
+	List<Curriculum> findSectionsByPartIncludingElementary(String part);
+
 	@Query("SELECT DISTINCT CM.chapter FROM Curriculum CM WHERE CM.curriculumId LIKE ?1")
 	List<String> findAllByCurriculumIdLike(String curriculumId);
 
