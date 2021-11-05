@@ -245,6 +245,9 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
             if(examScoreStat != null){
                 examScore = (double)examScoreStat.getAsFloat();
             }
+            else{
+                examScore = 0.0; //Min so ist doesn't take the cali route
+            }
         }
         else
             examScore = (double)examScopeScore;
