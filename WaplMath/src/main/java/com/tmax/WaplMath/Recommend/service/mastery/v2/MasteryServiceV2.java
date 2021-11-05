@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.gson.Gson;
+import com.tmax.WaplMath.AnalysisReport.service.part.PartService;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.exception.UserOrientedException;
@@ -37,6 +40,8 @@ import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.UkMasterySimulator;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager.TritonModelMode;
 
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -56,6 +61,9 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
 
     @Autowired private TypeKnowledgeRepo typeKnowledgeRepo;
     @Autowired private UserKnowledgeRepo userKnowledgeRepo;
+
+    @Autowired private UserStatisticsServiceBase userStatSvc;
+    @Autowired private PartService partService;
 
     @Value("${recommend.setting.useSimulatedUkKnowledge}")
     private boolean useSimulatedUkKnowledge;
@@ -138,6 +146,12 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
             userKnowledgeRepo.saveAll(userKnowledgeDbSet);
             log.debug("saved [{}]'s uk knowledge {}", userId, userKnowledgeDbSet.size());
         }
+
+
+        //2021.11.04 - get the part mastery and save to stat table
+        Map<String, Float> partMastery = partService.calculatePartMastery(inferResult.getMastery());
+        userStatSvc.updateCustomUserStat(userId, UserStatisticsServiceBase.STAT_USER_PART_MASTERY_MAP, Statistics.Type.JSON, new Gson().toJson(partMastery));
+
         
 
         return new ResultMessageDTO(ResultMessage.SUCCESS.toString());
@@ -161,6 +175,10 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
 
         List<SourceType> sourceTypeList = SourceType.getAllSourceTypes();
         List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, Arrays.asList(ActionType.SUBMIT), sourceTypeList);
+
+        if(resultList.size() == 0){
+            throw new RecommendException(RecommendErrorCode.LRS_NO_STATEMENT,  "No data found in LRS. check LRS status");
+        }
         
         //Get appropriate probid and correct list
         //filter invalid fields

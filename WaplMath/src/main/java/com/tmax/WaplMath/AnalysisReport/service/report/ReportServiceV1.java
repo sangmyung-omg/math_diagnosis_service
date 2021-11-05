@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataV2DTO;
+import com.tmax.WaplMath.AnalysisReport.dto.report.UserPartMastery;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.type.TypeSimpleDTO;
@@ -137,13 +138,39 @@ public class ReportServiceV1 implements ReportServiceBaseV1 {
                                                 .collect(Collectors.toList());
 
 
-        
+
+        // Get part mastery from stat table
+        Map<String, Float> partMasteryMap = null;
+        Optional<Statistics>  partMasteryStatOpt = userStatSvc.getUserStatisticsOpt(userID, UserStatisticsServiceBase.STAT_USER_PART_MASTERY_MAP);
+        if(partMasteryStatOpt.isPresent()){
+            String partMastery = partMasteryStatOpt.get().getData();
+            Type type = new TypeToken<Map<String, Float>>(){}.getType();
+            partMasteryMap = new Gson().fromJson(partMastery, type);
+
+            //multiply 100 to each float value. mastery -> score
+            partMasteryMap = partMasteryMap.entrySet().stream()
+                                           .collect(Collectors.toMap(entry -> entry.getKey(), entry -> 100*entry.getValue()));
+        }
+
+        Map<String, Float> waplPartMasteryMap = null;
+        Optional<Statistics>  waplPartMasteryStatOpt = userStatSvc.getUserStatisticsOpt(userID, WaplScoreServiceBaseV0.STAT_WAPL_SCORE_PART_MASTERY);
+        if(waplPartMasteryStatOpt.isPresent()){
+            String partMastery = waplPartMasteryStatOpt.get().getData();
+            Type type = new TypeToken<Map<String, Float>>(){}.getType();
+            waplPartMasteryMap = new Gson().fromJson(partMastery, type);
+
+            //multiply 100 to each float value. mastery -> score
+            waplPartMasteryMap = waplPartMasteryMap.entrySet().stream()
+                                           .collect(Collectors.toMap(entry -> entry.getKey(), entry -> 100*entry.getValue()));
+        }
+
         return ReportDataV2DTO.builder()
                                 .score(score)
                                 .waplscore(waplscore)
                                 .targetscore(targetscore)
                                 .stats(stats)
                                 .typeDataList(typeDataList)
+                                .partMastery(UserPartMastery.builder().score(partMasteryMap).waplScore(waplPartMasteryMap).build())
                                 .build();
     }
 }

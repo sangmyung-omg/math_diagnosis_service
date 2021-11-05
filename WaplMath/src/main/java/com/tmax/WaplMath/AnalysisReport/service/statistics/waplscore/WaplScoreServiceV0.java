@@ -12,6 +12,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.WAPLScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.repository.user.UserInfoRepo;
+import com.tmax.WaplMath.AnalysisReport.service.part.PartService;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.curriculum.CurrStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
@@ -62,6 +63,8 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
     @Autowired private ExamScopeUtil examScopeUtil;
 
     @Autowired private UkMasterySimulator ukMasterySimulator;
+
+    @Autowired private PartService partService;
 
     @Override
     public int clearWaplScoreStatistics(String userID) {
@@ -265,6 +268,11 @@ public class WaplScoreServiceV0 implements WaplScoreServiceBaseV0 {
             Map<Integer, Float> typeMastery = ukMasterySimulator.simulatedTypeMastery(lastMap);
             userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE_MASTERY_TYPE_BASED, Statistics.Type.JSON, new Gson().toJson(typeMastery));
             log.debug("Saved type mastery for waplscore {}", userID);
+
+
+            log.debug("save part waplscore mastery to table. {}", userID);
+            Map<String, Float> partMastery = partService.calculatePartMastery(typeMastery);
+            userStatSvc.updateCustomUserStat(userID, STAT_WAPL_SCORE_PART_MASTERY, Statistics.Type.JSON, new Gson().toJson(partMastery));
         }
 
         //Log

@@ -21,4 +21,5 @@ public class ReportDataV2DTO {
     private PersonalScoreDTO targetscore;
     private GlobalStatisticDTO stats;
     private List<TypeStatDetailDTO> typeDataList;
+    private UserPartMastery partMastery;
 }
