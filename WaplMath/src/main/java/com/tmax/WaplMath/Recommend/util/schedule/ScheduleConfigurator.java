@@ -128,6 +128,8 @@ public class ScheduleConfigurator implements CardConstants {
                                                     SourceType.SUPPLE_QUESTION,
                                                     SourceType.SECTION_TEST_QUESTION, 
                                                     SourceType.CHAPTER_TEST_QUESTION, 
+                                                    SourceType.SECTION_EXAM_QUESTION, 
+                                                    SourceType.FULL_SCOPE_EXAM_QUESTION, 
                                                     SourceType.TRIAL_EXAM_QUESTION);
 
     return historyManager.getSolvedProbIdSet(userId, "", tomorrow, sourceTypeList);
