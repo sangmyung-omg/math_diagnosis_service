@@ -152,7 +152,12 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
         Map<String, Float> partMastery = partService.calculatePartMastery(inferResult.getMastery());
         userStatSvc.updateCustomUserStat(userId, UserStatisticsServiceBase.STAT_USER_PART_MASTERY_MAP, Statistics.Type.JSON, new Gson().toJson(partMastery));
 
-        
+        //2021.11.12 Propagate update event to inform mastery update
+        masteryEventPublisher.publishChangeEvent(userId);
+
+        //Save redis key -> lifetime = 12hours = 12*60*60sec
+        redisUtil.saveWithExpire(RedisObjectData.builder().id(redisID).data(1).build(), 12*60*60);
+
 
         return new ResultMessageDTO(ResultMessage.SUCCESS.toString());
     }
