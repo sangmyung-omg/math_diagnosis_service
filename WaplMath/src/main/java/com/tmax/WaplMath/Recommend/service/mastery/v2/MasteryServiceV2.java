@@ -30,11 +30,13 @@ import com.tmax.WaplMath.Common.util.lrs.LRSManager;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Common.util.redis.RedisIdGenerator;
 import com.tmax.WaplMath.Common.util.redis.RedisUtil;
+import com.tmax.WaplMath.Common.model.redis.RedisObjectData;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
+import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.UkMasterySimulator;
@@ -64,6 +66,10 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
 
     @Autowired private UserStatisticsServiceBase userStatSvc;
     @Autowired private PartService partService;
+    
+    //Event publisher
+    @Autowired
+    MasteryEventPublisher masteryEventPublisher;
 
     @Value("${recommend.setting.useSimulatedUkKnowledge}")
     private boolean useSimulatedUkKnowledge;
