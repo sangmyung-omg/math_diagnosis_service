@@ -22,6 +22,7 @@ java-build-check:
     - /^ae1-3\/refactor\/.*$/
     - /^ae1-3\/fix\/.*$/
     - /^ae1-3\/chore\/.*$/
+    - /^ae1-3\/feat\/.*$/
   script: 
     - cd WaplMath
     - ./gradlew build -x test
