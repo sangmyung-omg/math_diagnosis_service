@@ -375,7 +375,7 @@ public class ScoreServiceV0 implements ScoreServiceBase {
                             .build();
     }
 
-    private List<Float> generatePercentileLUT(String userID) {
+    public List<Float> generatePercentileLUT(String userID) {
         //Get usergrade from info
         Optional<User> userInfo = userRepo.findById(userID);
         if(!userInfo.isPresent()){

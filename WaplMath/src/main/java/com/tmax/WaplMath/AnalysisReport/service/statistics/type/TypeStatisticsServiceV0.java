@@ -60,6 +60,15 @@ public class TypeStatisticsServiceV0 implements TypeStatisticsServiceBase {
         return 0;
     }
 
+    @Override
+    public boolean updateStatistics(boolean isForced) {
+        long result = statisticTypeRepo.count();
+        if(result == 0)
+            this.updateAllStatistics();
+
+        return result == 0;
+    }
+
     private Stream<StatsAnalyticsType> getdata(Integer typeId, Timestamp ts){
         //Get related data + sort
         List<TypeKnowledge> typeKnowledges = typeKnowledgeRepo.findByTypeId(typeId);

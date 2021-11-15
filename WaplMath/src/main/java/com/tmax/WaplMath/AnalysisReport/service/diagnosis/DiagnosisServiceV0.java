@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
@@ -134,6 +135,7 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
     @Autowired private ExamScopeUtil examScopeUtil;
     @Autowired private UkRepo ukRepo;
     @Autowired private UKStatisticsServiceBase ukStatSvc;
+    @Autowired private ScoreServiceV0 scoreSvc;
 
     @Override
     public int clearDiagnosisStats(String userID) {
@@ -226,7 +228,10 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
         //If null. generate new one. TODO --> create a service that does this by user exam scope change event
         List<Float> masteryList = null;
         try {  masteryList = examscoreLUT.getAsFloatList(); }
-        catch(Throwable e){log.error("Examscope LUT cannot be converted to float." + userID + examscoreLUT.toString()); return null;}
+        catch(Throwable e){
+            log.error("Examscope LUT cannot be converted to float." + userID + ". Generating new lut");
+            masteryList = scoreSvc.generatePercentileLUT(userID);
+        }
         
         return ukStatSvc.getPercentile(score.floatValue(), masteryList);
     }
