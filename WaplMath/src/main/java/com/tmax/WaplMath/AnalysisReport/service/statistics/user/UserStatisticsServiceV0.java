@@ -178,7 +178,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
         //Create set for DB update
         Set<StatsAnalyticsUser> updateSet = new HashSet<>();
 
-        WaplScoreData data = waplScoreSvc.generateWaplScore(userID, examScopeScore, false);
+        WaplScoreData data = waplScoreSvc.generateWaplScore(userID, examScopeScore, true);
 
         //Create stat statements and add to set
         //waplscore
