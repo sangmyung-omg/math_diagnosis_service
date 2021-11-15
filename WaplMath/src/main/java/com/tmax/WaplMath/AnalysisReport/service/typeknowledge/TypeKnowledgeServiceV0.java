@@ -62,15 +62,15 @@ public class TypeKnowledgeServiceV0 implements TypeKnowledgeServiceBase {
 
     @Override
     public List<TypeKnowledgeScoreDTO> getAllOfUserSorted(String userID, Integer limit, boolean orderAsc,
-            Set<String> excludeSet) {
+            Set<String> excludeSet, Set<Integer> candidateTypes) {
         
         //Get mastery list of user using given condition
         List<TypeKnowledge> knowledges = null;
         if(limit < 0){ //no limit -> all data
-            knowledges = orderAsc ? typeKnowledgeRepo.findByUserIDSortedAsc(userID) : typeKnowledgeRepo.findByUserIDSortedDesc(userID);
+            knowledges = orderAsc ? typeKnowledgeRepo.findByUserIDSortedAsc(userID, candidateTypes) : typeKnowledgeRepo.findByUserIDSortedDesc(userID, candidateTypes);
         }
         else {
-            knowledges = orderAsc ? typeKnowledgeRepo.findByUserIDSortedLimitedAsc(userID, limit) : typeKnowledgeRepo.findByUserIDSortedLimitedDesc(userID, limit);
+            knowledges = orderAsc ? typeKnowledgeRepo.findByUserIDSortedLimitedAsc(userID, candidateTypes, limit) : typeKnowledgeRepo.findByUserIDSortedLimitedDesc(userID, candidateTypes, limit);
         }
 
         return knowledges.stream().parallel()

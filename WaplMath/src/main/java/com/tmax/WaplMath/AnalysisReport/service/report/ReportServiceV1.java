@@ -54,13 +54,7 @@ public class ReportServiceV1 implements ReportServiceBaseV1 {
         GlobalStatisticDTO stats = excludeSet.contains("stats") ? null :  scoreSvc.getScoreStats(userID, excludeSet, 100);
 
 
-        //Build type stat info
-        //1) get type knowledge list from service and collect all type Ids
-        List<TypeKnowledgeScoreDTO> knowledges = typeKnowledgeSvc.getAllOfUserSorted(userID, limit, !topfirst, excludeSet);
-        Set<Integer> typeIdSet = knowledges.stream().map(TypeKnowledgeScoreDTO::getTypeID).collect(Collectors.toSet());
-        Map<Integer, ProblemType> typeInfoMap = ((List<ProblemType>)problemTypeRepo.findAllById(typeIdSet) ).stream()
-                                                    .collect(Collectors.toMap(ProblemType::getTypeId, p -> p));
-
+        //2021.11.15 Added by sangheon lee. Return types that have wapl score. Switch sequence
         //2) Get the waplscore mastery map from the stat table
         Map<Integer, Float> rawWaplScoreMastery = new HashMap<>();
         Optional<Statistics> optionalStat = Optional.ofNullable(userStatSvc.getUserStatistics(userID, WaplScoreServiceBaseV0.STAT_WAPL_SCORE_MASTERY_TYPE_BASED));
@@ -74,6 +68,21 @@ public class ReportServiceV1 implements ReportServiceBaseV1 {
         else {
             log.warn("No mastery found for waplscore type {}", userID);
         }
+
+
+        //2021.11.15 Added by sangheon lee. Return types that have wapl score
+        Set<Integer> candidateTypes = rawWaplScoreMastery.keySet();
+
+        
+        //2021.11.15 Added by sangheon lee. Return types that have wapl score. Switch sequence
+        //Build type stat info
+        //1) get type knowledge list from service and collect all type Ids
+        List<TypeKnowledgeScoreDTO> knowledges = typeKnowledgeSvc.getAllOfUserSorted(userID, limit, !topfirst, excludeSet, candidateTypes);
+        Set<Integer> typeIdSet = knowledges.stream().map(TypeKnowledgeScoreDTO::getTypeID).collect(Collectors.toSet());
+        Map<Integer, ProblemType> typeInfoMap = ((List<ProblemType>)problemTypeRepo.findAllById(typeIdSet) ).stream()
+                                                    .collect(Collectors.toMap(ProblemType::getTypeId, p -> p));
+
+        
         //Filter only the typeIds in the set
         Map<Integer, Float> waplscoreMasteryMap = rawWaplScoreMastery.entrySet().stream()
                                                  .parallel()
