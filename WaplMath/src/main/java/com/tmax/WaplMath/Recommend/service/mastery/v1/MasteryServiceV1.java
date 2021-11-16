@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.LRSStatementEmptyException;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
@@ -35,14 +34,13 @@ import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.repository.ProblemRepo;
 import com.tmax.WaplMath.Recommend.repository.ProblemUkRelRepo;
+import com.tmax.WaplMath.Recommend.repository.UkRepo;
 import com.tmax.WaplMath.Recommend.repository.UserEmbeddingRepo;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -77,6 +75,8 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
     @Autowired
     RedisUtil redisUtil;
 
+    @Autowired
+    UkRepo ukRepo;
 
     //Event publisher
     @Autowired
@@ -92,6 +92,7 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
         public String toString(){return this.message;}
     }
 
+    private Set<Integer> validUKs;
 
     //Scaler for uk mastery
     // private static final float SCALE_PARAM = 0.65079f;
@@ -106,6 +107,9 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
 
     @Override
     public ResultMessageDTO updateMastery(String userId, List<String> probIdList, List<String> correctList) {
+
+        // 2021.11.15 Added by sangheonLee. Fix triton error
+        this.validUKs = ukRepo.findMiddleUkIdList();
 
         //Redis cache checker
         String redisID = RedisIdGenerator.userOrientedID(this.getClass().getSimpleName(), userId, probIdList, correctList);
@@ -153,7 +157,10 @@ public class MasteryServiceV1 implements MasteryServiceBaseV1{
                 ukList = probIDUKMap.get(puk.getProbId());
             }
             
-            ukList.add(puk.getUkId());
+            // 2021.11.15 Added by sangheonLee. Fix triton error
+            if ( validUKs.contains(puk.getUkId()) )
+              ukList.add(puk.getUkId());
+
             probIDUKMap.put(puk.getProbId(), ukList);
         });
         

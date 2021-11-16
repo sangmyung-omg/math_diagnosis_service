@@ -1,6 +1,7 @@
 package com.tmax.WaplMath.Recommend.repository;
 
 import java.util.List;
+import java.util.Set;
 import com.tmax.WaplMath.Common.model.uk.Uk;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -24,4 +25,7 @@ public interface UkRepo extends CrudRepository<Uk, Integer>{
 	//2021-07-06 Jonghyun_seong find by likely curriculum ID
 	@Query("select u from Uk u where u.curriculumId like concat(:currID, '%')")
 	List<Uk> findByLikelyCurriculumId(@Param("currID") String currID);
+
+  @Query("select distinct u.ukId from Uk u where u.curriculum.schoolType = '중등'")
+  Set<Integer> findMiddleUkIdList();
 }
