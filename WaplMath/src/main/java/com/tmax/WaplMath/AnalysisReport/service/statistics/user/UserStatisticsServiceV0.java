@@ -606,7 +606,7 @@ public class UserStatisticsServiceV0 implements UserStatisticsServiceBase {
             statisticUserRepo.deleteAllOfUser(userID);
         }
         catch(Exception e){
-            log.error("User Stat delete error: ", StackPrinter.getStackTrace(e));
+            log.error("User Stat delete error: {}", userID, StackPrinter.getStackTrace(e));
             return false;
         }
 
