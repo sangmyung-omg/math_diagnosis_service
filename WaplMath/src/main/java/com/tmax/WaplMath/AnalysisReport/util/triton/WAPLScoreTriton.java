@@ -55,11 +55,11 @@ public class WAPLScoreTriton {
     private TritonResponseDTO callTritonInference(String bodyPayload){
         //Create a http timeout handler
 		HttpClient httpClient = HttpClient.create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-            .responseTimeout(Duration.ofMillis(5000))
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000)
+            .responseTimeout(Duration.ofMillis(15000))
             .doOnConnected(conn ->
-                conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
-                    .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS))
+                conn.addHandlerLast(new ReadTimeoutHandler(15000, TimeUnit.MILLISECONDS))
+                    .addHandlerLast(new WriteTimeoutHandler(15000, TimeUnit.MILLISECONDS))
             );
 
         //Create header
