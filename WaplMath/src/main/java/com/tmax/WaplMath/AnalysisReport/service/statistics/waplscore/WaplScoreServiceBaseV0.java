@@ -17,4 +17,6 @@ public interface WaplScoreServiceBaseV0 {
     public static final String STAT_WAPL_SCORE = "waplscore";
     public static final String STAT_WAPL_SCORE_MASTERY = "waplscore_mastery";    
     public static final String STAT_WAPL_SCORE_MASTERY_TYPE_BASED = "waplscore_mastery_typebase";
+
+    public static final String STAT_WAPL_SCORE_PART_MASTERY = "waplscore_part_mastery";
 }

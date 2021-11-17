@@ -53,6 +53,8 @@ public class LRSAPIManager {
   // 2021-10-06 Added by Sangheon Lee. Set in-memory buffer size for fix DataBufferLimitException
   private final int MAX_BUFFER_SIZE = 1024 * 1024 * 50;
 
+  private static final Integer timeout = 15; // sec
+
   @Autowired
   RestTemplate restTemplate;
 
@@ -131,10 +133,10 @@ public class LRSAPIManager {
                             .build();
 
     HttpClient httpClient = HttpClient.create()
-                      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                      .responseTimeout(Duration.ofMillis(5000))
-                      .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
-                      .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
+                      .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout * 1000)
+                      .responseTimeout(Duration.ofMillis(timeout * 1000))
+                      .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS))
+                      .addHandlerLast(new WriteTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS)));
     //Create header
     WebClient webClient = WebClient.builder()
                      .baseUrl(HOST)
@@ -168,9 +170,9 @@ public class LRSAPIManager {
    */
   public ProblemSolveListDTO getLRSUpdateProblemSequence(String token) {
     //Create a http timeout handler
-    HttpClient httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000).responseTimeout(Duration.ofMillis(5000))
-      .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
-        .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
+    HttpClient httpClient = HttpClient.create().option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout * 1000).responseTimeout(Duration.ofMillis(timeout * 1000))
+      .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS))
+        .addHandlerLast(new WriteTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS)));
 
     //Create header
     WebClient webClient = WebClient.builder().baseUrl(HOST).defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

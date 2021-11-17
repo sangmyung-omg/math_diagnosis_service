@@ -11,5 +11,5 @@ public interface TypeKnowledgeServiceBase {
 
     public List<TypeKnowledgeScoreDTO> getAllOfUser(String userID, Set<String> excludeSet);
 
-    public List<TypeKnowledgeScoreDTO> getAllOfUserSorted(String userID, Integer limit, boolean orderAsc, Set<String> excludeSet);
+    public List<TypeKnowledgeScoreDTO> getAllOfUserSorted(String userID, Integer limit, boolean orderAsc, Set<String> excludeSet, Set<Integer> candidateTypes);
 }

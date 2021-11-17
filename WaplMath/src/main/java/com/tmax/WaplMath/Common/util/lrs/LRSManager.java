@@ -46,6 +46,7 @@ public class LRSManager implements LRSManagerInterface {
     // 2021-10-06 Added by Sangheon Lee. Set in-memory buffer size for fix DataBufferLimitException
     private final static int MAX_BUFFER_SIZE = 1024 * 1024 * 50;
 
+    private static final Integer timeout = 15; // sec
     
     @Value("${waplmath.lrs.duplcatefilter}")
     private boolean useDuplicateFilter;
@@ -68,10 +69,10 @@ public class LRSManager implements LRSManagerInterface {
 
         //Create a http timeout handler
         this.httpClient = HttpClient.create()
-                                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                                    .responseTimeout(Duration.ofMillis(5000))
-                                    .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
-                                    .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS)));
+                                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout * 1000)
+                                    .responseTimeout(Duration.ofMillis(timeout * 1000))
+                                    .doOnConnected(conn -> conn.addHandlerLast(new ReadTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS))
+                                    .addHandlerLast(new WriteTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS)));
 
         //Create header
         this.webClient = WebClient.builder()

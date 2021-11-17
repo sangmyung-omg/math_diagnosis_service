@@ -21,6 +21,8 @@ public enum RecommendErrorCode implements ErrorCodeBase {
 
     NUMBER_PARSE_ERROR("0009", "Error while parsing number. "),
 
+    LRS_NO_STATEMENT("0010", "No statement from LRS. "),
+
     SCHEDULE_CONFIGURATOR_ERROR("1000","Schedule configurator returned error. "),
     CARD_GENERATOR_ERROR("1002","Card generator returned error. "),    
     NO_PROBS_ERROR("1003","No problems to generate card. Probably in 2nd semester range. Error card type = "),

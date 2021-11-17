@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.gson.Gson;
+import com.tmax.WaplMath.AnalysisReport.service.part.PartService;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.Common.dto.lrs.LRSStatementResultDTO;
 import com.tmax.WaplMath.Common.exception.UserNotFoundException;
 import com.tmax.WaplMath.Common.exception.UserOrientedException;
@@ -27,15 +30,19 @@ import com.tmax.WaplMath.Common.util.lrs.LRSManager;
 import com.tmax.WaplMath.Common.util.lrs.SourceType;
 import com.tmax.WaplMath.Common.util.redis.RedisIdGenerator;
 import com.tmax.WaplMath.Common.util.redis.RedisUtil;
+import com.tmax.WaplMath.Common.model.redis.RedisObjectData;
 import com.tmax.WaplMath.Recommend.dto.ProblemSolveListDTO;
 import com.tmax.WaplMath.Recommend.dto.ResultMessageDTO;
 import com.tmax.WaplMath.Recommend.dto.mastery.TritonMasteryDTO;
 import com.tmax.WaplMath.Recommend.exception.RecommendException;
 import com.tmax.WaplMath.Recommend.service.mastery.v1.MasteryServiceBaseV1;
+import com.tmax.WaplMath.Recommend.event.mastery.MasteryEventPublisher;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager;
 import com.tmax.WaplMath.Recommend.util.RecommendErrorCode;
 import com.tmax.WaplMath.Recommend.util.UkMasterySimulator;
 import com.tmax.WaplMath.Recommend.util.MasteryAPIManager.TritonModelMode;
+
+import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,6 +63,13 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
 
     @Autowired private TypeKnowledgeRepo typeKnowledgeRepo;
     @Autowired private UserKnowledgeRepo userKnowledgeRepo;
+
+    @Autowired private UserStatisticsServiceBase userStatSvc;
+    @Autowired private PartService partService;
+    
+    //Event publisher
+    @Autowired
+    MasteryEventPublisher masteryEventPublisher;
 
     @Value("${recommend.setting.useSimulatedUkKnowledge}")
     private boolean useSimulatedUkKnowledge;
@@ -138,7 +152,18 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
             userKnowledgeRepo.saveAll(userKnowledgeDbSet);
             log.debug("saved [{}]'s uk knowledge {}", userId, userKnowledgeDbSet.size());
         }
-        
+
+
+        //2021.11.04 - get the part mastery and save to stat table
+        Map<String, Float> partMastery = partService.calculatePartMastery(inferResult.getMastery());
+        userStatSvc.updateCustomUserStat(userId, UserStatisticsServiceBase.STAT_USER_PART_MASTERY_MAP, Statistics.Type.JSON, new Gson().toJson(partMastery));
+
+        //2021.11.12 Propagate update event to inform mastery update
+        masteryEventPublisher.publishChangeEvent(userId);
+
+        //Save redis key -> lifetime = 12hours = 12*60*60sec
+        redisUtil.saveWithExpire(RedisObjectData.builder().id(redisID).data(1).build(), 12*60*60);
+
 
         return new ResultMessageDTO(ResultMessage.SUCCESS.toString());
     }
@@ -161,6 +186,10 @@ public class MasteryServiceV2 implements MasteryServiceBaseV1 {
 
         List<SourceType> sourceTypeList = SourceType.getAllSourceTypes();
         List<LRSStatementResultDTO> resultList =  lrsManager.getStatementList(userID, Arrays.asList(ActionType.SUBMIT), sourceTypeList);
+
+        if(resultList.size() == 0){
+            throw new RecommendException(RecommendErrorCode.LRS_NO_STATEMENT,  "No data found in LRS. check LRS status");
+        }
         
         //Get appropriate probid and correct list
         //filter invalid fields

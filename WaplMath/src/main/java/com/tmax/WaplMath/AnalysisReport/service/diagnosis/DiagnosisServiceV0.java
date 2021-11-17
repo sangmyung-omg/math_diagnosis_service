@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.Statistics;
+import com.tmax.WaplMath.AnalysisReport.service.statistics.score.ScoreServiceV0;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.uk.UKStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.service.statistics.user.UserStatisticsServiceBase;
 import com.tmax.WaplMath.AnalysisReport.util.examscope.ExamScopeUtil;
@@ -134,6 +135,7 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
     @Autowired private ExamScopeUtil examScopeUtil;
     @Autowired private UkRepo ukRepo;
     @Autowired private UKStatisticsServiceBase ukStatSvc;
+    @Autowired private ScoreServiceV0 scoreSvc;
 
     @Override
     public int clearDiagnosisStats(String userID) {
@@ -146,9 +148,12 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
         //If already exists return the existing score
         Statistics diagScoreStat = userStatSvc.getUserStatistics(userID, STAT_DIAGNOSIS_SCORE);
         if(diagScoreStat != null){
-            float score = diagScoreStat.getAsFloat();
-            log.info("Using existing diagnosis score {}: {}", userID, score);
-            return PersonalScoreDTO.builder().score(100*score).percentile(100*getPercentile(userID, (double)score)).build();
+            Float score = diagScoreStat.getAsFloat();
+
+            if(!score.isNaN()){
+                log.info("Using existing diagnosis score {}: {}", userID, score);
+                return PersonalScoreDTO.builder().score(100*score).percentile(100*getPercentile(userID, (double)score)).build();
+            }
         }
 
 
@@ -189,20 +194,27 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
         TritonMasteryDTO result = masteryAPIManager.measureMasteryDTO(userID, apiDatalist.getTypeIdList(), apiDatalist.getCorrList(), apiDatalist.getDiffList(), "", TritonModelMode.TYPE_BASED);
         if(result == null){return null;}
 
-        //Get user's curriculum map
-        List<String> currIdList = examScopeUtil.getCurrIdListOfScope(userID);
-        Set<Integer> ukIdSet = currIdList.stream().flatMap(currID -> ((List<Uk>)ukRepo.findByCurriculumId(currID)).stream() )
-                                         .map(Uk::getUkId).collect(Collectors.toSet());
+        // //Get user's curriculum map
+        // List<String> currIdList = examScopeUtil.getCurrIdListOfScope(userID);
+        // Set<Integer> ukIdSet = currIdList.stream().flatMap(currID -> ((List<Uk>)ukRepo.findByCurriculumId(currID)).stream() )
+        //                                  .map(Uk::getUkId).collect(Collectors.toSet());
         
-        //Get mastery map
+        // //Get mastery map
+        // Map<Integer, Float> masteryMap = result.getMastery();
+        // if(masteryMap == null){return null;}
+
+        // //From map, filter only uk in set (examscope range)
+        // List<Double> filteredMastery = masteryMap.entrySet().stream().filter(entry -> ukIdSet.contains(entry.getKey()) ).map(entry -> (double)entry.getValue()).collect(Collectors.toList());
+        
+
+        // //Calc score and save to stat
+        // Double diagScore = filteredMastery.stream().reduce(0.0, Double::sum) / filteredMastery.size();
+        // userStatSvc.updateCustomUserStat(userID, STAT_DIAGNOSIS_SCORE, Statistics.Type.FLOAT, diagScore.toString());
+
+        //2021-11-05 remove curriculum filter. use all mastery
         Map<Integer, Float> masteryMap = result.getMastery();
         if(masteryMap == null){return null;}
-
-        //From map, filter only uk in set (examscope range)
-        List<Double> filteredMastery = masteryMap.entrySet().stream().filter(entry -> ukIdSet.contains(entry.getKey()) ).map(entry -> (double)entry.getValue()).collect(Collectors.toList());
-        
-
-        //Calc score and save to stat
+        List<Double> filteredMastery = masteryMap.entrySet().stream().map(entry -> (double)entry.getValue()).collect(Collectors.toList());
         Double diagScore = filteredMastery.stream().reduce(0.0, Double::sum) / filteredMastery.size();
         userStatSvc.updateCustomUserStat(userID, STAT_DIAGNOSIS_SCORE, Statistics.Type.FLOAT, diagScore.toString());
 
@@ -216,7 +228,10 @@ public class DiagnosisServiceV0 implements DiagnosisServiceBase{
         //If null. generate new one. TODO --> create a service that does this by user exam scope change event
         List<Float> masteryList = null;
         try {  masteryList = examscoreLUT.getAsFloatList(); }
-        catch(Throwable e){log.error("Examscope LUT cannot be converted to float." + userID + examscoreLUT.toString()); return null;}
+        catch(Throwable e){
+            log.error("Examscope LUT cannot be converted to float." + userID + ". Generating new lut");
+            masteryList = scoreSvc.generatePercentileLUT(userID);
+        }
         
         return ukStatSvc.getPercentile(score.floatValue(), masteryList);
     }

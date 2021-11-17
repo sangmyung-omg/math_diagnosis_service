@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.tmax.WaplMath.AnalysisReport.dto.report.ReportDataV2DTO;
+import com.tmax.WaplMath.AnalysisReport.dto.report.UserPartMastery;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.GlobalStatisticDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.statistics.PersonalScoreDTO;
 import com.tmax.WaplMath.AnalysisReport.dto.type.TypeSimpleDTO;
@@ -53,13 +54,7 @@ public class ReportServiceV1 implements ReportServiceBaseV1 {
         GlobalStatisticDTO stats = excludeSet.contains("stats") ? null :  scoreSvc.getScoreStats(userID, excludeSet, 100);
 
 
-        //Build type stat info
-        //1) get type knowledge list from service and collect all type Ids
-        List<TypeKnowledgeScoreDTO> knowledges = typeKnowledgeSvc.getAllOfUserSorted(userID, limit, !topfirst, excludeSet);
-        Set<Integer> typeIdSet = knowledges.stream().map(TypeKnowledgeScoreDTO::getTypeID).collect(Collectors.toSet());
-        Map<Integer, ProblemType> typeInfoMap = ((List<ProblemType>)problemTypeRepo.findAllById(typeIdSet) ).stream()
-                                                    .collect(Collectors.toMap(ProblemType::getTypeId, p -> p));
-
+        //2021.11.15 Added by sangheon lee. Return types that have wapl score. Switch sequence
         //2) Get the waplscore mastery map from the stat table
         Map<Integer, Float> rawWaplScoreMastery = new HashMap<>();
         Optional<Statistics> optionalStat = Optional.ofNullable(userStatSvc.getUserStatistics(userID, WaplScoreServiceBaseV0.STAT_WAPL_SCORE_MASTERY_TYPE_BASED));
@@ -73,6 +68,21 @@ public class ReportServiceV1 implements ReportServiceBaseV1 {
         else {
             log.warn("No mastery found for waplscore type {}", userID);
         }
+
+
+        //2021.11.15 Added by sangheon lee. Return types that have wapl score
+        Set<Integer> candidateTypes = rawWaplScoreMastery.keySet();
+
+        
+        //2021.11.15 Added by sangheon lee. Return types that have wapl score. Switch sequence
+        //Build type stat info
+        //1) get type knowledge list from service and collect all type Ids
+        List<TypeKnowledgeScoreDTO> knowledges = typeKnowledgeSvc.getAllOfUserSorted(userID, limit, !topfirst, excludeSet, candidateTypes);
+        Set<Integer> typeIdSet = knowledges.stream().map(TypeKnowledgeScoreDTO::getTypeID).collect(Collectors.toSet());
+        Map<Integer, ProblemType> typeInfoMap = ((List<ProblemType>)problemTypeRepo.findAllById(typeIdSet) ).stream()
+                                                    .collect(Collectors.toMap(ProblemType::getTypeId, p -> p));
+
+        
         //Filter only the typeIds in the set
         Map<Integer, Float> waplscoreMasteryMap = rawWaplScoreMastery.entrySet().stream()
                                                  .parallel()
@@ -137,13 +147,39 @@ public class ReportServiceV1 implements ReportServiceBaseV1 {
                                                 .collect(Collectors.toList());
 
 
-        
+
+        // Get part mastery from stat table
+        Map<String, Float> partMasteryMap = null;
+        Optional<Statistics>  partMasteryStatOpt = userStatSvc.getUserStatisticsOpt(userID, UserStatisticsServiceBase.STAT_USER_PART_MASTERY_MAP);
+        if(partMasteryStatOpt.isPresent()){
+            String partMastery = partMasteryStatOpt.get().getData();
+            Type type = new TypeToken<Map<String, Float>>(){}.getType();
+            partMasteryMap = new Gson().fromJson(partMastery, type);
+
+            //multiply 100 to each float value. mastery -> score
+            partMasteryMap = partMasteryMap.entrySet().stream()
+                                           .collect(Collectors.toMap(entry -> entry.getKey(), entry -> 100*entry.getValue()));
+        }
+
+        Map<String, Float> waplPartMasteryMap = null;
+        Optional<Statistics>  waplPartMasteryStatOpt = userStatSvc.getUserStatisticsOpt(userID, WaplScoreServiceBaseV0.STAT_WAPL_SCORE_PART_MASTERY);
+        if(waplPartMasteryStatOpt.isPresent()){
+            String partMastery = waplPartMasteryStatOpt.get().getData();
+            Type type = new TypeToken<Map<String, Float>>(){}.getType();
+            waplPartMasteryMap = new Gson().fromJson(partMastery, type);
+
+            //multiply 100 to each float value. mastery -> score
+            waplPartMasteryMap = waplPartMasteryMap.entrySet().stream()
+                                           .collect(Collectors.toMap(entry -> entry.getKey(), entry -> 100*entry.getValue()));
+        }
+
         return ReportDataV2DTO.builder()
                                 .score(score)
                                 .waplscore(waplscore)
                                 .targetscore(targetscore)
                                 .stats(stats)
                                 .typeDataList(typeDataList)
+                                .partMastery(UserPartMastery.builder().score(partMasteryMap).waplScore(waplPartMasteryMap).build())
                                 .build();
     }
 }

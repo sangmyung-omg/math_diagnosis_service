@@ -10,6 +10,7 @@ public interface TypeStatisticsServiceBase {
      * Update all type related statistics of all users
      */
     public int updateAllStatistics();
+    public boolean updateStatistics(boolean isForced);
 
     public Statistics getTypeStatistics(Integer typeID, String statname);
 

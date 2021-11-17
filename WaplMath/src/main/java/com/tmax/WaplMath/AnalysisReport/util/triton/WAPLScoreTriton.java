@@ -52,14 +52,16 @@ public class WAPLScoreTriton {
     @Value("${triton.waplscore.ukbased.host}")
     private String tritonURL;
 
+    private static final Integer timeout = 30; // sec
+
     private TritonResponseDTO callTritonInference(String bodyPayload){
         //Create a http timeout handler
 		HttpClient httpClient = HttpClient.create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-            .responseTimeout(Duration.ofMillis(5000))
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, timeout * 1000)
+            .responseTimeout(Duration.ofMillis(timeout * 1000))
             .doOnConnected(conn ->
-                conn.addHandlerLast(new ReadTimeoutHandler(5000, TimeUnit.MILLISECONDS))
-                    .addHandlerLast(new WriteTimeoutHandler(5000, TimeUnit.MILLISECONDS))
+                conn.addHandlerLast(new ReadTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS))
+                    .addHandlerLast(new WriteTimeoutHandler(timeout * 1000, TimeUnit.MILLISECONDS))
             );
 
         //Create header

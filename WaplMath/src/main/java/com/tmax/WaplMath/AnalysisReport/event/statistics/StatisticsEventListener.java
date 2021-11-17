@@ -101,6 +101,13 @@ public class StatisticsEventListener {
             log.info("Updating All user stats");
             userStatSvc.updateAllUsers();     
         }
+
+        //Type stat listener
+        boolean resultTypeEmpty = typeStatSvc.updateStatistics(false);
+        if(resultTypeEmpty){
+            log.info("Updating type stats");
+            typeStatSvc.updateAllStatistics();
+        }
         
         log.info("Statistics module ready");
     }
